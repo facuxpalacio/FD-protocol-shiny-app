@@ -10,7 +10,7 @@ ui <- fluidPage(
              
              tabPanel(icon("home"), 
                       
-             p("Through this application, it is intended to provide students and researchers a 
+             p("This application is intended to provide students and researchers with 
              a checklist to maximize methods' reproducibility, comparability, and transparency across 
              trait-based studies. For further details, see: "),
              uiOutput("tab"), 
@@ -22,7 +22,7 @@ ui <- fluidPage(
                                predictions.",
                                style = "background-color:lightblue; border-radius:5px"),
                       checkboxGroupInput("step1", "Identify an appropriate research question",
-                              choices = c("Which is your research question?",
+                              choices = c("What is your research question?",
                                           "Indicate your main hypotheses and predictions"))),
              
              
@@ -32,8 +32,8 @@ ui <- fluidPage(
                                species, communities) selected to answer the research question.",
                                style = "background-color:lightblue; border-radius:5px"),
                       checkboxGroupInput("step2", "Identify an appropriate experimental or sampling design",
-                              choices = c("Which is your scale(s) of analysis?",
-                                          "Which is your ecological unit target?",
+                              choices = c("What is(are) your scale(s) of analysis?",
+                                          "What is your target ecological unit?",
                                           "Did you perform a power analysis?",
                                           "Did you preregister?"))),
              tabPanel("Step 3",
@@ -43,10 +43,10 @@ ui <- fluidPage(
                                style = "background-color:lightblue; border-radius:5px"),
                       checkboxGroupInput("step3", "Assemble a community data matrix",
                                          choices = c("Indicate the focal taxon/taxa",
-                                                     "Which is the taxonomic resolution?",
+                                                     "What is your taxonomic resolution?",
                                                      "Indicate the number of taxa",
                                                      "Report sampling effort",
-                                                     "Indicate the number sampling units",
+                                                     "Indicate the number of sampling units",
                                                      "Indicate the occurrence data type"))),
              
              tabPanel("Step 4",
@@ -59,7 +59,7 @@ ui <- fluidPage(
                                                      "Report the sample sizes per species and trait",
                                                      "Are traits response or effect traits?",
                                                      "Are traits soft or hard traits?",
-                                                     "Which are the ecological meaning of your traits?",
+                                                     "Which is the ecological meaning of your traits?",
                                                      "Did you account for intraspecific trait variation?",
                                                      "Indicate the data sources"))),
              
