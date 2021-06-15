@@ -2,6 +2,8 @@ library(shiny)
 library(shinythemes)
 library(ggplot2)
 library(shinyjs)
+library(pheatmap)
+library(vegan)
 ##we should add package and R versions here##
 
 ui <- fluidPage(
@@ -45,30 +47,95 @@ ui <- fluidPage(
             
               tabPanel("Step 3",
                       withMathJax(),
-                      helpText("Collect occurrence data and build a matrix of", em("S"),
-                               "sampling units \\(\\times\\)", em("N"), "taxa.",
-                               style = "background-color:lightblue; border-radius:5px"),
-                      div(id="step3", "Assemble a community data matrix"),
-                                         textInput('foc',"Indicate the focal taxon/taxa"),
-                                                    textInput('reso', "What is your taxonomic resolution?"),
-                                                    textInput('ntax', "Indicate the number of taxa"),
-                                                    textInput('s_eff', "Report sampling effort"),
-                                                    textInput('s_units', "Indicate the number of sampling units"),
-                                                     selectInput('dtyp',"Indicate the occurrence data type", choices=c("Presence-only","Presence-background", "Presence-Absence", "Abundance", "Other"))),###EJH others to add?
+                       sidebarLayout(
+                        sidebarPanel(
+                          helpText("Collect occurrence data and build a matrix of", em("S"),
+                                   "sampling units \\(\\times\\)", em("N"), "taxa.",
+                                   style = "background-color:lightblue; border-radius:5px"),
+                          div(id="step3", "Assemble a community data matrix"),
+                          textInput('foc',"Indicate the focal taxon/taxa"),
+                          textInput('reso', "What is your taxonomic resolution?"),
+                          textInput('ntax', "Indicate the number of taxa"),
+                          textInput('s_eff', "Report sampling effort"),
+                          textInput('s_units', "Indicate the number of sampling units"),
+                          selectInput('dtyp',"Indicate the occurrence data type", 
+                                      choices=c("Presence-only","Presence-background", "Presence-absence", "Abundance", "Biomass", "Percent cover"))),
+                         
+                         mainPanel(
+                          # Input: Load your community data
+                          fileInput("community_dataset", 
+                                    "Load your community data",
+                                    accept = c("text/csv", 
+                                               "text/comma-separated-values,text/plain", 
+                                               ".csv")),
+                          
+                          # Input: Checkbox if file has header
+                          checkboxInput("header1", "Header", TRUE),
+                          
+                          # Input: Select separator
+                          radioButtons("sep1", "Separator",
+                                       c(Comma = ",",
+                                         Semicolon = ";",
+                                         Tab = "\t"),
+                                       ","),
+                          br(),
+                          
+                          # Output: community dataset (antes tableOutput)
+                          textOutput("nrow_community"),
+                          textOutput("ncol_community"),
+                          
+                          br(),
+                          br(),
+                          
+                          dataTableOutput("community_table"))),
+                      
+             ),
              
              tabPanel("Step 4",
-                      helpText("Collect functional trait data and build a matrix of", em("N"), 
-                               "taxa \\(\\times\\)", em("p"), "traits.",
-                               style = "background-color:lightblue; border-radius:5px"),
-                      checkboxGroupInput("step4", "Assemble a trait data matrix",
-                                         choices = c("Indicate the number of traits",
-                                                     "Indicate the trait data type",
-                                                     "Report the sample sizes per species and trait",
-                                                     "Are traits response or effect traits?",
-                                                     "Are traits soft or hard traits?",
-                                                     "Which is the ecological meaning of your traits?",
-                                                     "Did you account for intraspecific trait variation?",
-                                                     "Indicate the data sources"))),
+                      sidebarLayout( 
+                        sidebarPanel(
+                          helpText("Collect functional trait data and build a matrix of", em("N"), 
+                                   "taxa \\(\\times\\)", em("p"), "traits.",
+                                   style = "background-color:lightblue; border-radius:5px"),
+                          checkboxGroupInput("step4", "Assemble a trait data matrix",
+                                             choices = c("Indicate the number of traits",
+                                             "Indicate the trait data type",
+                                             "Report the sample sizes per species and trait",
+                                             "Are traits response or effect traits?",
+                                             "Are traits soft or hard traits?",
+                                             "Which is the ecological meaning of your traits?",
+                                             "Did you account for intraspecific trait variation?",
+                                             "Indicate the data sources"))),
+                        
+                        mainPanel(
+                          # Input: Load your trait data
+                          fileInput("trait_dataset", 
+                                    "Load your trait data",
+                                    accept = c("text/csv", 
+                                               "text/comma-separated-values,text/plain", 
+                                               ".csv")),
+                          
+                          # Input: Checkbox if file has header
+                          checkboxInput("header2", "Header", TRUE),
+                          
+                          # Input: Select separator
+                          radioButtons("sep2", "Separator",
+                                       c(Comma = ",",
+                                         Semicolon = ";",
+                                         Tab = "\t"),
+                                       ","),
+                          
+                          br(),
+                          
+                          # Output: trait dataset (antes tableOutput)
+                          textOutput("nrow_traits"),
+                          textOutput("ncol_traits"),
+                          
+                          br(),
+                          br(),
+                          
+                          dataTableOutput("trait_table"))),
+                      ),
              
              tabPanel("Step 5",
                       sidebarLayout( 
@@ -86,31 +153,34 @@ ui <- fluidPage(
                         ),
                         
                         mainPanel(
-                          tabsetPanel(
-                            tabPanel("Dataset",
-                                     # Input: Load your own data
-                                     fileInput("dataset", 
-                                               "Load your community or trait data",
-                                               accept = c("text/csv", 
-                                                          "text/comma-separated-values,text/plain", 
-                                                          ".csv")),
-                                     
-                                     # Input: Checkbox if file has header
-                                     checkboxInput("header", "Header", TRUE),
-                                     
-                                     # Input: Select separator
-                                     radioButtons("sep", "Separator",
-                                                  c(Comma = ",",
-                                                    Semicolon = ";",
-                                                    Tab = "\t"),
-                                                  ","),
-                                     
-                                     # Output: Dataset
-                                     tableOutput("trait_table")),
+                          tabsetPanel(                            
+                            tabPanel("Data summary", 
+                                     # Ouput: Data summaries
+                                    h4("Community data", style="color:blue"),
+                                     verbatimTextOutput("summary_community"),
+                                    h4("Trait data", style="color:blue"),
+                                     verbatimTextOutput("summary_trait")
+                            ),
                             
-                            tabPanel("Summary", 
-                                     # Ouput: Data summary
-                                     verbatimTextOutput("summary")),
+                            tabPanel("Community data",
+                                     h4("Heatmap", style = "color:blue"),
+                                     checkboxInput("LogX", "Log-transform occurrences", value = FALSE),
+                                     # Output: heatmap
+                                     plotOutput("heatmap_community"),
+                                     # Output: rarefaction curves
+                                     h4("Rarefaction curves", style = "color:blue"),
+                                     plotOutput("rarefaction_curves"),
+                                     # Output: histograms
+                                     h4("Histograms", style = "color:blue"),
+                                     sliderInput("bins",
+                                                 "Number of bins:",
+                                                 min = 5, max = 20, value = 10),
+                                     fluidRow(
+                                       column(6,
+                                              plotOutput("richness")),
+                                     column(6,
+                                            plotOutput("prevalence"))
+                                     )),
                             
                             tabPanel("Trait plot",
                                      # Input: Select trait to plot
@@ -167,7 +237,6 @@ ui <- fluidPage(
                                style = "background-color:lightblue; border-radius:5px"),
                       checkboxGroupInput("step7", "Interpret and validate the results",
                                          choices = c("Select an appropriate statistical model or test to answer your research question",
-
                                                      "Report effect sizes, model support and uncertainty",
                                                      "Provide a graphical output if needed",
                                                      "Did you validate your model and how?"))),
@@ -220,11 +289,18 @@ server <- function(input, output, session) {
     toDisplay()
   })
   
+  community_dataset <- reactive({
+    req(input$community_dataset) # require data
+    inFile <- input$community_dataset
+    df <- read.csv(inFile$datapath, header = input$header1, sep = input$sep1)
+    return(df)
+  })
+  
   # Update traits based on data
-  dataset <- reactive({
-    req(input$dataset) # require data
-    inFile <- input$dataset
-    df <- read.csv(inFile$datapath, header = input$header, sep = input$sep)
+  trait_dataset <- reactive({
+    req(input$trait_dataset) # require data
+    inFile <- input$trait_dataset
+    df <- read.csv(inFile$datapath, header = input$header2, sep = input$sep2)
     updateSelectInput(session, inputId = "trait", choices = colnames(df), 
                       selected = "")
     updateSelectInput(session, inputId = "species", choices = c(" ", colnames(df)), 
@@ -232,14 +308,80 @@ server <- function(input, output, session) {
     return(df)
   })
   
-  # tab "Dataset": Generate data table
-  output$trait_table <- renderTable({
-    dataset()
-  })
+  # View data tables
+  output$community_table <- renderDataTable(community_dataset(),
+                                            options = list(pageLength = 10)) # antes renderTable
+  
+  output$trait_table <- renderDataTable(trait_dataset(),
+                                        options = list(pageLength = 10)) # antes renderTable
   
   # tab "Summary": Create a summary of the data 
-  output$summary <- renderPrint({
-    summary(dataset())
+  output$summary_community <- renderPrint(summary(community_dataset()))
+  
+  output$summary_trait <- renderPrint(summary(trait_dataset()))
+  
+  output$nrow_community <- renderText({
+    paste0("Number of sampling units = ", nrow(community_dataset()))
+  })
+  
+  output$ncol_community <- renderText({
+    paste0("Number of species = ", ncol(community_dataset()))
+  })
+  
+  output$nrow_traits <- renderText({
+    paste0("Number of species/individuals = ", nrow(trait_dataset()))
+  })
+  
+  output$ncol_traits <- renderText({
+    paste0("Number of traits = ", ncol(trait_dataset()))
+  })
+  
+  # tab "Community data": Heatmap, rarefaction curves and histograms###
+  output$heatmap_community <- renderPlot({
+    if(input$LogX == TRUE){
+    pheatmap(log(community_dataset() + 1))
+    } else {
+      pheatmap(community_dataset())
+      }
+    })
+  
+  output$rarefaction_curves <- renderPlot({
+    raref.curve <- rarecurve(community_dataset())
+    names(raref.curve) <- paste("site", 1:nrow(community_dataset()), 
+                                sep = "")
+    
+    list.long <- mapply(FUN = function(x, y) {
+      mydf <- as.data.frame(x)
+      colnames(mydf) <- "value"
+      mydf$site <- y
+      mydf$subsample <- attr(x, "Subsample")
+      mydf
+    }, x = raref.curve, y = as.list(names(raref.curve)), SIMPLIFY = FALSE)
+    
+    xy <- do.call(rbind, list.long)
+    
+    ggplot(xy, aes(x = subsample, y = value, color = site)) +
+      theme_bw() +
+      scale_color_discrete() +
+      geom_line(size = 0.8) +
+      xlab("Sample size") + ylab("Species richness")
+  })
+  
+  output$richness <- renderPlot({
+    nspp <- data.frame(richness = rowSums(community_dataset()))
+    ggplot(data = nspp, aes(x = richness)) + 
+      geom_histogram(color = "black", fill = "white", bins = input$bins) +
+      xlab("Species richness") + ylab("Frequency")
+  })
+  
+  output$prevalence <- renderPlot({
+    PA.comm <- 1*(community_dataset()>0)
+    nsites <- nrow(PA.comm)
+    abundance <- colSums(PA.comm)
+    prev <- data.frame(prevalence = abundance/nsites)
+    ggplot(data = prev, aes(x = prevalence)) + 
+      geom_histogram(color = "black", fill = "white", bins = input$bins) + 
+      xlab("Prevalence") + ylab("Frequency")
   })
   
   # tab "Trait plot": Plot univariate graphs
@@ -251,8 +393,8 @@ server <- function(input, output, session) {
   })
   
   output$trait_plot <- renderPlot({
-    sp <- dataset()[, input$species]
-    tr <- dataset()[, input$trait]
+    sp <- trait_dataset()[, input$species]
+    tr <- trait_dataset()[, input$trait]
     
     if(is.null(sp)){ 
       plot.type <- switch(input$plot.type,
@@ -261,7 +403,7 @@ server <- function(input, output, session) {
                           "density" = geom_density(fill = "blue", alpha = 0.5, 
                                                    col = "blue"),
                           "boxplot" = geom_boxplot())
-      ggplot(dataset(), aes(x = tr)) + plot.type
+      ggplot(trait_dataset(), aes(x = tr)) + plot.type
       
     } else {
       
@@ -272,11 +414,11 @@ server <- function(input, output, session) {
       
       if(input$plot.type == "boxplot"){
         
-        ggplot(dataset(), aes(x = sp, y = tr)) + plot.type
+        ggplot(trait_dataset(), aes(x = sp, y = tr)) + plot.type
         
       } else {
         
-        ggplot(dataset(), aes(x = tr, group = sp, fill = sp)) + plot.type
+        ggplot(trait_dataset(), aes(x = tr, group = sp, fill = sp)) + plot.type
       }
     }
     
@@ -285,7 +427,7 @@ server <- function(input, output, session) {
   # tab "Collinearity": Plot scatterplots and generate correlation matrix
   # Identify only numeric variables
   numericColumns <- reactive({
-    df <- dataset()
+    df <- trait_dataset()
     colnames(df)[sapply(df, is.numeric)]
   })
   
@@ -297,7 +439,7 @@ server <- function(input, output, session) {
   
   # Print correlation matrix
   output$correlation_matrix <- renderTable({
-    cor(dataset()[, input$traits_xy])
+    cor(trait_dataset()[, input$traits_xy])
   })
   
   formData <- reactive({
