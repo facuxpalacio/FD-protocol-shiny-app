@@ -1,6 +1,7 @@
 library(shiny) 
 library(shinythemes)
 library(ggplot2)
+library(GGally)
 library(shinyjs)
 library(pheatmap)
 library(vegan)
@@ -16,8 +17,8 @@ ui <- fluidPage(
              tabPanel(icon("home"), 
                       
                       p("This application is intended to provide students and researchers with 
-             a checklist to maximize methods' reproducibility, comparability, and transparency across 
-             trait-based studies. For further details, see: "),
+                        a checklist to maximize methods' reproducibility, comparability, and transparency across 
+                        trait-based studies. For further details, see: "),
                       uiOutput("tab"), 
                       style = "background-color:lightblue; border-radius:5px"),
              
@@ -29,7 +30,7 @@ ui <- fluidPage(
                       radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
                                    choices = c("My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?","My work is open-ended e.g. How do abiotic variables shape leaf morphology?")),     
                       fluidRow(
-                        column(6,conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
+                        column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
                       fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended e.g. How do abiotic variables shape leaf morphology?"]',
                                                           textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))),
              
@@ -40,10 +41,10 @@ ui <- fluidPage(
                                species, communities) selected to answer the research question.",
                                style = "background-color:lightblue; border-radius:5px"),
                       div(id="step2", "Identify an appropriate experimental or sampling design"),
-                                        textInput('scale',"What is(are) your scale(s) of analysis?"),
-                      textInput('unit',"What is your target ecological unit?"),
-                      radioButtons('pow', "Did you perform a power analysis?",choices=c("Yes", "No")),
-                                   radioButtons('prer', "Did you preregister?",choices=c("Yes", "No"))),
+                                        textInput("scale","What is(are) your scale(s) of analysis?"),
+                      textInput("unit","What is your target ecological unit?"),
+                      radioButtons("pow", "Did you perform a power analysis?",choices=c("Yes", "No")),
+                                   radioButtons("prer", "Did you preregister?",choices=c("Yes", "No"))),
             
               tabPanel("Step 3",
                       withMathJax(),
@@ -53,12 +54,12 @@ ui <- fluidPage(
                                    "sampling units \\(\\times\\)", em("N"), "taxa.",
                                    style = "background-color:lightblue; border-radius:5px"),
                           div(id="step3", "Assemble a community data matrix"),
-                          textInput('foc',"Indicate the focal taxon/taxa"),
-                          textInput('reso', "What is your taxonomic resolution?"),
-                          textInput('ntax', "Indicate the number of taxa"),
-                          textInput('s_eff', "Report sampling effort"),
-                          textInput('s_units', "Indicate the number of sampling units"),
-                          selectInput('dtyp',"Indicate the occurrence data type", 
+                          textInput("foc","Indicate the focal taxon/taxa"),
+                          textInput("reso", "What is your taxonomic resolution?"),
+                          textInput("ntax", "Indicate the number of taxa"),
+                          textInput("s_eff", "Report sampling effort"),
+                          textInput("s_units", "Indicate the number of sampling units"),
+                          selectInput("dtyp","Indicate the occurrence data type", 
                                       choices=c("Presence-only","Presence-background", "Presence-absence", "Abundance", "Biomass", "Percent cover"))),
                          
                          mainPanel(
@@ -183,7 +184,7 @@ ui <- fluidPage(
                                      )),
                             
                             tabPanel("Trait plot",
-                                     # Input: Select trait to plot
+                                     # Input: Select traits to plot
                                      selectInput("trait", 
                                                  label = "Select a functional trait",
                                                  choices = NULL),
@@ -205,20 +206,21 @@ ui <- fluidPage(
                                      plotOutput("trait_plot")),
                             
                             tabPanel("Collinearity",
-                                     # Input: Select two traits to plot
+                                     # Input: Select traits to plot
                                      checkboxGroupInput("traits_xy", 
                                                         label = "Select two or more 
-                                             functional traits",
-                                                        choices = NULL),
+                                                        functional traits",
+                                                        choices = NULL, inline = TRUE),
                                      
                                      # Output: scatterplots
-                                     plotOutput("scatterplots"),
-                                     
-                                     # Output: correlation matrix
-                                     tableOutput("correlation_matrix"))
+                                     plotOutput("scatterplots")),
                             
-                            #tabPanel("Missing data",
-                            # )
+                            tabPanel("Missing data",
+                                     # Input: Select traits with missing data
+                                     checkboxGroupInput("traits_na",
+                                                        label = "You have the following traits with missing data",
+                                                        choices = NULL)
+                            )
                             
                           )))),
              
@@ -329,14 +331,14 @@ server <- function(input, output, session) {
   })
   
   output$nrow_traits <- renderText({
-    paste0("Number of species/individuals = ", nrow(trait_dataset()))
+    paste0("Number of species or individuals = ", nrow(trait_dataset()))
   })
   
   output$ncol_traits <- renderText({
     paste0("Number of traits = ", ncol(trait_dataset()))
   })
   
-  # tab "Community data": Heatmap, rarefaction curves and histograms###
+  # tab "Community data": Heatmap, rarefaction curves and histograms
   output$heatmap_community <- renderPlot({
     if(input$LogX == TRUE){
     pheatmap(log(community_dataset() + 1))
@@ -437,9 +439,29 @@ server <- function(input, output, session) {
                              choices = numericColumns())
   })
   
-  # Print correlation matrix
-  output$correlation_matrix <- renderTable({
-    cor(trait_dataset()[, input$traits_xy])
+  # Identify variables with missing values
+  NAcolumns <- reactive({
+    df <- trait_dataset()
+    colnames(df)[colSums(is.na(df)) > 0]
+  })
+  
+  # Update variable selection
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_na", 
+                             choices = NAcolumns())
+  })
+  
+  # Print scatterplot matrix + correlations
+  output$scatterplots <- renderPlot({
+    my_fn <- function(data, mapping, ...){
+      p <- ggplot(data = trait_dataset(), mapping = mapping) + 
+        geom_point(alpha = 0.5, size = 2) + 
+        geom_smooth(method = loess, fill = "blue", color = "blue", ...)
+      p
+    }
+    
+    ggpairs(trait_dataset()[, input$traits_xy], 
+            lower = list(continuous = my_fn))
   })
   
   formData <- reactive({
