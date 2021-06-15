@@ -451,6 +451,7 @@ server <- function(input, output, session) {
                              choices = NAcolumns())
   })
   
+  
   # Print scatterplot matrix + correlations
   output$scatterplots <- renderPlot({
     my_fn <- function(data, mapping, ...){
