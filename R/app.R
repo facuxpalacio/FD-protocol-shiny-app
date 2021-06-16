@@ -1,11 +1,14 @@
-library(shiny) 
-library(shinythemes)
-library(ggplot2)
-library(GGally)
-library(shinyjs)
-library(pheatmap)
-library(vegan)
+library(shiny) #1.6.0
+library(shinythemes) #1.2.0
+library(ggplot2) #3.3.2
+library(GGally) # 2.0.0
+library(ggdendro) # 0.1.22
+library(shinyjs) #2.0.0
+library(pheatmap) #1.0.12
+library(vegan) #2.5-6
+library(BAT) #2.6.0
 ##we should add package and R versions here##
+## R version 4.0.2
 
 ui <- fluidPage(
   shinyjs::useShinyjs(),
@@ -43,8 +46,8 @@ ui <- fluidPage(
                       div(id="step2", "Identify an appropriate experimental or sampling design"),
                                         textInput("scale","What is(are) your scale(s) of analysis?"),
                       textInput("unit","What is your target ecological unit?"),
-                      radioButtons("pow", "Did you perform a power analysis?",choices=c("Yes", "No")),
-                                   radioButtons("prer", "Did you preregister?",choices=c("Yes", "No"))),
+                      radioButtons("pow", "Did you perform a power analysis?", choices=c("Yes", "No")),
+                                   radioButtons("prer", "Did you preregister?", choices=c("Yes", "No"))),
             
               tabPanel("Step 3",
                       withMathJax(),
@@ -207,7 +210,7 @@ ui <- fluidPage(
                             
                             tabPanel("Collinearity",
                                      # Input: Select traits to plot
-                                     checkboxGroupInput("traits_xy", 
+                                     checkboxGroupInput("traits_xy1", 
                                                         label = "Select two or more 
                                                         functional traits",
                                                         choices = NULL, inline = TRUE),
@@ -225,6 +228,8 @@ ui <- fluidPage(
                           )))),
              
              tabPanel("Step 6",
+                      sidebarLayout( 
+                        sidebarPanel(
                       helpText("Now you can compute functional diversity metrics!",
                                style = "background-color:lightblue; border-radius:5px"),
                       checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
@@ -232,8 +237,46 @@ ui <- fluidPage(
                                                      "Did you subset your trait data?",
                                                      "Select the appropriate method based on the research question",
                                                      "Select the appropriate functional diversity metric",
-                                                     "Identify the level of functional diversity metric measurement"))),
-             
+                                                     "Identify the level of functional diversity metric measurement")),
+                      
+                      ),
+                      
+                      mainPanel(
+                        tabsetPanel(                            
+                          tabPanel("Richness",
+                                   # Input: Select traits to plot
+                                   checkboxGroupInput("traits_xy2", 
+                                                      label = "Select two or more 
+                                                        functional traits",
+                                                      choices = NULL, inline = TRUE),
+                                   
+                                   # Ouput: dendrogram
+                                   radioButtons("dist.metric",
+                                                label = "Dissimilarity metric",
+                                                choices = c("Euclidean" = "euclidean", 
+                                                "Manhattan" = "manhattan", 
+                                                "Gower" = "gower", 
+                                                "Mahalanobis" = "mahalanobis")),
+                                   radioButtons("cluster.method",
+                                                label = "Clustering method",
+                                                choices = c("Single" = "single", 
+                                                "Complete" = "complete",
+                                                "Average" = "average",
+                                                "Ward" = "ward.D2")),
+                                   
+                                   plotOutput("dendrogram")
+                          ),
+                          
+                          tabPanel("Evenness",
+                                   
+                                   ),
+                          
+                          tabPanel("Regularity",
+                                   
+                                   ))))
+                      
+                      ),
+                                   
              tabPanel("Step 7",
                       helpText("Fit, interpret, report and validate your statistical model.",
                                style = "background-color:lightblue; border-radius:5px"),
@@ -317,7 +360,7 @@ server <- function(input, output, session) {
   output$trait_table <- renderDataTable(trait_dataset(),
                                         options = list(pageLength = 10)) # antes renderTable
   
-  # tab "Summary": Create a summary of the data 
+  # Tab "Summary": Create a summary of the data 
   output$summary_community <- renderPrint(summary(community_dataset()))
   
   output$summary_trait <- renderPrint(summary(trait_dataset()))
@@ -338,7 +381,7 @@ server <- function(input, output, session) {
     paste0("Number of traits = ", ncol(trait_dataset()))
   })
   
-  # tab "Community data": Heatmap, rarefaction curves and histograms
+  # Tab "Community data": Heatmap, rarefaction curves and histograms
   output$heatmap_community <- renderPlot({
     if(input$LogX == TRUE){
     pheatmap(log(community_dataset() + 1))
@@ -386,7 +429,7 @@ server <- function(input, output, session) {
       xlab("Prevalence") + ylab("Frequency")
   })
   
-  # tab "Trait plot": Plot univariate graphs
+  # Tab "Trait plot": Plot univariate graphs
   output$caption <- renderText({
     switch(input$plot.type,
            "boxplot" = "Boxplot",
@@ -426,7 +469,7 @@ server <- function(input, output, session) {
     
   })
   
-  # tab "Collinearity": Plot scatterplots and generate correlation matrix
+  # Tab "Collinearity": Plot scatterplots and generate correlation matrix
   # Identify only numeric variables
   numericColumns <- reactive({
     df <- trait_dataset()
@@ -435,7 +478,7 @@ server <- function(input, output, session) {
   
   # Update variable selection
   observe({
-    updateCheckboxGroupInput(session, inputId = "traits_xy", 
+    updateCheckboxGroupInput(session, inputId = "traits_xy1", 
                              choices = numericColumns())
   })
   
@@ -461,9 +504,26 @@ server <- function(input, output, session) {
       p
     }
     
-    ggpairs(trait_dataset()[, input$traits_xy], 
+    ggpairs(trait_dataset()[, input$traits_xy1], 
             lower = list(continuous = my_fn))
   })
+  
+  ### Tab "Richness": plot functional dendrogram
+  # Update variable selection
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_xy2", 
+                             choices = numericColumns())
+  })
+  
+  output$dendrogram <- renderPlot({
+    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy2], 
+                           method = input$dist.metric)
+    cluster <- hclust(dist.matrix, method = input$cluster.method)
+    ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
+  })
+  
+  
+  
   
   formData <- reactive({
     data <- sapply(fieldsAll, function(x) input[[x]])
