@@ -7,8 +7,6 @@ library(shinyjs) #2.0.0
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
 library(BAT) #2.6.0
-##we should add package and R versions here##
-## R version 4.0.2
 
 ui <- fluidPage(
   shinyjs::useShinyjs(),
@@ -182,8 +180,8 @@ ui <- fluidPage(
                                      fluidRow(
                                        column(6,
                                               plotOutput("richness")),
-                                     column(6,
-                                            plotOutput("prevalence"))
+                                       column(6,
+                                              plotOutput("prevalence"))
                                      )),
                             
                             tabPanel("Trait plot",
@@ -245,27 +243,33 @@ ui <- fluidPage(
                         tabsetPanel(                            
                           tabPanel("Richness",
                                    # Input: Select traits to plot
-                                   checkboxGroupInput("traits_xy2", 
-                                                      label = "Select two or more 
-                                                        functional traits",
-                                                      choices = NULL, inline = TRUE),
+                                   fluidRow(
+                                     column(4,
+                                            checkboxGroupInput("traits_xy2", 
+                                                               label = "Select two or more 
+                                                               functional traits",
+                                                               choices = NULL),
                                    
-                                   # Ouput: dendrogram
-                                   radioButtons("dist.metric",
-                                                label = "Dissimilarity metric",
-                                                choices = c("Euclidean" = "euclidean", 
-                                                "Manhattan" = "manhattan", 
-                                                "Gower" = "gower", 
-                                                "Mahalanobis" = "mahalanobis")),
-                                   radioButtons("cluster.method",
-                                                label = "Clustering method",
-                                                choices = c("Single" = "single", 
-                                                "Complete" = "complete",
-                                                "Average" = "average",
-                                                "Ward" = "ward.D2")),
+                                   # Inputs: dendrogram arguments
+                                            radioButtons("dist.metric",
+                                                         label = "Dissimilarity metric",
+                                                         choices = c("Euclidean" = "euclidean", 
+                                                         "Manhattan" = "manhattan", 
+                                                         "Gower" = "gower", 
+                                                         "Mahalanobis" = "mahalanobis")),
+                                            radioButtons("cluster.method",
+                                                         label = "Clustering method",
+                                                         choices = c("Single" = "single", 
+                                                                     "Complete" = "complete",
+                                                                     "Average" = "average",
+                                                                     "Ward" = "ward.D2")),
+                                   ),
                                    
-                                   plotOutput("dendrogram")
-                          ),
+                                   # Output: dendrogram and functional richness
+                                     column(8,
+                                            plotOutput("dendrogram"),
+                                            tableOutput("FRic_table"))
+                                  )),
                           
                           tabPanel("Evenness",
                                    
@@ -508,7 +512,7 @@ server <- function(input, output, session) {
             lower = list(continuous = my_fn))
   })
   
-  ### Tab "Richness": plot functional dendrogram
+  ### Tab "Richness": plot functional dendrogram and compute FRic
   # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy2", 
@@ -516,14 +520,20 @@ server <- function(input, output, session) {
   })
   
   output$dendrogram <- renderPlot({
-    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy2], 
+    traits <- trait_dataset()
+    rownames(traits) <- traits[, 1]
+    dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
   })
   
-  
-  
+  output$FRic_table <- renderTable({
+    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy2], 
+                           method = input$dist.metric)
+    alpha(comm = community_dataset(), tree = hclust(dist.matrix, 
+                                                    method = input$cluster.method))
+  })
   
   formData <- reactive({
     data <- sapply(fieldsAll, function(x) input[[x]])

@@ -1,39 +1,39 @@
-gen	sp	cod	body.mass	vert	invert	leaves	fruits	seeds	nectar	water	ground	veg	air	pursuit	gleaning	reaching	pecking	scavenging	probing
-Rupornis	magnirostris	RMA	269	1	1	0	0	0	0	0	1	0	0	0	0	1	0	0	0
-Parabuteo	unicinctus	PUN	1052.3	1	0	0	0	0	0	0	1	1	0	0	0	1	0	0	0
-Columba	livia	CLI	354.5	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
-Patagioenas	picazuro	PPI	279	0	0	0	1	1	0	0	1	1	0	0	1	0	0	0	0
-Patagioenas	maculosa	PMA	347	0	0	0	1	1	0	0	1	0	0	0	1	0	0	0	0
-Zenaida	auriculata	ZAU	136	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
-Columbina	picui	CPI	47	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
-Guira	guira	GGU	141	1	1	0	0	0	0	0	1	1	0	1	1	0	0	0	0
-Chlorostilbon	lucidus	CLU	3.5	0	1	0	0	0	1	0	0	1	1	1	0	0	0	0	1
-Hylocharis	chrysura	HCH	4.5	0	1	0	0	0	1	0	0	1	1	1	0	0	0	0	1
-Colaptes	melanochloros	CMC	127.7	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	1
-Colaptes	campestris	CCA	158	0	1	0	0	0	0	0	1	0	0	0	1	0	1	0	1
-Caracara	plancus	CPL	1348	1	1	0	0	0	0	0	1	0	0	0	0	1	0	1	0
-Milvago	chimango	MCH	296	1	1	0	0	0	0	0	1	0	0	0	0	1	0	1	0
-Myiopsitta	monachus	MMO	120	0	0	1	1	1	0	0	1	1	0	0	1	0	1	0	0
-Brotogeris	chiriri	BCH	61.6	0	0	1	1	1	1	0	0	1	0	0	1	0	1	0	0
-Furnarius	rufus	FRU	43.7	0	1	0	0	0	0	0	1	0	0	0	1	0	0	0	0
-Serpophaga	subcristata	SSU	6.6	0	1	0	0	0	0	0	0	1	1	0	1	0	0	0	0
-Machetornis	rixosa	MRI	29.6	0	1	0	0	0	0	0	1	0	1	1	0	0	0	0	0
-Pitangus	sulphuratus	PSU	61	1	1	0	1	0	0	1	1	1	1	1	1	0	1	0	0
-Tyrannus	savana	TSA	31.9	0	1	0	0	0	0	0	0	0	1	1	0	0	0	0	0
-Progne	chalybea	PCY	39.9	0	1	0	0	0	0	0	0	0	1	1	0	0	0	0	0
-Tachycineta	leucorrhoa	TLE	15.3	0	1	0	0	0	0	0	0	0	1	1	0	0	0	0	0
-Troglodytes	aedon	TAE	10.4	0	1	0	0	0	0	0	1	1	0	0	1	0	0	0	0
-Polioptila	dumicola	PDU	7	0	1	0	0	0	0	0	0	1	0	0	1	0	0	0	0
-Turdus	rufiventris	TRU	69.5	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	0
-Turdus	amaurochalinus	TAM	57.9	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	0
-Mimus	saturninus	MSA	63.7	0	1	0	1	1	0	0	1	1	0	1	1	0	1	0	0
-Sturnus	vulgaris	SVU	86	1	1	0	1	1	0	0	1	1	0	0	1	0	1	0	1
-Thraupis	sayaca	TSY	32	0	1	1	1	1	0	0	0	1	0	0	1	0	1	0	0
-Sicalis	flaveola	SFL	15.9	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
-Sicalis	luteola	SLU	15.9	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
-Sporophila	caerulescens	SCA	9.7	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
-Zonotrichia	capensis	ZCA	19.6	0	0	1	1	1	0	0	1	1	0	0	1	0	0	0	0
-Agelaioides	badius	ABA	45.3	0	1	0	1	1	0	0	1	1	0	0	1	0	1	0	0
-Molothrus	bonariensis	MBO	50.2	0	1	0	0	1	0	0	1	0	0	0	1	0	0	0	0
-Spinus	magellanica	SMA	13.6	0	0	1	0	1	0	0	1	1	0	0	1	0	1	0	0
-Passer	domesticus	PDO	27.7	0	1	1	1	1	0	0	1	1	0	1	1	0	0	0	0
+cod	body.mass	vert	invert	leaves	fruits	seeds	nectar	water	ground	veg	air	pursuit	gleaning	reaching	pecking	scavenging	probing
+RMA	269	1	1	0	0	0	0	0	1	0	0	0	0	1	0	0	0
+PUN	1052.3	1	0	0	0	0	0	0	1	1	0	0	0	1	0	0	0
+CLI	354.5	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+PPI	279	0	0	0	1	1	0	0	1	1	0	0	1	0	0	0	0
+PMA	347	0	0	0	1	1	0	0	1	0	0	0	1	0	0	0	0
+ZAU	136	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+CPI	47	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+GGU	141	1	1	0	0	0	0	0	1	1	0	1	1	0	0	0	0
+CLU	3.5	0	1	0	0	0	1	0	0	1	1	1	0	0	0	0	1
+HCH	4.5	0	1	0	0	0	1	0	0	1	1	1	0	0	0	0	1
+CMC	127.7	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	1
+CCA	158	0	1	0	0	0	0	0	1	0	0	0	1	0	1	0	1
+CPL	1348	1	1	0	0	0	0	0	1	0	0	0	0	1	0	1	0
+MCH	296	1	1	0	0	0	0	0	1	0	0	0	0	1	0	1	0
+MMO	120	0	0	1	1	1	0	0	1	1	0	0	1	0	1	0	0
+BCH	61.6	0	0	1	1	1	1	0	0	1	0	0	1	0	1	0	0
+FRU	43.7	0	1	0	0	0	0	0	1	0	0	0	1	0	0	0	0
+SSU	6.6	0	1	0	0	0	0	0	0	1	1	0	1	0	0	0	0
+MRI	29.6	0	1	0	0	0	0	0	1	0	1	1	0	0	0	0	0
+PSU	61	1	1	0	1	0	0	1	1	1	1	1	1	0	1	0	0
+TSA	31.9	0	1	0	0	0	0	0	0	0	1	1	0	0	0	0	0
+PCY	39.9	0	1	0	0	0	0	0	0	0	1	1	0	0	0	0	0
+TLE	15.3	0	1	0	0	0	0	0	0	0	1	1	0	0	0	0	0
+TAE	10.4	0	1	0	0	0	0	0	1	1	0	0	1	0	0	0	0
+PDU	7	0	1	0	0	0	0	0	0	1	0	0	1	0	0	0	0
+TRU	69.5	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	0
+TAM	57.9	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	0
+MSA	63.7	0	1	0	1	1	0	0	1	1	0	1	1	0	1	0	0
+SVU	86	1	1	0	1	1	0	0	1	1	0	0	1	0	1	0	1
+TSY	32	0	1	1	1	1	0	0	0	1	0	0	1	0	1	0	0
+SFL	15.9	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
+SLU	15.9	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
+SCA	9.7	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
+ZCA	19.6	0	0	1	1	1	0	0	1	1	0	0	1	0	0	0	0
+ABA	45.3	0	1	0	1	1	0	0	1	1	0	0	1	0	1	0	0
+MBO	50.2	0	1	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+SMA	13.6	0	0	1	0	1	0	0	1	1	0	0	1	0	1	0	0
+PDO	27.7	0	1	1	1	1	0	0	1	1	0	1	1	0	0	0	0
