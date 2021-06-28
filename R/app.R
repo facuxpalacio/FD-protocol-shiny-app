@@ -240,18 +240,56 @@ ui <- fluidPage(
                       ),
                       
                       mainPanel(
-                        tabsetPanel(                            
+                        tabsetPanel(
+                          tabPanel("Trait data transformation",
+                                   # Input: Select traits to plot
+                                   checkboxGroupInput("traits_xy2", 
+                                                      label = "Select two or more 
+                                                               functional traits",
+                                                      choices = NULL),
+                                   
+                                   # Input: PCoA arguments
+                                   radioButtons("dist.metric1",
+                                                label = "Dissimilarity metric",
+                                                choices = c("Euclidean" = "euclidean", 
+                                                            "Manhattan" = "manhattan", 
+                                                            "Gower" = "gower", 
+                                                            "Mahalanobis" = "mahalanobis"),
+                                                selected = "gower"),
+                                   
+                                   radioButtons("corrections",
+                                                label = "Correction method for negative eigenvalues",
+                                                choices = c("None" = "none", 
+                                                            "Lingoes" = "lingoes",
+                                                            "Cailliez" = "cailliez")),
+                                   
+                                   sliderInput("num_dim",
+                                               label = "Number of dimensions",
+                                               min = 2, max = 10,
+                                               value = 2),
+                                   
+                                   # Output: PCoA
+                                   plotOutput("pcoa"),
+                                   
+                                   # Output: eigenvalues
+                                   fluidRow(
+                                     column(6,
+                                            plotOutput("raw_eigenvalues")),
+                                     column(6,
+                                            plotOutput("rel_eigenvalues"))
+                          )),
+                          
                           tabPanel("Richness",
                                    # Input: Select traits to plot
                                    fluidRow(
                                      column(4,
-                                            checkboxGroupInput("traits_xy2", 
+                                            checkboxGroupInput("traits_xy3", 
                                                                label = "Select two or more 
                                                                functional traits",
                                                                choices = NULL),
                                    
                                    # Inputs: dendrogram arguments
-                                            radioButtons("dist.metric",
+                                            radioButtons("dist.metric2",
                                                          label = "Dissimilarity metric",
                                                          choices = c("Euclidean" = "euclidean", 
                                                          "Manhattan" = "manhattan", 
@@ -512,25 +550,83 @@ server <- function(input, output, session) {
             lower = list(continuous = my_fn))
   })
   
+  ### Tab "Trait data transformation": PCoA
+  allColumns <- reactive({
+    df <- trait_dataset()
+    colnames(df)
+  })
+  
+  # Update variable selection
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_xy2",
+                             choices = allColumns())
+  })
+  
+  output$pcoa <- renderPlot({
+    traits <- trait_dataset()
+    rownames(traits) <- traits[, 1]
+    dist.matrix <- vegdist(traits[, input$traits_xy2], 
+                           method = input$dist.metric1)
+    pcoa <- cmdscale(dist.matrix, k = input$num_dim, eig = TRUE, add = TRUE)
+    pcoa.axes <- as.data.frame(pcoa$points)
+    efit <- envfit(ord = pcoa, env = traits[, input$traits_xy2])
+    vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
+    trait.names <- colnames(traits[, input$traits_xy2])
+    
+    ggplot() + 
+      xlab("Principal Component 1") + ylab("Principal Component 2") +
+      geom_hline(yintercept = 0, linetype = "dashed", size = 1,
+                 col = "gray") + 
+      geom_vline(xintercept = 0, linetype = "dashed", size = 1,
+                 col = "gray") +
+      geom_point(data = pcoa.axes, aes(x = V1, y = V2), size = 4, 
+                 col = "olivedrab3") +
+      geom_segment(data = vec.sp.df, aes(x = 0, xend = Dim1 + 0.01, 
+                                         y = 0, yend = Dim2 + 0.01),
+                   arrow = arrow(length = unit(0.2, "cm")),
+                   col = "cornflowerblue") +
+      geom_text(data = vec.sp.df, aes(x = Dim1, y = Dim2, label = trait.names),
+                size = 4, check_overlap = TRUE) + theme_minimal() +
+      xlim(min(vec.sp.df$Dim1) - 0.1, max(vec.sp.df$Dim1 + 0.1)) +
+      ylim(min(vec.sp.df$Dim2) - 0.1, max(vec.sp.df$Dim2 + 0.1))
+  })
+  
+  output$raw_eigenvalues <- renderPlot({
+    df <- data.frame(axis = 1:length(pcoa$eig), eig = pcoa$eig)
+    ggplot(data = df, aes(x = axis, y = eig)) +
+      geom_bar(stat = "identity", fill = "steelblue") +
+      xlab("Component") + ylab("Raw eigenvalue (%)") +
+      theme_minimal()
+  })
+  
+  output$rel_eigenvalues <- renderPlot({
+    df <- data.frame(axis = 1:length(pcoa$eig),
+                     eig = 100*pcoa$eig/sum(pcoa$eig))
+    ggplot(data = df, aes(x = axis, y = eig)) +
+      geom_bar(stat = "identity", fill = "steelblue") +
+      xlab("Component") + ylab("Relative eigenvalue") +
+      theme_minimal()
+  })
+  
   ### Tab "Richness": plot functional dendrogram and compute FRic
   # Update variable selection
   observe({
-    updateCheckboxGroupInput(session, inputId = "traits_xy2", 
+    updateCheckboxGroupInput(session, inputId = "traits_xy3", 
                              choices = numericColumns())
   })
   
   output$dendrogram <- renderPlot({
     traits <- trait_dataset()
     rownames(traits) <- traits[, 1]
-    dist.matrix <- vegdist(traits[, input$traits_xy2], 
-                           method = input$dist.metric)
+    dist.matrix <- vegdist(traits[, input$traits_xy3], 
+                           method = input$dist.metric2)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
   })
   
   output$FRic_table <- renderTable({
-    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy2], 
-                           method = input$dist.metric)
+    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy3], 
+                           method = input$dist.metric2)
     alpha(comm = community_dataset(), tree = hclust(dist.matrix, 
                                                     method = input$cluster.method))
   })
