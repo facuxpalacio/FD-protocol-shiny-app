@@ -241,15 +241,21 @@ ui <- fluidPage(
                       
                       mainPanel(
                         tabsetPanel(
-                          tabPanel("Trait data transformation",
+                          tabPanel("Trait space",
+                                   fluidRow(
+                                     column(4,
                                    # Input: Select traits to plot
                                    checkboxGroupInput("traits_xy2", 
                                                       label = "Select two or more 
                                                                functional traits",
                                                       choices = NULL),
                                    
-                                   # Input: PCoA arguments
-                                   radioButtons("dist.metric1",
+                                   # Inputs: dendrogram arguments
+                                   h4("Functional dendrogram", style = "color:blue"),
+                                   
+                                   checkboxInput("standardize", "Standardize traits", value = FALSE),
+                                   
+                                   radioButtons("dist.metric",
                                                 label = "Dissimilarity metric",
                                                 choices = c("Euclidean" = "euclidean", 
                                                             "Manhattan" = "manhattan", 
@@ -257,19 +263,35 @@ ui <- fluidPage(
                                                             "Mahalanobis" = "mahalanobis"),
                                                 selected = "gower"),
                                    
+                                   radioButtons("cluster.method",
+                                                label = "Clustering method",
+                                                choices = c("Single" = "single", 
+                                                            "Complete" = "complete",
+                                                            "Average" = "average",
+                                                            "Ward" = "ward.D2"),
+                                                selected = "average"),
+                                   
+                                   # Input: PCoA arguments
+                                   h4("Pincipal Coordinate Analysis", style = "color:blue"),
                                    radioButtons("corrections",
                                                 label = "Correction method for negative eigenvalues",
                                                 choices = c("None" = "none", 
                                                             "Lingoes" = "lingoes",
                                                             "Cailliez" = "cailliez")),
                                    
-                                   sliderInput("num_dim",
-                                               label = "Number of dimensions",
-                                               min = 2, max = 10,
-                                               value = 2),
+                                   #sliderInput("num_dim", "Number of dimensions",
+                                   #             min = 2, max = 10, value = 2),
                                    
-                                   # Output: PCoA
-                                   plotOutput("pcoa"),
+                                   sliderInput("alpha1", "Convex hull transparency",
+                                               min = 0, max = 1, value = 0.5)
+                                     ),
+                                   
+                                   column(8,
+                                   # Output: dendrogram and PCoA
+                                   plotOutput("dendrogram"),
+                                   plotOutput("pcoa")
+                                   
+                                   )),
                                    
                                    # Output: eigenvalues
                                    fluidRow(
@@ -288,25 +310,12 @@ ui <- fluidPage(
                                                                functional traits",
                                                                choices = NULL),
                                    
-                                   # Inputs: dendrogram arguments
-                                            radioButtons("dist.metric2",
-                                                         label = "Dissimilarity metric",
-                                                         choices = c("Euclidean" = "euclidean", 
-                                                         "Manhattan" = "manhattan", 
-                                                         "Gower" = "gower", 
-                                                         "Mahalanobis" = "mahalanobis")),
-                                            radioButtons("cluster.method",
-                                                         label = "Clustering method",
-                                                         choices = c("Single" = "single", 
-                                                                     "Complete" = "complete",
-                                                                     "Average" = "average",
-                                                                     "Ward" = "ward.D2")),
+                                   # Inputs: 
                                    ),
                                    
                                    # Output: dendrogram and functional richness
                                      column(8,
-                                            plotOutput("dendrogram"),
-                                            tableOutput("FRic_table"))
+                                            )
                                   )),
                           
                           tabPanel("Evenness",
@@ -536,7 +545,6 @@ server <- function(input, output, session) {
                              choices = NAcolumns())
   })
   
-  
   # Print scatterplot matrix + correlations
   output$scatterplots <- renderPlot({
     my_fn <- function(data, mapping, ...){
@@ -550,7 +558,7 @@ server <- function(input, output, session) {
             lower = list(continuous = my_fn))
   })
   
-  ### Tab "Trait data transformation": PCoA
+  ### Tab "Trait data space": PCoA
   allColumns <- reactive({
     df <- trait_dataset()
     colnames(df)
@@ -562,16 +570,31 @@ server <- function(input, output, session) {
                              choices = allColumns())
   })
   
-  output$pcoa <- renderPlot({
+  output$dendrogram <- renderPlot({
     traits <- trait_dataset()
     rownames(traits) <- traits[, 1]
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
-                           method = input$dist.metric1)
-    pcoa <- cmdscale(dist.matrix, k = input$num_dim, eig = TRUE, add = TRUE)
-    pcoa.axes <- as.data.frame(pcoa$points)
-    efit <- envfit(ord = pcoa, env = traits[, input$traits_xy2])
+                           method = input$dist.metric)
+    cluster <- hclust(dist.matrix, method = input$cluster.method)
+    ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
+  })
+  
+  output$pcoa <- renderPlot({
+    if(input$standardize == TRUE){
+      traits <- scale(trait_dataset())
+    } else {
+      traits <- trait_dataset() 
+      }
+    rownames(traits) <- traits[, 1]
+    dist.matrix <- vegdist(traits[, input$traits_xy2], 
+                           method = input$dist.metric)
+    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
+    pcoa.axes <- as.data.frame(pco$points)
+    efit <- envfit(ord = pco, env = traits[, input$traits_xy2])
     vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
     trait.names <- colnames(traits[, input$traits_xy2])
+    
+    hull <- chull(vec.sp.df[, 1:2])
     
     ggplot() + 
       xlab("Principal Component 1") + ylab("Principal Component 2") +
@@ -585,6 +608,7 @@ server <- function(input, output, session) {
                                          y = 0, yend = Dim2 + 0.01),
                    arrow = arrow(length = unit(0.2, "cm")),
                    col = "cornflowerblue") +
+      geom_polygon(data = vec.sp.df[hull, ], aes(x = Dim1, y = Dim2), fill = "firebrick1", alpha = input$alpha1) +
       geom_text(data = vec.sp.df, aes(x = Dim1, y = Dim2, label = trait.names),
                 size = 4, check_overlap = TRUE) + theme_minimal() +
       xlim(min(vec.sp.df$Dim1) - 0.1, max(vec.sp.df$Dim1 + 0.1)) +
@@ -592,41 +616,50 @@ server <- function(input, output, session) {
   })
   
   output$raw_eigenvalues <- renderPlot({
-    df <- data.frame(axis = 1:length(pcoa$eig), eig = pcoa$eig)
+    if(input$standardize == TRUE){
+      traits <- scale(trait_dataset())
+    } else {
+      traits <- trait_dataset() 
+    }
+    rownames(traits) <- traits[, 1]
+    dist.matrix <- vegdist(traits[, input$traits_xy2], 
+                           method = input$dist.metric)
+    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
+    df <- data.frame(axis = 1:length(pco$eig), eig = pco$eig)
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
-      xlab("Component") + ylab("Raw eigenvalue (%)") +
+      xlab("Component") + ylab("Raw eigenvalue") +
       theme_minimal()
   })
   
   output$rel_eigenvalues <- renderPlot({
-    df <- data.frame(axis = 1:length(pcoa$eig),
-                     eig = 100*pcoa$eig/sum(pcoa$eig))
+    if(input$standardize == TRUE){
+      traits <- scale(trait_dataset())
+    } else {
+      traits <- trait_dataset() 
+    }
+    rownames(traits) <- traits[, 1]
+    dist.matrix <- vegdist(traits[, input$traits_xy2], 
+                           method = input$dist.metric)
+    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
+    df <- data.frame(axis = 1:length(pco$eig),
+                     eig = 100*pco$eig/sum(pco$eig))
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
-      xlab("Component") + ylab("Relative eigenvalue") +
+      xlab("Component") + ylab("Relative eigenvalue (%)") +
       theme_minimal()
   })
   
-  ### Tab "Richness": plot functional dendrogram and compute FRic
+  ### Tab "Richness": compute FRic
   # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy3", 
                              choices = numericColumns())
   })
   
-  output$dendrogram <- renderPlot({
-    traits <- trait_dataset()
-    rownames(traits) <- traits[, 1]
-    dist.matrix <- vegdist(traits[, input$traits_xy3], 
-                           method = input$dist.metric2)
-    cluster <- hclust(dist.matrix, method = input$cluster.method)
-    ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
-  })
-  
   output$FRic_table <- renderTable({
     dist.matrix <- vegdist(trait_dataset()[, input$traits_xy3], 
-                           method = input$dist.metric2)
+                           method = input$dist.metric)
     alpha(comm = community_dataset(), tree = hclust(dist.matrix, 
                                                     method = input$cluster.method))
   })
