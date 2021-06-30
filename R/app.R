@@ -344,19 +344,19 @@ ui <- fluidPage(
                       checkboxGroupInput("step8", "Ensure reproducibility",
                                          choices = c("Report the software, version and packages you used",
                                                      "Deposit data in a public repository",
-                                                     "Provide your code (tidy and clean)"))),
-             div(
-               id = "form",
-               actionButton("submit", "Submit", class = "btn-primary"),
+                                                     "Provide your code (tidy and clean)")),
+                      div(
+                        id = "form",
+                        actionButton("submit", "Submit", class = "btn-primary"),
+                        
+                        shinyjs::hidden(
+                          div(
+                            id = "thankyou_msg",
+                            h3("Thanks for creating your protocol! See the output folder for your filled form")
+                          )
+                        )  ))
              
-             shinyjs::hidden(
-               div(
-                 id = "thankyou_msg",
-                 h3("Thanks for creating your protocol! See the output folder for your filled form")
-               )
-             )  )
-             
-  ),
+  )
 )
 
 ######################################################################################
