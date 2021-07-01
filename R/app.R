@@ -313,7 +313,7 @@ ui <- fluidPage(
                                      column(8,
                                             # Input: hypervolumes
                                             h4("Hypervolumes", style = "color:blue"),
-                                            numericInput("hv.nsites", "Number of sites", value = 1),
+                                            numericInput("hv.sites", "Number of sites to plot", value = 1),
                                             
                                             sliderInput("hv.axes", "Number of dimensions",
                                                         min = 0, max = 10, value = 2),
@@ -324,12 +324,15 @@ ui <- fluidPage(
                                                                      "Support vector machines" = "svm"),
                                                          selected = "gaussian"),
                                             
+                                            numericInput("npoints", "Number of sampling points", value = 1000),
+                                            
                                             checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
                                             
-                                            actionButton("build.hv", "Build and plot hypervolumes"),
+                                            actionButton("build.hv", "Build hypervolumes"),
                                             
                                             # Output: hypervolumes
-                                            plotOutput("hv"))
+                                            plotOutput("hv"),
+                                            plotOutput("alpha.hv.FD"))
                                   )),
                           
                           tabPanel("Evenness",
@@ -579,7 +582,7 @@ server <- function(input, output, session) {
             upper = list(continuous = "cor"))
   })
   
-  ### Tab "Trait data space": dendrogram, PCoA and hypervolumes
+  ### Tab "Trait data space": dendrogram and PCoA
   allColumns <- reactive({
     df <- trait_dataset()
     colnames(df)
@@ -671,32 +674,6 @@ server <- function(input, output, session) {
       theme_minimal()
   })
   
-  output$hv <- renderPlot({
-    input$build.hv
-    
-    withProgress(message = "Building hypervolume", value = 0, {
-    sites <- 1:input$hv.nsites
-    
-    traits <- as.matrix(trait_dataset())
-    rownames(traits) <- colnames(community_dataset())
-    
-    hvlist <- NULL
-    
-    for (i in 1:input$hv.nsites) {
-      
-      hvlist <- kernel.build(comm = community_dataset()[sites[i], ], 
-                             trait = traits, axes = input$hv.axes,
-                             method = input$hv.method, abund = input$hv.abund)
-      
-      incProgress(1/input$hv.nsites, detail = paste(i))
-      Sys.sleep(0.1)
-    }
-    
-    })
-    
-    plot(hvlist[[1]])
-  })
-  
   ### Tab "Richness": compute FRic
   # Update variable selection
   observe({
@@ -704,11 +681,34 @@ server <- function(input, output, session) {
                              choices = numericColumns())
   })
   
-  output$FRic_table <- renderTable({
-    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy3], 
-                           method = input$dist.metric)
-    alpha(comm = community_dataset(), tree = hclust(dist.matrix, 
-                                                    method = input$cluster.method))
+  hypervolumes <- eventReactive(input$build.hv, {
+    trait <- as.matrix(trait_dataset()[, input$traits_xy3])
+    rownames(traits) <- colnames(community_dataset())
+    comm <- community_dataset()[1:input$hv.sites, ]
+    
+    kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
+                 method = input$hv.method, abund = input$hv.abund,
+                 samples.per.point = input$npoints)
+  })
+  
+  output$hv <- renderPlot(plot(hypervolumes()))
+  
+  alpha.FD <- eventReactive(input$build.hv, {
+    kernelFD <- data.frame(site = 1:input$hv.sites, 
+                           FD = kernel.alpha(hypervolumes()))
+    kernelFD
+    })
+  
+  output$alpha.hv.FD <- renderPlot({
+    if(input$hv.sites > 15){
+      ggplot(data = alpha.FD(), aes(x = FD)) + geom_histogram(bins = 5) +
+        xlab("Alpha functional diversity") + ylab("Frequency")
+    }
+    else {
+      ggplot(data = alpha.FD(), aes(x = site, y = FD)) + 
+      geom_bar(stat = "identity", fill = "steelblue") +
+      xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
+    }
   })
   
   formData <- reactive({
