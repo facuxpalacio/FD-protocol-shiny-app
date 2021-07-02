@@ -6,6 +6,7 @@ library(ggdendro) # 0.1.22
 library(shinyjs) #2.0.0
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
+library(alphahull) #2.2
 library(BAT) #2.6.0
 
 ui <- fluidPage(
@@ -252,7 +253,6 @@ ui <- fluidPage(
                                    
                                    # Inputs: dendrogram arguments
                                    h4("Functional dendrogram", style = "color:blue"),
-                                   
                                    checkboxInput("standardize", "Standardize traits", value = FALSE),
                                    
                                    radioButtons("dist.metric",
@@ -287,19 +287,18 @@ ui <- fluidPage(
                                      ),
                                    
                                    column(8,
-                                   # Output: dendrogram and PCoA
+                                   # Output: dendrogram, and PCoA
                                    plotOutput("dendrogram"),
-                                   plotOutput("pcoa")
-                                   
-                                   )),
+                                   plotOutput("pcoa"),
                                    
                                    # Output: eigenvalues
                                    fluidRow(
                                      column(6,
                                             plotOutput("raw_eigenvalues")),
                                      column(6,
-                                            plotOutput("rel_eigenvalues"))
-                          )),
+                                            plotOutput("rel_eigenvalues"))),
+                                   
+                                   ))),
                           
                           tabPanel("Richness",
                                    # Input: Select traits to plot
@@ -309,13 +308,31 @@ ui <- fluidPage(
                                                                label = "Select two or more 
                                                                functional traits",
                                                                choices = NULL),
-                                   
-                                   # Inputs: 
                                    ),
-                                   
-                                   # Output: dendrogram and functional richness
+                              
                                      column(8,
-                                            )
+                                            # Input: hypervolumes
+                                            h4("Hypervolumes", style = "color:blue"),
+                                            numericInput("hv.sites", "Number of sites to plot", value = 1),
+                                            
+                                            sliderInput("hv.axes", "Number of dimensions",
+                                                        min = 0, max = 10, value = 2),
+                                            
+                                            radioButtons("hv.method", "Method",
+                                                         choices = c("Gaussian kernel density" = "gaussian",
+                                                                     "Box kernel density" = "box",
+                                                                     "Support vector machines" = "svm"),
+                                                         selected = "gaussian"),
+                                            
+                                            numericInput("npoints", "Number of sampling points", value = 1000),
+                                            
+                                            checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
+                                            
+                                            actionButton("build.hv", "Build hypervolumes"),
+                                            
+                                            # Output: hypervolumes
+                                            plotOutput("hv"),
+                                            plotOutput("alpha.hv.FD"))
                                   )),
                           
                           tabPanel("Evenness",
@@ -324,7 +341,13 @@ ui <- fluidPage(
                           
                           tabPanel("Regularity",
                                    
-                                   ))))
+                                   ),
+                          
+                          tabPanel("Correlations among metrics",
+                                   
+                          )
+                          
+                          )))
                       
                       ),
                                    
@@ -555,10 +578,11 @@ server <- function(input, output, session) {
     }
     
     ggpairs(trait_dataset()[, input$traits_xy1], 
-            lower = list(continuous = my_fn))
+            lower = list(continuous = my_fn),
+            upper = list(continuous = "cor"))
   })
   
-  ### Tab "Trait data space": PCoA
+  ### Tab "Trait data space": dendrogram and PCoA
   allColumns <- reactive({
     df <- trait_dataset()
     colnames(df)
@@ -657,11 +681,34 @@ server <- function(input, output, session) {
                              choices = numericColumns())
   })
   
-  output$FRic_table <- renderTable({
-    dist.matrix <- vegdist(trait_dataset()[, input$traits_xy3], 
-                           method = input$dist.metric)
-    alpha(comm = community_dataset(), tree = hclust(dist.matrix, 
-                                                    method = input$cluster.method))
+  hypervolumes <- eventReactive(input$build.hv, {
+    trait <- as.matrix(trait_dataset()[, input$traits_xy3])
+    rownames(traits) <- colnames(community_dataset())
+    comm <- community_dataset()[1:input$hv.sites, ]
+    
+    kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
+                 method = input$hv.method, abund = input$hv.abund,
+                 samples.per.point = input$npoints)
+  })
+  
+  output$hv <- renderPlot(plot(hypervolumes()))
+  
+  alpha.FD <- eventReactive(input$build.hv, {
+    kernelFD <- data.frame(site = 1:input$hv.sites, 
+                           FD = kernel.alpha(hypervolumes()))
+    kernelFD
+    })
+  
+  output$alpha.hv.FD <- renderPlot({
+    if(input$hv.sites > 15){
+      ggplot(data = alpha.FD(), aes(x = FD)) + geom_histogram(bins = 5) +
+        xlab("Alpha functional diversity") + ylab("Frequency")
+    }
+    else {
+      ggplot(data = alpha.FD(), aes(x = site, y = FD)) + 
+      geom_bar(stat = "identity", fill = "steelblue") +
+      xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
+    }
   })
   
   formData <- reactive({
