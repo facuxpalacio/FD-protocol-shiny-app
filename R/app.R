@@ -332,43 +332,45 @@ ui <- dashboardPage(
                                    ),
                                    
                                    # Input: PCoA arguments
-                 box(title = "PCoA inputs",
-                                       status = "primary", solidHeader = TRUE,
+                 box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
                                        radioButtons("corrections",
                                                     label = "Correction method for negative eigenvalues",
                                                     choices = c("None" = "none", 
                                                                 "Lingoes" = "lingoes",
                                                                 "Cailliez" = "cailliez")),
                                    
-                                       sliderInput("num_dim", "Number of dimensions",
+                                       sliderInput("max.naxes", "Maximum number of dimensions of the trait space",
                                                    min = 2, max = 10, value = 2),
                                    
-                                        sliderInput("alpha1", "Convex hull transparency",
+                                       sliderInput("alpha1", "Convex hull transparency",
                                                     min = 0, max = 1, value = 0.5)
                        ),
+
+               # Output: dendrogram, and PCoA
+               box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
+                   plotOutput("dendrogram")
+                   ),
+              
+              box(title = "PCoA", status = "warning", solidHeader = TRUE,
+                  plotOutput("pcoa")
+                  ),
+                                   
+              # Input: eigenvalues plot
+              box(title = "Screeplot inputs", status = "primary", solidHeader = TRUE,
+                  sliderInput("axes.eigenvalues", "Number of axes to plot",
+                              min = 2, max = 20, value = 5)
+                  ),
                                   
-                                   # Output: dendrogram, and PCoA
-                                   box(title = "Functional dendrogram",
-                                       status = "warning", solidHeader = TRUE,
-                                       plotOutput("dendrogram")
-                                       ),
-                                   
-                                   box(title = "PCoA",
-                                       status = "warning", solidHeader = TRUE,
-                                       plotOutput("pcoa")
-                                       ),
-                                   
-                                   # Output: eigenvalues
-                                   fluidRow(
-                                     box(title = "Eigenvalues", 
-                                         status = "warning", solidHeader = TRUE, width = 12,
-                                         column(6,
-                                         plotOutput("raw_eigenvalues")),
-                                         column(6,
-                                         plotOutput("rel_eigenvalues"))
-                                         ))
-                                   
-                                   ),
+              # Output: eigenvalues
+              fluidRow(
+                box(title = "Screeplots", 
+                    status = "warning", solidHeader = TRUE, width = 12,
+                column(6,
+                       plotOutput("raw_eigenvalues")),
+                column(6,
+                       plotOutput("rel_eigenvalues"))
+                       ))
+              ),
                           
     tabItem(tabName = "alpharich",
             # Input: Select traits to plot
@@ -402,13 +404,31 @@ ui <- dashboardPage(
                box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
                    plotOutput("hv")),
                                     
-               box(title = "Alpha FD", status = "warning", solidHeader = TRUE,
+               box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
                    plotOutput("alpha.hv.FD"))
                    ),
                           
     tabItem(tabName = "betarich",
-            
+            # Inputs: similarity metric
+            box(title = "Similarity metric", status = "primary", solidHeader = TRUE,
+                radioButtons("sim.beta.rich", label = "Similarity metric",
+                             choices = c("Jaccard" = "jaccard", 
+                                         "Sorensen" = "sorensen"),
+                             selected = "jaccard")  
             ),
+            
+            box(title = "Total beta functional diversity", status = "warning", solidHeader = TRUE,
+                plotOutput("total.beta")
+                ),
+            
+            box(title = "Turnover", status = "warning", solidHeader = TRUE,
+                plotOutput("turnover.beta")
+            ),
+            
+            box(title = "Species richness", status = "warning", solidHeader = TRUE,
+                plotOutput("richness.beta")
+            ),
+                ),
     
     tabItem(tabName = "alphareg",
             
@@ -722,6 +742,7 @@ server <- function(input, output, session) {
       ylim(min(vec.sp.df$Dim2) - 0.1, max(vec.sp.df$Dim2 + 0.1))
   })
   
+  # Screeplots
   output$raw_eigenvalues <- renderPlot({
     if(input$standardize == TRUE){
       traits <- scale(trait_dataset())
@@ -731,8 +752,9 @@ server <- function(input, output, session) {
     rownames(traits) <- traits[, 1]
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
-    df <- data.frame(axis = 1:length(pco$eig), eig = pco$eig)
+    pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
+    naxes <- input$axes.eigenvalues
+    df <- data.frame(axis = 1:naxes, eig = pco$eig[1:naxes])
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Raw eigenvalue") +
@@ -748,9 +770,9 @@ server <- function(input, output, session) {
     rownames(traits) <- traits[, 1]
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
-    df <- data.frame(axis = 1:length(pco$eig),
-                     eig = 100*pco$eig/sum(pco$eig))
+    pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
+    naxes <- input$axes.eigenvalues
+    df <- data.frame(axis = 1:naxes, eig = 100*pco$eig[1:naxes]/sum(pco$eig[1:naxes]))
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Relative eigenvalue (%)") +
@@ -783,15 +805,34 @@ server <- function(input, output, session) {
     })
   
   output$alpha.hv.FD <- renderPlot({
+    df <- alpha.FD()
     if(input$hv.sites > 15){
-      ggplot(data = alpha.FD(), aes(x = FD)) + geom_histogram(bins = 5) +
+      ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
         xlab("Alpha functional diversity") + ylab("Frequency")
     }
     else {
-      ggplot(data = alpha.FD(), aes(x = site, y = FD)) + 
+      ggplot(data = df, aes(x = site, y = FD)) + 
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
     }
+  })
+  
+  # Tab: Beta richness
+  beta.FD <- eventReactive(input$build.hv, {
+    kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
+    kernel.beta.hv
+  })
+  
+  output$total.beta <- renderPlot({
+    pheatmap(beta.FD()$Btotal)
+  })
+    
+  output$turnover.beta <- renderPlot({
+    pheatmap(beta.FD()$Brepl)
+  })
+    
+  output$richness.beta <- renderPlot({
+    pheatmap(beta.FD()$Brich)
   })
   
 #  formData <- reactive({
