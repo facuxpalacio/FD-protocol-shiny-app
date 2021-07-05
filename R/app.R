@@ -1,43 +1,61 @@
 library(shiny) #1.6.0
-library(shinythemes) #1.2.0
+library(shinydashboard) #0.7.1
+library(shinyjs) #2.0.0
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
 library(ggdendro) # 0.1.22
-library(shinyjs) #2.0.0
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
 library(alphahull) #2.2
 library(BAT) #2.6.0
 
-ui <- fluidPage(
-  shinyjs::useShinyjs(),
-  theme = shinytheme("united"),
-  titlePanel("An eight-step protocol for functional diversity analysis"),
+ui <- dashboardPage(
+  #shinyjs::useShinyjs(),
+  dashboardHeader(title = "An eight-step protocol for functional diversity analysis"),
+  ## Sidebar content
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("About", tabName = "dashboard", icon = icon("home")),
+      menuItem("Step 1. Research question", tabName = "step1"),
+      menuItem("Step 2. Study design", tabName = "step2"),
+      menuItem("Step 3. Community data", tabName = "step3"),
+      menuItem("Step 4. Trait data", tabName = "step4"),
+      menuItem("Step 5. Explore your data!", tabName = "step5",
+               menuSubItem("Data summary", tabName = "datasummary"),
+               menuSubItem("Community data", tabName = "communitydata"),
+               menuSubItem("Trait plots", tabName = "traitplots"),
+               menuSubItem("Collinearity", tabName = "collinearity"),
+               menuSubItem("Missing data", tabName = "missingdata")),
+      menuItem("Step 6. Functional diversity metrics", tabName = "step6"),
+      menuItem("Step 7. Model fit", tabName = "step7"),
+      menuItem("Step 8. Reproducibility", tabName = "step8")
+    )
+  ),
   
-  navbarPage("", theme = "bootstrap.css",
-             
-             tabPanel(icon("home"), 
-                      
-                      p("This application is intended to provide students and researchers with 
-                        a checklist to maximize methods' reproducibility, comparability, and transparency across 
-                        trait-based studies. For further details, see: "),
-                      uiOutput("tab"), 
-                      style = "background-color:lightblue; border-radius:5px"),
-             
-             tabPanel("Step 1",
-                      helpText("Start with the conceptualization of an ecological question 
-                               ingrained in a theoretical framing with a set of hypotheses and 
-                               predictions.",
-                               style = "background-color:lightblue; border-radius:5px"),
-                      radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
-                                   choices = c("My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?","My work is open-ended e.g. How do abiotic variables shape leaf morphology?")),     
+  ## Body content
+  dashboardBody(
+    tabItems(
+      # Tab contents
+      tabItem(tabName = "dashboard",
+      p("This application is intended to provide students and researchers with 
+        a checklist to maximize methods' reproducibility, comparability, and transparency across 
+        trait-based studies. For further details, see: "), 
+      uiOutput("tab"), 
+      style = "background-color:lightblue; border-radius:5px"),
+      
+      tabItem(tabName = "step1",
+      helpText("Start with the conceptualization of an ecological question 
+               ingrained in a theoretical framing with a set of hypotheses and 
+               predictions.", style = "background-color:lightblue; border-radius:5px"),
+      radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
+                   choices = c("My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?","My work is open-ended e.g. How do abiotic variables shape leaf morphology?")),     
                       fluidRow(
                         column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
                       fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended e.g. How do abiotic variables shape leaf morphology?"]',
-                                                          textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))),
+                                                          textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))
+      ),
              
-             
-             tabPanel("Step 2",
+      tabItem(tabName = "step2",
                       helpText("Choose an appropriate sampling or experimental design, along with the 
                                scale of analysis and the study organisms and units (populations, 
                                species, communities) selected to answer the research question.",
@@ -46,9 +64,10 @@ ui <- fluidPage(
                                         textInput("scale","What is(are) your scale(s) of analysis?"),
                       textInput("unit","What is your target ecological unit?"),
                       radioButtons("pow", "Did you perform a power analysis?", choices=c("Yes", "No")),
-                                   radioButtons("prer", "Did you preregister?", choices=c("Yes", "No"))),
+                                   radioButtons("prer", "Did you preregister?", choices=c("Yes", "No"))
+              ),
             
-              tabPanel("Step 3",
+      tabItem(tabName = "step3",
                       withMathJax(),
                        sidebarLayout(
                         sidebarPanel(
@@ -66,8 +85,10 @@ ui <- fluidPage(
                          
                          mainPanel(
                           # Input: Load your community data
+                           fluidRow(
+                          box(title = "Load your community data", width = 8, height = 300,
                           fileInput("community_dataset", 
-                                    "Load your community data",
+                                    "",
                                     accept = c("text/csv", 
                                                "text/comma-separated-values,text/plain", 
                                                ".csv")),
@@ -80,21 +101,24 @@ ui <- fluidPage(
                                        c(Comma = ",",
                                          Semicolon = ";",
                                          Tab = "\t"),
-                                       ","),
-                          br(),
+                                       ",")),
                           
-                          # Output: community dataset (antes tableOutput)
+                          # Output: community dataset
+                          box(title = "Number of sites and species", width = 4,
                           textOutput("nrow_community"),
-                          textOutput("ncol_community"),
+                          textOutput("ncol_community"))
+                           ),
                           
-                          br(),
-                          br(),
+                          fluidRow(
+                          box(title = "Community data", width = 12, height = 300,
+                          dataTableOutput("community_table"))
+                          )
                           
-                          dataTableOutput("community_table"))),
+                          )),
                       
              ),
              
-             tabPanel("Step 4",
+      tabItem(tabName = "step4",
                       sidebarLayout( 
                         sidebarPanel(
                           helpText("Collect functional trait data and build a matrix of", em("N"), 
@@ -112,6 +136,8 @@ ui <- fluidPage(
                         
                         mainPanel(
                           # Input: Load your trait data
+                          fluidRow(
+                            box(title = "Load your trait data", width = 8, height = 300,
                           fileInput("trait_dataset", 
                                     "Load your trait data",
                                     accept = c("text/csv", 
@@ -126,23 +152,23 @@ ui <- fluidPage(
                                        c(Comma = ",",
                                          Semicolon = ";",
                                          Tab = "\t"),
-                                       ","),
+                                       ",")
+                          ),
                           
-                          br(),
                           
-                          # Output: trait dataset (antes tableOutput)
+                          # Output: trait dataset
+                          box(title = "Number of species/individuals and traits", 
+                              width = 4, height = 300,
                           textOutput("nrow_traits"),
-                          textOutput("ncol_traits"),
+                          textOutput("ncol_traits"))
+                          ),
                           
-                          br(),
-                          br(),
-                          
-                          dataTableOutput("trait_table"))),
+                          box(title = "Trait data", width = 12,
+                          dataTableOutput("trait_table")))
+                        ),
                       ),
              
-             tabPanel("Step 5",
-                      sidebarLayout( 
-                        sidebarPanel(
+      tabItem(tabName = "step5",
                           helpText("Visually inspect the community and trait matrices to familiarize with your
                                data and deal with any issue therein.",
                                    style = "background-color:lightblue; border-radius:5px"),
@@ -152,29 +178,33 @@ ui <- fluidPage(
                                                          "Is there collinearity among traits?",
                                                          "Did you transform trait data?",
                                                          "Do you have missing data? How did you handle these?",
-                                                         "Did you account for imperfect detection?")),
-                        ),
-                        
-                        mainPanel(
-                          tabsetPanel(                            
-                            tabPanel("Data summary", 
-                                     # Ouput: Data summaries
-                                    h4("Community data", style="color:blue"),
-                                     verbatimTextOutput("summary_community"),
-                                    h4("Trait data", style="color:blue"),
+                                                         "Did you account for imperfect detection?"))
+              ),
+      
+      tabItem(tabName = "datasummary",
+                                     # Ouputs: Data summaries
+                                     box(title = "Community data",
+                                     verbatimTextOutput("summary_community")
+                                     ),
+                                    
+                                     box(title = "Trait data", 
                                      verbatimTextOutput("summary_trait")
-                            ),
+                                     ),
+              ),
                             
-                            tabPanel("Community data",
-                                     h4("Heatmap", style = "color:blue"),
+                          
+      tabItem(tabName = "communitydata",
+                                     box(title = "Heatmap",
                                      checkboxInput("LogX", "Log-transform occurrences", value = FALSE),
                                      # Output: heatmap
-                                     plotOutput("heatmap_community"),
+                                     plotOutput("heatmap_community")),
+                                     
                                      # Output: rarefaction curves
-                                     h4("Rarefaction curves", style = "color:blue"),
-                                     plotOutput("rarefaction_curves"),
+                                     box(title = "Rarefaction curves",
+                                     plotOutput("rarefaction_curves")),
+                                     
                                      # Output: histograms
-                                     h4("Histograms", style = "color:blue"),
+                                     box(title = "Histograms",
                                      sliderInput("bins",
                                                  "Number of bins:",
                                                  min = 5, max = 20, value = 10),
@@ -182,12 +212,14 @@ ui <- fluidPage(
                                        column(6,
                                               plotOutput("richness")),
                                        column(6,
-                                              plotOutput("prevalence"))
-                                     )),
-                            
-                            tabPanel("Trait plot",
+                                              plotOutput("prevalence")))
+                                     )
+              ),
+      
+      tabItem(tabName = "traitplots",
                                      # Input: Select traits to plot
-                                     selectInput("trait", 
+                                     box(title = "Trait plots",
+                                       selectInput("trait", 
                                                  label = "Select a functional trait",
                                                  choices = NULL),
                                      
@@ -201,32 +233,40 @@ ui <- fluidPage(
                                                  label = "Plot type:",
                                                  list(boxplot = "boxplot", 
                                                       histogram = "histogram",
-                                                      density = "density")),
+                                                      density = "density"))),
                                      
                                      # Output: Trait plot
-                                     h3(textOutput("caption")),
-                                     plotOutput("trait_plot")),
+                                     box(title = textOutput("caption"),
+                                     plotOutput("trait_plot"))
+                                     
+              ),
                             
-                            tabPanel("Collinearity",
+                          
+      tabItem(tabName = "collinearity",
                                      # Input: Select traits to plot
+                                     box(title = "",
                                      checkboxGroupInput("traits_xy1", 
                                                         label = "Select two or more 
                                                         functional traits",
-                                                        choices = NULL, inline = TRUE),
+                                                        choices = NULL, inline = TRUE)),
                                      
                                      # Output: scatterplots
-                                     plotOutput("scatterplots")),
+                                     box(title = "Scatterplots",
+                                     plotOutput("scatterplots"))
+                                     
+              ),
                             
-                            tabPanel("Missing data",
+                          
+      tabItem(tabName = "missingdata",
                                      # Input: Select traits with missing data
+                                     box(title = "",
                                      checkboxGroupInput("traits_na",
                                                         label = "You have the following traits with missing data",
-                                                        choices = NULL)
-                            )
-                            
-                          )))),
+                                                        choices = NULL))
+              ),
+                          
              
-             tabPanel("Step 6",
+      tabItem(tabName = "step6",
                       sidebarLayout( 
                         sidebarPanel(
                       helpText("Now you can compute functional diversity metrics!",
@@ -241,18 +281,19 @@ ui <- fluidPage(
                       ),
                       
                       mainPanel(
-                        tabsetPanel(
+                        tabBox(title = "",
                           tabPanel("Trait space",
                                    fluidRow(
                                      column(4,
                                    # Input: Select traits to plot
+                                   box(title = "",
                                    checkboxGroupInput("traits_xy2", 
                                                       label = "Select two or more 
                                                                functional traits",
-                                                      choices = NULL),
+                                                      choices = NULL)),
                                    
                                    # Inputs: dendrogram arguments
-                                   h4("Functional dendrogram", style = "color:blue"),
+                                   box(title = "Functional dendrogram",
                                    checkboxInput("standardize", "Standardize traits", value = FALSE),
                                    
                                    radioButtons("dist.metric",
@@ -269,50 +310,54 @@ ui <- fluidPage(
                                                             "Complete" = "complete",
                                                             "Average" = "average",
                                                             "Ward" = "ward.D2"),
-                                                selected = "average"),
+                                                selected = "average")
+                                   ),
                                    
                                    # Input: PCoA arguments
-                                   h4("Pincipal Coordinate Analysis", style = "color:blue"),
+                                   box(title = "Pincipal Coordinate Analysis",
                                    radioButtons("corrections",
                                                 label = "Correction method for negative eigenvalues",
                                                 choices = c("None" = "none", 
                                                             "Lingoes" = "lingoes",
                                                             "Cailliez" = "cailliez")),
                                    
-                                   #sliderInput("num_dim", "Number of dimensions",
-                                   #             min = 2, max = 10, value = 2),
+                                   sliderInput("num_dim", "Number of dimensions",
+                                                min = 2, max = 10, value = 2),
                                    
                                    sliderInput("alpha1", "Convex hull transparency",
-                                               min = 0, max = 1, value = 0.5)
-                                     ),
+                                               min = 0, max = 1, value = 0.5))
+                                   ),
                                    
                                    column(8,
                                    # Output: dendrogram, and PCoA
-                                   plotOutput("dendrogram"),
-                                   plotOutput("pcoa"),
+                                   box(title = "Functional dendrogram",
+                                   plotOutput("dendrogram")),
+                                   
+                                   box(title = "PCoA",
+                                   plotOutput("pcoa")),
                                    
                                    # Output: eigenvalues
                                    fluidRow(
-                                     column(6,
-                                            plotOutput("raw_eigenvalues")),
-                                     column(6,
-                                            plotOutput("rel_eigenvalues"))),
+                                     box(title = "Raw eigenvalues", width = 6,
+                                         plotOutput("raw_eigenvalues")),
+                                     
+                                     box(title = "Relative eigenvalues", width = 6,
+                                         plotOutput("rel_eigenvalues"))),
                                    
                                    ))),
                           
                           tabPanel("Richness",
                                    # Input: Select traits to plot
                                    fluidRow(
-                                     column(4,
+                                     box(title = "", width = 4,
                                             checkboxGroupInput("traits_xy3", 
                                                                label = "Select two or more 
                                                                functional traits",
-                                                               choices = NULL),
-                                   ),
+                                                               choices = NULL)
+                                         ),
                               
-                                     column(8,
-                                            # Input: hypervolumes
-                                            h4("Hypervolumes", style = "color:blue"),
+                                    # Input: hypervolumes
+                                     box(title = "Hypervolumes", width = 8,
                                             numericInput("hv.sites", "Number of sites to plot", value = 1),
                                             
                                             sliderInput("hv.axes", "Number of dimensions",
@@ -328,11 +373,15 @@ ui <- fluidPage(
                                             
                                             checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
                                             
-                                            actionButton("build.hv", "Build hypervolumes"),
+                                            actionButton("build.hv", "Build hypervolumes")
+                                         ),
                                             
-                                            # Output: hypervolumes
-                                            plotOutput("hv"),
-                                            plotOutput("alpha.hv.FD"))
+                                    # Output: hypervolumes
+                                    box(title = "Hypervolumes",
+                                            plotOutput("hv")),
+                                    
+                                    box(title = "Alpha FD",
+                                            plotOutput("alpha.hv.FD")))
                                   )),
                           
                           tabPanel("Evenness",
@@ -351,22 +400,34 @@ ui <- fluidPage(
                       
                       ),
                                    
-             tabPanel("Step 7",
+      tabItem(tabName = "step7",
+              sidebarLayout(
+                sidebarPanel(
                       helpText("Fit, interpret, report and validate your statistical model.",
                                style = "background-color:lightblue; border-radius:5px"),
+                      
                       checkboxGroupInput("step7", "Interpret and validate the results",
                                          choices = c("Select an appropriate statistical model or test to answer your research question",
                                                      "Report effect sizes, model support and uncertainty",
                                                      "Provide a graphical output if needed",
-                                                     "Did you validate your model and how?"))),
+                                                     "Did you validate your model and how?"))
+                ),
+              
+              mainPanel()
+              
+              )),
              
-             tabPanel("Step 8",
+      tabItem(tabName = "step8",
+              sidebarLayout(
+                sidebarPanel(
                       helpText("Provide enough data and code detail to allow full reproducibility
                                of your results.",
                                style = "background-color:lightblue; border-radius:5px"),
+                      
                       checkboxGroupInput("step8", "Ensure reproducibility",
                                          choices = c("Report the software, version and packages you used",
                                                      "Deposit data in a public repository",
+
                                                      "Provide your code (tidy and clean)")),
                       div(
                         id = "form",
@@ -378,6 +439,24 @@ ui <- fluidPage(
                             h3("Thanks for creating your protocol! See the output folder for your filled form")
                           )
                         )  ))
+
+                                                     "Provide your code (tidy and clean)"))
+              ),
+              
+              mainPanel()
+              
+              ))
+    
+             #div(
+              # id = "form",
+              # actionButton("submit", "Submit", class = "btn-primary"),
+             
+             #shinyjs::hidden(
+              # div(
+               #  id = "thankyou_msg",
+                # h3("Thanks for creating your protocol! See the output folder for your filled form")
+     #          )
+    #         ))
              
   )
 )
@@ -391,8 +470,8 @@ server <- function(input, output, session) {
            href = "https://www.google.com/")
   
   output$tab <- renderUI({
-    tagList(url)
-  })
+   tagList(url)
+    })
   toDisplay <- eventReactive(input$step1, {
     choices <- c("Which is your research question?",
                  "Indicate your main hypotheses and predictions")
@@ -711,32 +790,32 @@ server <- function(input, output, session) {
     }
   })
   
-  formData <- reactive({
-    data <- sapply(fieldsAll, function(x) input[[x]])
-    data <- c(data, timestamp = epochTime())
-    data <- t(data)
-    data
-  })
-  saveData <- function(data) {
-    fileName <- sprintf("FDprotocol_%s.csv",
-                        humanTime())
+#  formData <- reactive({
+#    data <- sapply(fieldsAll, function(x) input[[x]])
+#    data <- c(data, timestamp = epochTime())
+#    data <- t(data)
+#    data
+#  })
+#  saveData <- function(data) {
+#    fileName <- sprintf("FDprotocol_%s.csv",
+#                        humanTime())
     ##EJH set quote to FALSE because the commas within the output fields were dividing things across cells due to csv format
-    write.csv(x = data, file = file.path(responsesDir, fileName),
-              row.names = FALSE, quote = FALSE)
-  }
+#    write.csv(x = data, file = file.path(responsesDir, fileName),
+#              row.names = FALSE, quote = FALSE)
+#  }
   # action to take when submit button is pressed
-  observeEvent(input$submit, {
-    shinyjs::show("thankyou_msg")
-    saveData(formData())
-  })
+#  observeEvent(input$submit, {
+#    shinyjs::show("thankyou_msg")
+#    saveData(formData())
+#  })
 }
 
-fieldsAll <- c("step1", "step2", "step3", "step4", "step5", "step6", "step7", "step8")
-responsesDir <- file.path("../output")
-epochTime <- function() {
-  as.integer(Sys.time())
-}
-humanTime <- function() format(Sys.time(), "%Y%m%d")
+#fieldsAll <- c("step1", "step2", "step3", "step4", "step5", "step6", "step7", "step8")
+#responsesDir <- file.path("../output")
+#epochTime <- function() {
+#  as.integer(Sys.time())
+#}
+#humanTime <- function() format(Sys.time(), "%Y%m%d")
 
 
 
