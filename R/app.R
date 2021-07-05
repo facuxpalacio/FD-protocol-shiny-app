@@ -397,7 +397,7 @@ ui <- dashboardPage(
                                             
                checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
                                             
-               actionButton("build.hv", "Build hypervolumes")
+               actionButton("build.hv1", "Build hypervolumes")
                ),
                                             
                # Output: hypervolumes
@@ -414,7 +414,9 @@ ui <- dashboardPage(
                 radioButtons("sim.beta.rich", label = "Similarity metric",
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
-                             selected = "jaccard")  
+                             selected = "jaccard"),
+                
+                actionButton("build.hv2", "Compute functional richness")
             ),
             
             box(title = "Total beta functional diversity", status = "warning", solidHeader = TRUE,
@@ -786,7 +788,7 @@ server <- function(input, output, session) {
                              choices = numericColumns())
   })
   
-  hypervolumes <- eventReactive(input$build.hv, {
+  hypervolumes <- eventReactive(input$build.hv1, {
     trait <- as.matrix(trait_dataset()[, input$traits_xy3])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
@@ -798,7 +800,7 @@ server <- function(input, output, session) {
   
   output$hv <- renderPlot(plot(hypervolumes()))
   
-  alpha.FD <- eventReactive(input$build.hv, {
+  alpha.FD <- eventReactive(input$build.hv1, {
     kernelFD <- data.frame(site = 1:input$hv.sites, 
                            FD = kernel.alpha(hypervolumes()))
     kernelFD
@@ -818,21 +820,21 @@ server <- function(input, output, session) {
   })
   
   # Tab: Beta richness
-  beta.FD <- eventReactive(input$build.hv, {
+  beta.FD <- eventReactive(input$build.hv2, {
     kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
     kernel.beta.hv
   })
   
   output$total.beta <- renderPlot({
-    pheatmap(beta.FD()$Btotal)
+    pheatmap(as.matrix(beta.FD()$Btotal))
   })
     
   output$turnover.beta <- renderPlot({
-    pheatmap(beta.FD()$Brepl)
+    pheatmap(as.matrix(beta.FD()$Brepl))
   })
     
   output$richness.beta <- renderPlot({
-    pheatmap(beta.FD()$Brich)
+    pheatmap(as.matrix(beta.FD()$Brich))
   })
   
 #  formData <- reactive({
