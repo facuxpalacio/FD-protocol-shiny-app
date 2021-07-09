@@ -26,7 +26,18 @@ ui <- dashboardPage(
                menuSubItem("Trait plots", tabName = "traitplots"),
                menuSubItem("Collinearity", tabName = "collinearity"),
                menuSubItem("Missing data", tabName = "missingdata")),
-      menuItem("Step 6. Functional diversity metrics", tabName = "step6"),
+      menuItem("Step 6. Functional diversity", tabName = "step6",
+               menuItem("Trait space", tabName = "traitspace"),
+               menuItem("Richness", tabName = "richness",
+                           menuSubItem("Alpha", tabName = "alpharich"),
+                           menuSubItem("Beta", tabName = "betarich")),
+               menuItem("Regularity", tabName = "regularity",
+                           menuSubItem("Alpha", tabName = "alphareg"),
+                           menuSubItem("Beta", tabName = "betareg")),
+               menuItem("Divergence", tabName = "divergence"),
+               menuItem("Similarity", tabName = "similarity"),
+               menuItem("Species contributions", tabName = "spcontrib"),
+               menuItem("Correlations among metrics", tabName = "corrFD")),
       menuItem("Step 7. Model fit", tabName = "step7"),
       menuItem("Step 8. Reproducibility", tabName = "step8")
     )
@@ -87,6 +98,7 @@ ui <- dashboardPage(
                           # Input: Load your community data
                            fluidRow(
                           box(title = "Load your community data", width = 8, height = 300,
+                              status = "primary", solidHeader = TRUE,
                           fileInput("community_dataset", 
                                     "",
                                     accept = c("text/csv", 
@@ -104,17 +116,19 @@ ui <- dashboardPage(
                                        ",")),
                           
                           # Output: community dataset
-                          box(title = "Number of sites and species", width = 4,
+                          box(title = "Number of sites and species", width = 4, height = 300,
+                              status = "warning", solidHeader = TRUE,
                           textOutput("nrow_community"),
                           textOutput("ncol_community"))
                            ),
                           
                           fluidRow(
                           box(title = "Community data", width = 12, height = 300,
+                              status = "warning", solidHeader = TRUE,
                           dataTableOutput("community_table"))
                           )
                           
-                          )),
+                          ))
                       
              ),
              
@@ -138,8 +152,8 @@ ui <- dashboardPage(
                           # Input: Load your trait data
                           fluidRow(
                             box(title = "Load your trait data", width = 8, height = 300,
-                          fileInput("trait_dataset", 
-                                    "Load your trait data",
+                                status = "primary", solidHeader = TRUE,
+                          fileInput("trait_dataset", "",
                                     accept = c("text/csv", 
                                                "text/comma-separated-values,text/plain", 
                                                ".csv")),
@@ -158,14 +172,15 @@ ui <- dashboardPage(
                           
                           # Output: trait dataset
                           box(title = "Number of species/individuals and traits", 
-                              width = 4, height = 300,
+                              width = 4, height = 300, status = "warning", solidHeader = TRUE,
                           textOutput("nrow_traits"),
                           textOutput("ncol_traits"))
                           ),
                           
-                          box(title = "Trait data", width = 12,
+                          box(title = "Trait data", width = 12, height = 300, 
+                              status = "warning", solidHeader = TRUE,
                           dataTableOutput("trait_table")))
-                        ),
+                        )
                       ),
              
       tabItem(tabName = "step5",
@@ -182,93 +197,99 @@ ui <- dashboardPage(
               ),
       
       tabItem(tabName = "datasummary",
-                                     # Ouputs: Data summaries
-                                     box(title = "Community data",
-                                     verbatimTextOutput("summary_community")
-                                     ),
-                                    
-                                     box(title = "Trait data", 
-                                     verbatimTextOutput("summary_trait")
-                                     ),
+              
+              # Ouputs: Data summaries
+              fluidRow(
+                box(title = "Community data", status = "warning", solidHeader = TRUE, width = 12,
+                  verbatimTextOutput("summary_community")
+                  )),
+              
+              fluidRow(
+                box(title = "Trait data", status = "warning", solidHeader = TRUE, width = 12,
+                  verbatimTextOutput("summary_trait")
+                  ))
               ),
                             
                           
       tabItem(tabName = "communitydata",
-                                     box(title = "Heatmap",
-                                     checkboxInput("LogX", "Log-transform occurrences", value = FALSE),
-                                     # Output: heatmap
-                                     plotOutput("heatmap_community")),
+              
+              fluidRow(
+              box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = 6,
+              checkboxInput("LogX", "Log-transform occurrences", value = FALSE),
+              # Output: heatmap
+              plotOutput("heatmap_community")
+              ),
                                      
-                                     # Output: rarefaction curves
-                                     box(title = "Rarefaction curves",
-                                     plotOutput("rarefaction_curves")),
-                                     
-                                     # Output: histograms
-                                     box(title = "Histograms",
-                                     sliderInput("bins",
-                                                 "Number of bins:",
-                                                 min = 5, max = 20, value = 10),
-                                     fluidRow(
-                                       column(6,
-                                              plotOutput("richness")),
-                                       column(6,
-                                              plotOutput("prevalence")))
-                                     )
+              # Output: rarefaction curves
+                box(title = "Rarefaction curves", status = "warning", solidHeader = TRUE, width = ,
+                    plotOutput("rarefaction_curves"))
+              ),
+              
+              box(title = "Inputs", status = "primary", solidHeader = TRUE,
+                  sliderInput("bins1", "Number of bins:", min = 5, max = 20, value = 10),
+              ),
+              
+              fluidRow(
+                # Output: histograms
+                box(title = "Histograms", status = "warning", solidHeader = TRUE, width = 12,
+                      column(6,
+                             plotOutput("richness")),
+                      column(6,
+                             plotOutput("prevalence")))
+                    )
               ),
       
       tabItem(tabName = "traitplots",
-                                     # Input: Select traits to plot
-                                     box(title = "Trait plots",
-                                       selectInput("trait", 
-                                                 label = "Select a functional trait",
-                                                 choices = NULL),
+              # Input: Select traits to plot
+              box(title = "Trait plots", status = "primary", solidHeader = TRUE,
+                  selectInput("trait", label = "Select a functional trait",
+                              choices = NULL),
                                      
-                                     # Input: Select species to plot (if ITV is accounted for)
-                                     selectInput("species",
-                                                 label = "Species (if several measurements
-                                      per species are available):", choices = NULL),
+              # Input: Select species to plot (if ITV is accounted for)
+                  selectInput("species", label = "Species (if several measurements
+                               per species are available):", choices = NULL),
                                      
-                                     # Input: Select type of plot
-                                     selectInput("plot.type", 
-                                                 label = "Plot type:",
-                                                 list(boxplot = "boxplot", 
-                                                      histogram = "histogram",
-                                                      density = "density"))),
+              # Input: Select type of plot
+                  selectInput("plot.type", label = "Plot type:",
+                               list(boxplot = "boxplot", 
+                                    histogram = "histogram",
+                                    density = "density"))),
+              
+              # Input: histogram inputs
+              box(title = "Inputs", status = "primary", solidHeader = TRUE,
+                  sliderInput("bins2", "Number of bins:", min = 5, max = 20, value = 10),
+              ),
                                      
-                                     # Output: Trait plot
-                                     box(title = textOutput("caption"),
-                                     plotOutput("trait_plot"))
-                                     
+              # Output: Trait plot
+               box(title = textOutput("caption"), status = "warning", solidHeader = TRUE,
+                   plotOutput("trait_plot"))
               ),
                             
                           
       tabItem(tabName = "collinearity",
-                                     # Input: Select traits to plot
-                                     box(title = "",
-                                     checkboxGroupInput("traits_xy1", 
-                                                        label = "Select two or more 
-                                                        functional traits",
-                                                        choices = NULL, inline = TRUE)),
+              
+              # Input: Select traits to plot
+              box(title = "Select two or more functional traits", status = "primary", solidHeader = TRUE,
+                  checkboxGroupInput("traits_xy1", label = "", choices = NULL)
+                  ),
                                      
-                                     # Output: scatterplots
-                                     box(title = "Scatterplots",
-                                     plotOutput("scatterplots"))
-                                     
+              # Output: scatterplots
+              fluidRow(
+                box(title = "Scatterplots", status = "warning", solidHeader = TRUE, width = 12,
+                    plotOutput("scatterplots"))
+                  )
               ),
                             
                           
       tabItem(tabName = "missingdata",
-                                     # Input: Select traits with missing data
-                                     box(title = "",
-                                     checkboxGroupInput("traits_na",
-                                                        label = "You have the following traits with missing data",
-                                                        choices = NULL))
+              
+              # Input: Select traits with missing data
+              box(title = "You have the following traits with missing data",
+               checkboxGroupInput("traits_na", label = "", choices = NULL))
               ),
                           
              
       tabItem(tabName = "step6",
-                      sidebarLayout( 
-                        sidebarPanel(
                       helpText("Now you can compute functional diversity metrics!",
                                style = "background-color:lightblue; border-radius:5px"),
                       checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
@@ -276,147 +297,171 @@ ui <- dashboardPage(
                                                      "Did you subset your trait data?",
                                                      "Select the appropriate method based on the research question",
                                                      "Select the appropriate functional diversity metric",
-                                                     "Identify the level of functional diversity metric measurement")),
+                                                     "Identify the level of functional diversity metric measurement"))
                       
                       ),
                       
-                      mainPanel(
-                        tabBox(title = "",
-                          tabPanel("Trait space",
-                                   fluidRow(
-                                     column(4,
-                                   # Input: Select traits to plot
-                                   box(title = "",
-                                   checkboxGroupInput("traits_xy2", 
-                                                      label = "Select two or more 
-                                                               functional traits",
-                                                      choices = NULL)),
+      tabItem(tabName = "traitspace",
+                                
+              # Input: Select traits to plot
+              box(title = "Select two or more functional traits",
+                  status = "primary", solidHeader = TRUE,
+                  checkboxGroupInput("traits_xy2", label = "", choices = NULL)
+                  ),
                                    
-                                   # Inputs: dendrogram arguments
-                                   box(title = "Functional dendrogram",
-                                   checkboxInput("standardize", "Standardize traits", value = FALSE),
+              # Inputs: dendrogram inputs
+              box(title = "Dendrogram inputs",
+                  status = "primary", solidHeader = TRUE,
+                  checkboxInput("standardize", "Standardize traits", value = FALSE),
                                    
-                                   radioButtons("dist.metric",
-                                                label = "Dissimilarity metric",
-                                                choices = c("Euclidean" = "euclidean", 
-                                                            "Manhattan" = "manhattan", 
-                                                            "Gower" = "gower", 
-                                                            "Mahalanobis" = "mahalanobis"),
+                  radioButtons("dist.metric",
+                                   label = "Dissimilarity metric",
+                                   choices = c("Euclidean" = "euclidean", 
+                                               "Manhattan" = "manhattan", 
+                                               "Gower" = "gower",
+                                               "Mahalanobis" = "mahalanobis"),
                                                 selected = "gower"),
                                    
-                                   radioButtons("cluster.method",
-                                                label = "Clustering method",
-                                                choices = c("Single" = "single", 
-                                                            "Complete" = "complete",
-                                                            "Average" = "average",
-                                                            "Ward" = "ward.D2"),
-                                                selected = "average")
+                      radioButtons("cluster.method",
+                                   label = "Clustering method",
+                                   choices = c("Single" = "single",
+                                               "Complete" = "complete",
+                                               "Average" = "average",
+                                               "Ward" = "ward.D2"),
+                                   selected = "average")
                                    ),
                                    
                                    # Input: PCoA arguments
-                                   box(title = "Pincipal Coordinate Analysis",
-                                   radioButtons("corrections",
-                                                label = "Correction method for negative eigenvalues",
-                                                choices = c("None" = "none", 
-                                                            "Lingoes" = "lingoes",
-                                                            "Cailliez" = "cailliez")),
+                 box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
+                                       radioButtons("corrections",
+                                                    label = "Correction method for negative eigenvalues",
+                                                    choices = c("None" = "none", 
+                                                                "Lingoes" = "lingoes",
+                                                                "Cailliez" = "cailliez")),
                                    
-                                   sliderInput("num_dim", "Number of dimensions",
-                                                min = 2, max = 10, value = 2),
+                                       sliderInput("max.naxes", "Maximum number of dimensions of the trait space",
+                                                   min = 2, max = 10, value = 2),
                                    
-                                   sliderInput("alpha1", "Convex hull transparency",
-                                               min = 0, max = 1, value = 0.5))
-                                   ),
+                                       sliderInput("alpha1", "Convex hull transparency",
+                                                    min = 0, max = 1, value = 0.5)
+                       ),
+
+               # Output: dendrogram, and PCoA
+               box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
+                   plotOutput("dendrogram")
+                   ),
+              
+              box(title = "PCoA", status = "warning", solidHeader = TRUE,
+                  plotOutput("pcoa")
+                  ),
                                    
-                                   column(8,
-                                   # Output: dendrogram, and PCoA
-                                   box(title = "Functional dendrogram",
-                                   plotOutput("dendrogram")),
-                                   
-                                   box(title = "PCoA",
-                                   plotOutput("pcoa")),
-                                   
-                                   # Output: eigenvalues
-                                   fluidRow(
-                                     box(title = "Raw eigenvalues", width = 6,
-                                         plotOutput("raw_eigenvalues")),
-                                     
-                                     box(title = "Relative eigenvalues", width = 6,
-                                         plotOutput("rel_eigenvalues"))),
-                                   
-                                   ))),
+              # Input: eigenvalues plot
+              box(title = "Screeplot inputs", status = "primary", solidHeader = TRUE,
+                  sliderInput("axes.eigenvalues", "Number of axes to plot",
+                              min = 2, max = 20, value = 5)
+                  ),
+                                  
+              # Output: eigenvalues
+              fluidRow(
+                box(title = "Screeplots", 
+                    status = "warning", solidHeader = TRUE, width = 12,
+                column(6,
+                       plotOutput("raw_eigenvalues")),
+                column(6,
+                       plotOutput("rel_eigenvalues"))
+                       ))
+              ),
                           
-                          tabPanel("Richness",
-                                   # Input: Select traits to plot
-                                   fluidRow(
-                                     box(title = "", width = 4,
-                                            checkboxGroupInput("traits_xy3", 
-                                                               label = "Select two or more 
-                                                               functional traits",
-                                                               choices = NULL)
-                                         ),
-                              
-                                    # Input: hypervolumes
-                                     box(title = "Hypervolumes", width = 8,
-                                            numericInput("hv.sites", "Number of sites to plot", value = 1),
-                                            
-                                            sliderInput("hv.axes", "Number of dimensions",
-                                                        min = 0, max = 10, value = 2),
-                                            
-                                            radioButtons("hv.method", "Method",
-                                                         choices = c("Gaussian kernel density" = "gaussian",
-                                                                     "Box kernel density" = "box",
-                                                                     "Support vector machines" = "svm"),
-                                                         selected = "gaussian"),
-                                            
-                                            numericInput("npoints", "Number of sampling points", value = 1000),
-                                            
-                                            checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
-                                            
-                                            actionButton("build.hv", "Build hypervolumes")
-                                         ),
-                                            
-                                    # Output: hypervolumes
-                                    box(title = "Hypervolumes",
-                                            plotOutput("hv")),
-                                    
-                                    box(title = "Alpha FD",
-                                            plotOutput("alpha.hv.FD")))
-                                  )),
-                          
-                          tabPanel("Evenness",
-                                   
-                                   ),
-                          
-                          tabPanel("Regularity",
-                                   
-                                   ),
-                          
-                          tabPanel("Correlations among metrics",
-                                   
-                          )
-                          
-                          )))
-                      
-                      ),
-                                   
-      tabItem(tabName = "step7",
-              sidebarLayout(
-                sidebarPanel(
-                      helpText("Fit, interpret, report and validate your statistical model.",
-                               style = "background-color:lightblue; border-radius:5px"),
-                      
-                      checkboxGroupInput("step7", "Interpret and validate the results",
-                                         choices = c("Select an appropriate statistical model or test to answer your research question",
-                                                     "Report effect sizes, model support and uncertainty",
-                                                     "Provide a graphical output if needed",
-                                                     "Did you validate your model and how?"))
+    tabItem(tabName = "alpharich",
+            # Input: Select traits to plot
+            box(title = "Select two or more functional traits", 
+                status = "primary", solidHeader = TRUE, width = 4,
+                checkboxGroupInput("traits_xy3", label = "", choices = NULL)
                 ),
-              
-              mainPanel()
-              
-              )),
-             
+            
+            # Input: hypervolumes
+            box(title = "Hypervolume inputs", 
+                status = "primary", solidHeader = TRUE, width = 8,
+                numericInput("hv.sites", "Number of sites to plot", value = 1),
+                                            
+               sliderInput("hv.axes", "Number of dimensions",
+                           min = 0, max = 10, value = 2),
+                                            
+               radioButtons("hv.method", "Method",
+                            choices = c("Gaussian kernel density" = "gaussian",
+                                        "Box kernel density" = "box",
+                                        "Support vector machines" = "svm"),
+                            selected = "gaussian"),
+                                            
+               numericInput("npoints", "Number of sampling points", value = 1000),
+                                            
+               checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
+                                            
+               actionButton("build.hv1", "Build hypervolumes")
+               ),
+                                            
+               # Output: hypervolumes
+               box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
+                   plotOutput("hv")),
+                                    
+               box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
+                   plotOutput("alpha.hv.FD"))
+                   ),
+                          
+    tabItem(tabName = "betarich",
+            # Inputs: similarity metric
+            box(title = "Similarity metric", status = "primary", solidHeader = TRUE,
+                radioButtons("sim.beta.rich", label = "Similarity metric",
+                             choices = c("Jaccard" = "jaccard", 
+                                         "Sorensen" = "sorensen"),
+                             selected = "jaccard"),
+                
+                actionButton("build.hv2", "Compute functional richness")
+            ),
+            
+            box(title = "Total beta functional diversity", status = "warning", solidHeader = TRUE,
+                plotOutput("total.beta")
+                ),
+            
+            box(title = "Turnover", status = "warning", solidHeader = TRUE,
+                plotOutput("turnover.beta")
+            ),
+            
+            box(title = "Species richness", status = "warning", solidHeader = TRUE,
+                plotOutput("richness.beta")
+            ),
+                ),
+    
+    tabItem(tabName = "alphareg",
+            
+            ),
+    
+    tabItem(tabName = "betareg",
+            
+            ),
+    
+    tabItem(tabName = "divergence",
+            
+            ),
+    
+    tabItem(tabName = "similarity",
+            
+            ),
+    
+    tabItem(tabName = "spcontrib",
+            
+            ),
+                                   
+    tabItem(tabName = "step7",
+            helpText("Fit, interpret, report and validate your statistical model.",
+                     style = "background-color:lightblue; border-radius:5px"),
+                      
+              checkboxGroupInput("step7", "Interpret and validate the results",
+                                 choices = c("Select an appropriate statistical model or test to answer your research question",
+                                 "Report effect sizes, model support and uncertainty",
+                                 "Provide a graphical output if needed",
+                                 "Did you validate your model and how?"))
+                ),          
       tabItem(tabName = "step8",
               sidebarLayout(
                 sidebarPanel(
@@ -446,20 +491,6 @@ ui <- dashboardPage(
               mainPanel()
               
               ))
-    
-             #div(
-              # id = "form",
-              # actionButton("submit", "Submit", class = "btn-primary"),
-             
-             #shinyjs::hidden(
-              # div(
-               #  id = "thankyou_msg",
-                # h3("Thanks for creating your protocol! See the output folder for your filled form")
-     #          )
-    #         ))
-             
-  )
-)
 
 ######################################################################################
 
@@ -568,7 +599,7 @@ server <- function(input, output, session) {
   output$richness <- renderPlot({
     nspp <- data.frame(richness = rowSums(community_dataset()))
     ggplot(data = nspp, aes(x = richness)) + 
-      geom_histogram(color = "black", fill = "white", bins = input$bins) +
+      geom_histogram(color = "black", fill = "white", bins = input$bins1) +
       xlab("Species richness") + ylab("Frequency")
   })
   
@@ -578,7 +609,7 @@ server <- function(input, output, session) {
     abundance <- colSums(PA.comm)
     prev <- data.frame(prevalence = abundance/nsites)
     ggplot(data = prev, aes(x = prevalence)) + 
-      geom_histogram(color = "black", fill = "white", bins = input$bins) + 
+      geom_histogram(color = "black", fill = "white", bins = input$bins1) + 
       xlab("Prevalence") + ylab("Frequency")
   })
   
@@ -606,7 +637,7 @@ server <- function(input, output, session) {
     } else {
       
       plot.type <- switch(input$plot.type,
-                          "histogram" = geom_histogram(alpha = 0.5),
+                          "histogram" = geom_histogram(alpha = 0.5, bins = input$bins2),
                           "density" = geom_density(alpha = 0.5),
                           "boxplot" = geom_boxplot())
       
@@ -718,6 +749,7 @@ server <- function(input, output, session) {
       ylim(min(vec.sp.df$Dim2) - 0.1, max(vec.sp.df$Dim2 + 0.1))
   })
   
+  # Screeplots
   output$raw_eigenvalues <- renderPlot({
     if(input$standardize == TRUE){
       traits <- scale(trait_dataset())
@@ -727,8 +759,9 @@ server <- function(input, output, session) {
     rownames(traits) <- traits[, 1]
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
-    df <- data.frame(axis = 1:length(pco$eig), eig = pco$eig)
+    pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
+    naxes <- input$axes.eigenvalues
+    df <- data.frame(axis = 1:naxes, eig = pco$eig[1:naxes])
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Raw eigenvalue") +
@@ -744,9 +777,9 @@ server <- function(input, output, session) {
     rownames(traits) <- traits[, 1]
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
-    df <- data.frame(axis = 1:length(pco$eig),
-                     eig = 100*pco$eig/sum(pco$eig))
+    pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
+    naxes <- input$axes.eigenvalues
+    df <- data.frame(axis = 1:naxes, eig = 100*pco$eig[1:naxes]/sum(pco$eig[1:naxes]))
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Relative eigenvalue (%)") +
@@ -760,9 +793,9 @@ server <- function(input, output, session) {
                              choices = numericColumns())
   })
   
-  hypervolumes <- eventReactive(input$build.hv, {
+  hypervolumes <- eventReactive(input$build.hv1, {
     trait <- as.matrix(trait_dataset()[, input$traits_xy3])
-    rownames(traits) <- colnames(community_dataset())
+    rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
     
     kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
@@ -772,22 +805,41 @@ server <- function(input, output, session) {
   
   output$hv <- renderPlot(plot(hypervolumes()))
   
-  alpha.FD <- eventReactive(input$build.hv, {
+  alpha.FD <- eventReactive(input$build.hv1, {
     kernelFD <- data.frame(site = 1:input$hv.sites, 
                            FD = kernel.alpha(hypervolumes()))
     kernelFD
     })
   
   output$alpha.hv.FD <- renderPlot({
+    df <- alpha.FD()
     if(input$hv.sites > 15){
-      ggplot(data = alpha.FD(), aes(x = FD)) + geom_histogram(bins = 5) +
+      ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
         xlab("Alpha functional diversity") + ylab("Frequency")
     }
     else {
-      ggplot(data = alpha.FD(), aes(x = site, y = FD)) + 
+      ggplot(data = df, aes(x = site, y = FD)) + 
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
     }
+  })
+  
+  # Tab: Beta richness
+  beta.FD <- eventReactive(input$build.hv2, {
+    kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
+    kernel.beta.hv
+  })
+  
+  output$total.beta <- renderPlot({
+    pheatmap(as.matrix(beta.FD()$Btotal))
+  })
+    
+  output$turnover.beta <- renderPlot({
+    pheatmap(as.matrix(beta.FD()$Brepl))
+  })
+    
+  output$richness.beta <- renderPlot({
+    pheatmap(as.matrix(beta.FD()$Brich))
   })
   
 #  formData <- reactive({
