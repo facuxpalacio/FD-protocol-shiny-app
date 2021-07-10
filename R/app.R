@@ -9,8 +9,7 @@ library(vegan) #2.5-6
 library(alphahull) #2.2
 library(BAT) #2.6.0
 
-ui <- dashboardPage(
-  #shinyjs::useShinyjs(),
+ui <-dashboardPage(
   dashboardHeader(title = "An eight-step protocol for functional diversity analysis"),
   ## Sidebar content
   dashboardSidebar(
@@ -45,6 +44,7 @@ ui <- dashboardPage(
   
   ## Body content
   dashboardBody(
+    shinyjs::useShinyjs(),
     tabItems(
       # Tab contents
       tabItem(tabName = "dashboard",
@@ -59,10 +59,10 @@ ui <- dashboardPage(
                ingrained in a theoretical framing with a set of hypotheses and 
                predictions.", style = "background-color:lightblue; border-radius:5px"),
       radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
-                   choices = c("My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?","My work is open-ended e.g. How do abiotic variables shape leaf morphology?")),     
+                   choices = c("My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?","My work is open-ended, e.g. How do abiotic variables shape leaf morphology?")),     
                       fluidRow(
                         column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
-                      fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended e.g. How do abiotic variables shape leaf morphology?"]',
+                      fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended, e.g. How do abiotic variables shape leaf morphology?"]',
                                                           textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))
       ),
              
@@ -72,11 +72,12 @@ ui <- dashboardPage(
                                species, communities) selected to answer the research question.",
                                style = "background-color:lightblue; border-radius:5px"),
                       div(id="step2", "Identify an appropriate experimental or sampling design"),
-                                        textInput("scale","What is(are) your scale(s) of analysis?"),
+                                      textInput("scale","What is(are) your scale(s) of analysis?"),
                       textInput("unit","What is your target ecological unit?"),
-                      radioButtons("pow", "Did you perform a power analysis?", choices=c("Yes", "No")),
-                                   radioButtons("prer", "Did you preregister?", choices=c("Yes", "No"))
-              ),
+                      radioButtons("pow1", "Did you perform a power analysis?", choices=c("Yes", "No")),
+              textInput("pow2", "Results of power analysis or rationale for lack of need", value = "", placeholder = "I can detect an effect size of..."),
+                                   radioButtons("prer1", "Did you preregister?", choices=c("Yes", "No")),
+      textInput("prer2", "Link to preregistration or rationale for lack of need", value = "", placeholder = "My preregistration is hosted at osf.io/...")),
             
       tabItem(tabName = "step3",
                       withMathJax(),
@@ -217,7 +218,9 @@ ui <- dashboardPage(
               box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = 6,
               checkboxInput("LogX", "Log-transform occurrences", value = FALSE),
               # Output: heatmap
-              plotOutput("heatmap_community")
+              plotOutput("heatmap_community"),
+              textInput('filename', "Filename"),
+              checkboxInput('savePlot', "Check to save")
               ),
                                      
               # Output: rarefaction curves
@@ -461,31 +464,32 @@ ui <- dashboardPage(
                                  "Report effect sizes, model support and uncertainty",
                                  "Provide a graphical output if needed",
                                  "Did you validate your model and how?"))
-                ),
-             
-    tabItem(tabName = "step8",
-            helpText("Provide enough data and code detail to allow full reproducibility
-            of your results.",
-            style = "background-color:lightblue; border-radius:5px"),
-      
-            checkboxGroupInput("step8", "Ensure reproducibility",
-                                choices = c("Report the software, version and packages you used",
-                                            "Deposit data in a public repository",
-                                            "Provide your code (tidy and clean)"))
-      )))
-  )
-    
-             #div(
-              # id = "form",
-              # actionButton("submit", "Submit", class = "btn-primary"),
-             
-             #shinyjs::hidden(
-              # div(
-               #  id = "thankyou_msg",
-                # h3("Thanks for creating your protocol! See the output folder for your filled form")
-     #          )
-    #         ))
+                ),          
+      tabItem(tabName = "step8",
 
+                      helpText("Provide enough data and code detail to allow full reproducibility
+                               of your results.",
+                               style = "background-color:lightblue; border-radius:5px"),
+                      
+                      checkboxGroupInput("step8", "Ensure reproducibility",
+                                         choices = c("Report the software, version and packages you used",
+                                                     "Deposit data in a public repository",
+                                                     
+                                                     "Provide your code (tidy and clean)")),
+                      div(
+                        id = "form",
+                        actionButton("submit", "Save filled checklist", class = "btn-primary"),
+                        
+                        shinyjs::hidden(
+                          div(
+                            id = "thankyou_msg",
+                            h3("Thanks for creating your protocol! See the output folder for your filled form")
+                          )
+                        ))
+                )
+              )
+      )
+    )
 
 ######################################################################################
 
@@ -498,20 +502,20 @@ server <- function(input, output, session) {
   output$tab <- renderUI({
    tagList(url)
     })
-  toDisplay <- eventReactive(input$step1, {
-    choices <- c("Which is your research question?",
-                 "Indicate your main hypotheses and predictions")
-    if (all(choices %in% input$step1)){
-      return("")
-    } else if (choices[1] %in% input$step1) {
-      return("Your ecological question...")
-    } else if (choices[2] %in% input$step1) {
-      return("You should clearly state...")
-    } else {}
-  })
-  output$step1 <- renderText({
-    toDisplay()
-  })
+  # toDisplay <- eventReactive(input$step1, {
+  #   choices <- c("Which is your research question?",
+  #                "Indicate your main hypotheses and predictions")
+  #   if (all(choices %in% input$step1)){
+  #     return("")
+  #   } else if (choices[1] %in% input$step1) {
+  #     return("Your ecological question...")
+  #   } else if (choices[2] %in% input$step1) {
+  #     return("You should clearly state...")
+  #   } else {}
+  # })
+  # output$step1 <- renderText({
+  #   toDisplay()
+  # })
   
   community_dataset <- reactive({
     req(input$community_dataset) # require data
@@ -541,7 +545,6 @@ server <- function(input, output, session) {
   
   # Tab "Summary": Create a summary of the data 
   output$summary_community <- renderPrint(summary(community_dataset()))
-  
   output$summary_trait <- renderPrint(summary(trait_dataset()))
   
   output$nrow_community <- renderText({
@@ -564,11 +567,21 @@ server <- function(input, output, session) {
   output$heatmap_community <- renderPlot({
     if(input$LogX == TRUE){
     pheatmap(log(community_dataset() + 1))
+      if(input$savePlot)
+      {
+        name <- paste0('../output/',input$filename, "_log10.pdf")
+        ggsave(name,pheatmap(log(community_dataset() + 1)), device="pdf")
+      }
     } else {
       pheatmap(community_dataset())
-      }
-    })
-  
+      if(input$savePlot)
+      {
+        name <- paste0('../output/',input$filename, ".pdf")
+        ggsave(name,pheatmap(community_dataset()), device="pdf")
+    }
+    }
+  })
+
   output$rarefaction_curves <- renderPlot({
     raref.curve <- rarecurve(community_dataset())
     names(raref.curve) <- paste("site", 1:nrow(community_dataset()), 
@@ -654,7 +667,7 @@ server <- function(input, output, session) {
     df <- trait_dataset()
     colnames(df)[sapply(df, is.numeric)]
   })
-  
+
   # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy1", 
@@ -837,33 +850,31 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(beta.FD()$Brich))
   })
   
-#  formData <- reactive({
-#    data <- sapply(fieldsAll, function(x) input[[x]])
-#    data <- c(data, timestamp = epochTime())
-#    data <- t(data)
-#    data
-#  })
-#  saveData <- function(data) {
-#    fileName <- sprintf("FDprotocol_%s.csv",
-#                        humanTime())
-    ##EJH set quote to FALSE because the commas within the output fields were dividing things across cells due to csv format
-#    write.csv(x = data, file = file.path(responsesDir, fileName),
-#              row.names = FALSE, quote = FALSE)
-#  }
+ formData <- reactive({
+   data <- sapply(fieldsAll, function(x) input[[x]])
+   data <- c(data, date = humanTime())#add escape characters to commas to avoid breaking up into more than 1 cell
+  data<-gsub(",", "\\,", data)
+   data <- t(data)
+  colnames(data)<-c(fieldsAll, "date")
+   data
+ })
+ saveData <- function(data) {
+   fileName <- sprintf("FDprotocol_%s.csv",
+                       humanTime())
+   write.csv(x = data, file = file.path(responsesDir, fileName),
+             row.names = FALSE)
+ }
   # action to take when submit button is pressed
-#  observeEvent(input$submit, {
-#    shinyjs::show("thankyou_msg")
-#    saveData(formData())
-#  })
+ observeEvent(input$submit, {
+   shinyjs::show("thankyou_msg")
+   saveData(formData())
+ })
 }
 
-#fieldsAll <- c("step1", "step2", "step3", "step4", "step5", "step6", "step7", "step8")
-#responsesDir <- file.path("../output")
-#epochTime <- function() {
-#  as.integer(Sys.time())
-#}
-#humanTime <- function() format(Sys.time(), "%Y%m%d")
+fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff", "step4", "step5", "step6", "step7", "step8")
+responsesDir <- file.path("../output")
 
+humanTime <- function() format(Sys.time(), "%Y%m%d")
 
 
 shinyApp(ui = ui, server = server) 
