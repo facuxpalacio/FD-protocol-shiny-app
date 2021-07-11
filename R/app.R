@@ -470,12 +470,19 @@ ui <-dashboardPage(
                       helpText("Provide enough data and code detail to allow full reproducibility
                                of your results.",
                                style = "background-color:lightblue; border-radius:5px"),
-                      
-                      checkboxGroupInput("step8", "Ensure reproducibility",
-                                         choices = c("Report the software, version and packages you used",
-                                                     "Deposit data in a public repository",
-                                                     
-                                                     "Provide your code (tidy and clean)")),
+                      checkboxGroupInput('dms',"Data management and storage",
+                                         choices = c('I have a Research Data Management Plan', 'My data and code are stored in a location with version control','I have backup copies of my data and code','My data and code are in an organized file system','my raw data is unaltered')),
+                                         checkboxGroupInput('ip',"Intellectual property",
+                      choices = c("My metadata and/or RDMP make it clear whose intellectual property this work represents", 'I have appointed a data steward','My project has a license that describes conditions of reuse')),
+                      checkboxGroupInput('metadata',"Metadata",
+                                         choices = c("I have a README file", 'My README explains how all my files interact','My README contains the title, authors, date and License', 'If applicable, my README contains download dates for external data and any filters used', 'I will update my README continuously as my project progresses')),
+                      checkboxGroupInput('code',"Code",
+                                         choices = c("I've included software and package version numbers", 'My code has informative comments','The code I provided can reproduce all results,figures and tables,', 'If applicable, my README contains download dates for external data and any filters used', 'I will update my README continuously as my project progresses')),
+                      checkboxGroupInput('host',"Hosting",
+                                         choices = c('My project filescan be linked to a DOI (such as Zenodo in combination with GitHub')),
+              checkboxGroupInput('naming',"Naming",
+                                 choices = c('I have named data files, variables, and scripts in an informative way')),
+    
                       div(
                         id = "form",
                         actionButton("submit", "Save filled checklist", class = "btn-primary"),
