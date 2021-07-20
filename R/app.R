@@ -33,7 +33,7 @@ ui <-dashboardPage(
                menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
                menuItem("Similarity", tabName = "similarity"),
-               menuItem("Species contributions", tabName = "spcontrib"),
+               menuItem("Rarity and originality", tabName = "spcontrib"),
                menuItem("Correlations among metrics", tabName = "corrFD")),
       menuItem("Step 7. Modelling", tabName = "step7"),
       menuItem("Step 8. Reproducibility", tabName = "step8")
@@ -369,7 +369,6 @@ ui <-dashboardPage(
                                                      "Select the appropriate method based on the research question",
                                                      "Select the appropriate functional diversity metric",
                                                      "Identify the level of functional diversity metric measurement"))
-                      
                       ),
                           
     tabItem(tabName = "alpharich",
@@ -468,13 +467,14 @@ ui <-dashboardPage(
             
             actionButton("build.hv5", "Compute functional similarity"),
             
+            # Input: Distance or similarity metric
             box(title = "Distance/similarity metric", status = "primary", solidHeader = TRUE,
                 radioButtons("dist.sim.metric", label = "",
                              choices = c("Distance between centroids" = "Distance_centroids", 
                                          "Minimum distance" = "Minimum_distance",
-                                         "Intersection among hypervolumes" = "Intersection",
                                          "Jaccard overlap" = "Jaccard",
-                                         "Sorensen-Dice overlap" = "Sorensen"),
+                                         "Sorensen-Dice overlap" = "Sorensen",
+                                         "Intersection among hypervolumes" = "Intersection"),
                              selected = "Distance_centroids")
                 ),
             
@@ -486,6 +486,30 @@ ui <-dashboardPage(
     
     tabItem(tabName = "spcontrib",
             
+            actionButton("build.hv6", "Compute species contributions"),
+            
+            box(title = "Contribution to functional richness method", status = "primary",
+                solidHeader = TRUE,
+                radioButtons("rich.contrib.method", label = "",
+                             choices = c("Nearest neighbor" = "neighbor",
+                                         "Leave-one-out approach" = "one out"),
+                             select = "neighbor")
+                ),
+            
+            box(title = "Contribution to functional richness", status = "warning", 
+                solidHeader = TRUE,
+                plotOutput("kernel.rich.contrib")
+                ),
+            
+            box(title = "Contribution to functional regularity", status = "warning", 
+                solidHeader = TRUE,
+                plotOutput("kernel.eve.contrib")
+                ),
+            
+            box(title = "Functional originality", status = "warning", 
+                solidHeader = TRUE,
+                plotOutput("kernel.originality")
+                )
             ),
                                    
     tabItem(tabName = "step7",
@@ -498,11 +522,11 @@ ui <-dashboardPage(
                                  "Provide a graphical output if needed",
                                  "Did you validate your model and how?"))
                 ),          
-      tabItem(tabName = "step8",
-
-                      helpText("Provide enough data and code detail to allow full reproducibility
-                               of your results.",
-                               style = "background-color:lightblue; border-radius:5px"),
+      
+    tabItem(tabName = "step8",
+            helpText("Provide enough data and code detail to allow full reproducibility
+                     of your results.",
+                     style = "background-color:lightblue; border-radius:5px"),
                       
                       checkboxGroupInput("step8", "Ensure reproducibility",
                                          choices = c("Report the software, version and packages you used",
@@ -931,15 +955,40 @@ server <- function(input, output, session) {
     }
   })
   
-  # Tab "Similarity"
-  sim.FD <- eventReactive(input$build.hv4, {
+  # Tab: "Similarity"
+  sim.FD <- eventReactive(input$build.hv5, {
     kernel.sim <- kernel.similarity(hypervolumes())
     kernel.sim
   })
   
   output$f.similarity <- renderPlot({
-    similarity.matrix <- as.matrix(sim.FD()$input$dist.sim.metric)
+    similarity.matrix <- as.matrix(sim.FD()[[input$dist.sim.metric]])
     pheatmap(similarity.matrix)
+  })
+  
+  # Tab: "Functional rarity and originality"
+  spp.contrib <- eventReactive(input$build.hv6, {
+    rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
+    rich.contrib[is.na(rich.contrib)] <- 0
+    #eve.contrib <- kernel.evenness.contribution(hypervolumes())
+    original <- kernel.originality(hypervolumes(), frac = 0.1, relative = FALSE)
+    original[is.na(original)] <- 0
+    list(rich.contrib, original)
+  })
+  
+  output$kernel.rich.contrib <- renderPlot({
+    spp.contrib_list <- spp.contrib()
+    pheatmap(spp.contrib_list$rich.contrib)
+  })
+  
+  #output$kernel.eve.contrib <- renderPlot({
+  #spp.contrib_list <- spp.contrib()
+   # pheatmap(as.matrix(spp.contrib_list$eve.contrib))
+  #})
+  
+  output$kernel.originality <- renderPlot({
+    spp.contrib_list <- spp.contrib()
+    pheatmap(spp.contrib_list$original)
   })
   
  formData <- reactive({
