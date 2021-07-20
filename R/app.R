@@ -24,20 +24,18 @@ ui <-dashboardPage(
                menuSubItem("Community data", tabName = "communitydata"),
                menuSubItem("Trait plots", tabName = "traitplots"),
                menuSubItem("Collinearity", tabName = "collinearity"),
-               menuSubItem("Missing data", tabName = "missingdata")),
+               menuSubItem("Missing data", tabName = "missingdata"),
+               menuSubItem("Trait space", tabName = "traitspace")),
       menuItem("Step 6. Functional diversity", tabName = "step6",
-               menuItem("Trait space", tabName = "traitspace"),
                menuItem("Richness", tabName = "richness",
                            menuSubItem("Alpha", tabName = "alpharich"),
                            menuSubItem("Beta", tabName = "betarich")),
-               menuItem("Regularity", tabName = "regularity",
-                           menuSubItem("Alpha", tabName = "alphareg"),
-                           menuSubItem("Beta", tabName = "betareg")),
+               menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
                menuItem("Similarity", tabName = "similarity"),
                menuItem("Species contributions", tabName = "spcontrib"),
                menuItem("Correlations among metrics", tabName = "corrFD")),
-      menuItem("Step 7. Model fit", tabName = "step7"),
+      menuItem("Step 7. Modelling", tabName = "step7"),
       menuItem("Step 8. Reproducibility", tabName = "step8")
     )
   ),
@@ -291,7 +289,77 @@ ui <-dashboardPage(
                checkboxGroupInput("traits_na", label = "", choices = NULL))
               ),
                           
-             
+      tabItem(tabName = "traitspace",
+              
+              # Input: Select traits to plot
+              box(title = "Select two or more functional traits",
+                  status = "primary", solidHeader = TRUE,
+                  checkboxGroupInput("traits_xy2", label = "", choices = NULL)
+              ),
+              
+              # Inputs: dendrogram inputs
+              box(title = "Dendrogram inputs",
+                  status = "primary", solidHeader = TRUE,
+                  checkboxInput("standardize", "Standardize traits", value = FALSE),
+                  
+                  radioButtons("dist.metric",
+                               label = "Dissimilarity metric",
+                               choices = c("Euclidean" = "euclidean", 
+                                           "Manhattan" = "manhattan", 
+                                           "Gower" = "gower",
+                                           "Mahalanobis" = "mahalanobis"),
+                               selected = "gower"),
+                  
+                  radioButtons("cluster.method",
+                               label = "Clustering method",
+                               choices = c("Single" = "single",
+                                           "Complete" = "complete",
+                                           "Average" = "average",
+                                           "Ward" = "ward.D2"),
+                               selected = "average")
+              ),
+              
+              # Input: PCoA arguments
+              box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
+                  radioButtons("corrections",
+                               label = "Correction method for negative eigenvalues",
+                               choices = c("None" = "none", 
+                                           "Lingoes" = "lingoes",
+                                           "Cailliez" = "cailliez")),
+                  
+                  sliderInput("max.naxes", "Maximum number of dimensions of the trait space",
+                              min = 2, max = 10, value = 2),
+                  
+                  sliderInput("alpha1", "Convex hull transparency",
+                              min = 0, max = 1, value = 0.5)
+              ),
+              
+              # Output: dendrogram, and PCoA
+              box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
+                  plotOutput("dendrogram")
+              ),
+              
+              box(title = "PCoA", status = "warning", solidHeader = TRUE,
+                  plotOutput("pcoa")
+              ),
+              
+              # Input: eigenvalues plot
+              box(title = "Screeplot inputs", status = "primary", solidHeader = TRUE,
+                  sliderInput("axes.eigenvalues", "Number of axes to plot",
+                              min = 2, max = 20, value = 5)
+              ),
+              
+              # Output: eigenvalues
+              fluidRow(
+                box(title = "Screeplots", 
+                    status = "warning", solidHeader = TRUE, width = 12,
+                    column(6,
+                           plotOutput("raw_eigenvalues")),
+                    column(6,
+                           plotOutput("rel_eigenvalues"))
+                ))
+      ),       
+      
       tabItem(tabName = "step6",
                       helpText("Now you can compute functional diversity metrics!",
                                style = "background-color:lightblue; border-radius:5px"),
@@ -303,77 +371,6 @@ ui <-dashboardPage(
                                                      "Identify the level of functional diversity metric measurement"))
                       
                       ),
-                      
-      tabItem(tabName = "traitspace",
-                                
-              # Input: Select traits to plot
-              box(title = "Select two or more functional traits",
-                  status = "primary", solidHeader = TRUE,
-                  checkboxGroupInput("traits_xy2", label = "", choices = NULL)
-                  ),
-                                   
-              # Inputs: dendrogram inputs
-              box(title = "Dendrogram inputs",
-                  status = "primary", solidHeader = TRUE,
-                  checkboxInput("standardize", "Standardize traits", value = FALSE),
-                                   
-                  radioButtons("dist.metric",
-                                   label = "Dissimilarity metric",
-                                   choices = c("Euclidean" = "euclidean", 
-                                               "Manhattan" = "manhattan", 
-                                               "Gower" = "gower",
-                                               "Mahalanobis" = "mahalanobis"),
-                                                selected = "gower"),
-                                   
-                      radioButtons("cluster.method",
-                                   label = "Clustering method",
-                                   choices = c("Single" = "single",
-                                               "Complete" = "complete",
-                                               "Average" = "average",
-                                               "Ward" = "ward.D2"),
-                                   selected = "average")
-                                   ),
-                                   
-                                   # Input: PCoA arguments
-                 box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                                       radioButtons("corrections",
-                                                    label = "Correction method for negative eigenvalues",
-                                                    choices = c("None" = "none", 
-                                                                "Lingoes" = "lingoes",
-                                                                "Cailliez" = "cailliez")),
-                                   
-                                       sliderInput("max.naxes", "Maximum number of dimensions of the trait space",
-                                                   min = 2, max = 10, value = 2),
-                                   
-                                       sliderInput("alpha1", "Convex hull transparency",
-                                                    min = 0, max = 1, value = 0.5)
-                       ),
-
-               # Output: dendrogram, and PCoA
-               box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
-                   plotOutput("dendrogram")
-                   ),
-              
-              box(title = "PCoA", status = "warning", solidHeader = TRUE,
-                  plotOutput("pcoa")
-                  ),
-                                   
-              # Input: eigenvalues plot
-              box(title = "Screeplot inputs", status = "primary", solidHeader = TRUE,
-                  sliderInput("axes.eigenvalues", "Number of axes to plot",
-                              min = 2, max = 20, value = 5)
-                  ),
-                                  
-              # Output: eigenvalues
-              fluidRow(
-                box(title = "Screeplots", 
-                    status = "warning", solidHeader = TRUE, width = 12,
-                column(6,
-                       plotOutput("raw_eigenvalues")),
-                column(6,
-                       plotOutput("rel_eigenvalues"))
-                       ))
-              ),
                           
     tabItem(tabName = "alpharich",
             # Input: Select traits to plot
@@ -435,19 +432,55 @@ ui <-dashboardPage(
             ),
                 ),
     
-    tabItem(tabName = "alphareg",
+    tabItem(tabName = "regularity",
             
-            ),
-    
-    tabItem(tabName = "betareg",
+            actionButton("build.hv3", "Compute functional regularity"),
+            
+            box(title = "Alpha functional regularity", status = "warning", solidHeader = TRUE,
+                plotOutput("alpha.regularity")
+                ),
+            
+            box(title = "Beta functional regularity", status = "warning", solidHeader = TRUE,
+                plotOutput("beta.regularity")
+                )
             
             ),
     
     tabItem(tabName = "divergence",
             
+            actionButton("build.hv4", "Compute functional divergence"),
+            
+            box(title = "Function for computing divergence", status = "primary", solidHeader = TRUE,
+                radioButtons("function.disp", label = "",
+                             choices = c("Divergence" = "divergence", 
+                                         "Dissimilarity" = "dissimilarity",
+                                         "Regression" = "regression"),
+                             selected = "divergence")
+                ),
+            
+            box(title = "Functional divergence", status = "warning", solidHeader = TRUE,
+                plotOutput("f.divergence")
+                )
+            
             ),
     
     tabItem(tabName = "similarity",
+            
+            actionButton("build.hv5", "Compute functional similarity"),
+            
+            box(title = "Distance/similarity metric", status = "primary", solidHeader = TRUE,
+                radioButtons("dist.sim.metric", label = "",
+                             choices = c("Distance between centroids" = "Distance_centroids", 
+                                         "Minimum distance" = "Minimum_distance",
+                                         "Intersection among hypervolumes" = "Intersection",
+                                         "Jaccard overlap" = "Jaccard",
+                                         "Sorensen-Dice overlap" = "Sorensen"),
+                             selected = "Distance_centroids")
+                ),
+            
+            box(title = "Functional similarity", status = "warning", solidHeader = TRUE,
+                plotOutput("f.similarity")
+                )
             
             ),
     
@@ -794,7 +827,7 @@ server <- function(input, output, session) {
       theme_minimal()
   })
   
-  ### Tab "Richness": compute FRic
+  ### Tab "Richness": Alpha
   # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy3", 
@@ -832,7 +865,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Tab: Beta richness
+  # Tab "Richness": Beta
   beta.FD <- eventReactive(input$build.hv2, {
     kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
     kernel.beta.hv
@@ -848,6 +881,65 @@ server <- function(input, output, session) {
     
   output$richness.beta <- renderPlot({
     pheatmap(as.matrix(beta.FD()$Brich))
+  })
+  
+  # Tab: "Regularity"
+  alpha.reg.hv <- eventReactive(input$build.hv3, {
+    kernel.reg.alpha <- data.frame(site = 1:input$hv.sites,
+                                   FD = kernel.evenness(hypervolumes()))
+  })
+  
+  output$alpha.regularity <- renderPlot({
+    df <- alpha.reg.hv()
+    if(input$hv.sites > 15){
+      ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
+        xlab("Alpha functional regularity") + ylab("Frequency")
+    }
+    else {
+      ggplot(data = df, aes(x = site, y = FD)) + 
+        geom_bar(stat = "identity", fill = "steelblue") +
+        xlab("Site") + ylab("Alpha functional regularity") + theme_bw()
+    }
+  })
+  
+  beta.reg.hv <- eventReactive(input$build.hv3, {
+    kernel.reg.beta <- kernel.beta.evenness(hypervolumes())
+    kernel.reg.beta
+  })
+  
+  output$beta.regularity <- renderPlot({
+    pheatmap(as.matrix(beta.reg.hv()))
+  })
+  
+  # Tab: "Divergence"
+  div.hv <- eventReactive(input$build.hv4, {
+    kernel.div <- data.frame(site = 1:input$hv.sites,
+                             FD = kernel.dispersion(hypervolumes(), 
+                                                    func = input$function.disp))
+  })
+  
+  output$f.divergence <- renderPlot({
+    df <- div.hv()
+    if(input$hv.sites > 15){
+      ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
+        xlab("Functional divergence") + ylab("Frequency")
+    }
+    else {
+      ggplot(data = df, aes(x = site, y = FD)) + 
+        geom_bar(stat = "identity", fill = "steelblue") +
+        xlab("Site") + ylab("Functional divergence") + theme_bw()
+    }
+  })
+  
+  # Tab "Similarity"
+  sim.FD <- eventReactive(input$build.hv4, {
+    kernel.sim <- kernel.similarity(hypervolumes())
+    kernel.sim
+  })
+  
+  output$f.similarity <- renderPlot({
+    similarity.matrix <- as.matrix(sim.FD()$input$dist.sim.metric)
+    pheatmap(similarity.matrix)
   })
   
  formData <- reactive({
