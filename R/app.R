@@ -27,13 +27,14 @@ ui <-dashboardPage(
                menuSubItem("Missing data", tabName = "missingdata"),
                menuSubItem("Trait space", tabName = "traitspace")),
       menuItem("Step 6. Functional diversity", tabName = "step6",
+               menuItem("Hypervolume building", tabName = "hypervolumes"),
                menuItem("Richness", tabName = "richness",
                            menuSubItem("Alpha", tabName = "alpharich"),
                            menuSubItem("Beta", tabName = "betarich")),
                menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
                menuItem("Similarity", tabName = "similarity"),
-               menuItem("Rarity and originality", tabName = "spcontrib"),
+               menuItem("Species rarity and originality", tabName = "spcontrib"),
                menuItem("Correlations among metrics", tabName = "corrFD")),
       menuItem("Step 7. Modelling", tabName = "step7"),
       menuItem("Step 8. Reproducibility", tabName = "step8")
@@ -371,46 +372,55 @@ ui <-dashboardPage(
                                                      "Identify the level of functional diversity metric measurement"))
                       ),
                           
-    tabItem(tabName = "alpharich",
+    tabItem(tabName = "hypervolumes",
+            
             # Input: Select traits to plot
             box(title = "Select two or more functional traits", 
                 status = "primary", solidHeader = TRUE, width = 4,
                 checkboxGroupInput("traits_xy3", label = "", choices = NULL)
-                ),
+            ),
             
             # Input: hypervolumes
             box(title = "Hypervolume inputs", 
                 status = "primary", solidHeader = TRUE, width = 8,
                 numericInput("hv.sites", "Number of sites to plot", value = 1),
-                                            
-               sliderInput("hv.axes", "Number of dimensions",
-                           min = 0, max = 10, value = 2),
-                                            
-               radioButtons("hv.method", "Method",
-                            choices = c("Gaussian kernel density" = "gaussian",
-                                        "Box kernel density" = "box",
-                                        "Support vector machines" = "svm"),
-                            selected = "gaussian"),
-                                            
-               numericInput("npoints", "Number of sampling points", value = 1000),
-                                            
-               checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
-                                            
-               actionButton("build.hv1", "Build hypervolumes")
-               ),
-                                            
-               # Output: hypervolumes
-               box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
-                   plotOutput("hv")),
-                                    
-               box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
-                   plotOutput("alpha.hv.FD"))
-                   ),
+                
+                sliderInput("hv.axes", "Number of dimensions",
+                            min = 0, max = 10, value = 2),
+                
+                radioButtons("hv.method", "Method",
+                             choices = c("Gaussian kernel density" = "gaussian",
+                                         "Box kernel density" = "box",
+                                         "Support vector machines" = "svm"),
+                             selected = "gaussian"),
+                
+                numericInput("npoints", "Number of sampling points", value = 1000),
+                
+                checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
+                
+                actionButton("build.hv0", "Build hypervolumes")
+            ),
+            
+            # Output: hypervolumes
+            box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
+                plotOutput("hv")
+                ),
+            
+            ),  
+      
+    tabItem(tabName = "alpharich",
+               
+            actionButton("build.hv1", "Compute functional richness"),
+            
+            box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
+                plotOutput("alpha.hv.FD"))
+                   
+            ),
                           
     tabItem(tabName = "betarich",
             # Inputs: similarity metric
             box(title = "Similarity metric", status = "primary", solidHeader = TRUE,
-                radioButtons("sim.beta.rich", label = "Similarity metric",
+                radioButtons("sim.beta.rich", label = "",
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
                              selected = "jaccard"),
@@ -523,6 +533,25 @@ ui <-dashboardPage(
                 )
             ),
                                    
+    tabItem(tabName = "corrFD",
+            
+            box(title = "Community level (alpha diversity)", 
+                status = "warning", solidHeader = TRUE,
+                plotOutput("alpha.comm.corr")
+                ),
+            
+            box(title = "Community level (beta diversity)", 
+                status = "warning", solidHeader = TRUE,
+                plotOutput("beta.comm.corr")
+            ),
+            
+            box(title = "Species level",
+                status = "warning", solidHeader = TRUE,
+                plotOutput("spp.corr")
+                )
+            
+            ),
+    
     tabItem(tabName = "step7",
             helpText("Fit, interpret, report and validate your statistical model.",
                      style = "background-color:lightblue; border-radius:5px"),
@@ -862,14 +891,14 @@ server <- function(input, output, session) {
       theme_minimal()
   })
   
-  ### Tab "Richness": Alpha
+  # Tab: "Hypervolume building"
   # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy3", 
                              choices = numericColumns())
   })
   
-  hypervolumes <- eventReactive(input$build.hv1, {
+  hypervolumes <- eventReactive(input$build.hv0, {
     trait <- as.matrix(trait_dataset()[, input$traits_xy3])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
@@ -881,6 +910,7 @@ server <- function(input, output, session) {
   
   output$hv <- renderPlot(plot(hypervolumes()))
   
+  ### Tab "Richness": Alpha
   alpha.FD <- eventReactive(input$build.hv1, {
     kernelFD <- data.frame(site = 1:input$hv.sites, 
                            FD = kernel.alpha(hypervolumes()))
@@ -1004,14 +1034,71 @@ server <- function(input, output, session) {
     pheatmap(spp.contrib_list$rich.contrib)
   })
   
-  #output$kernel.eve.contrib <- renderPlot({
-  #spp.contrib_list <- spp.contrib()
-   # pheatmap(as.matrix(spp.contrib_list$eve.contrib))
-  #})
+  output$kernel.eve.contrib <- renderPlot({
+  spp.contrib_list <- spp.contrib()
+    pheatmap(spp.contrib_list$eve.contrib)
+  })
   
   output$kernel.originality <- renderPlot({
     spp.contrib_list <- spp.contrib()
     pheatmap(spp.contrib_list$original)
+  })
+  
+  # Tab: correlations among FD metrics
+  output$alpha.comm.corr <- renderPlot({
+    rich <- alpha.FD()$kernelFD$FD
+    reg <- alpha.reg.hv()$kernel.reg.alpha$FD
+    div <- div.hv()$kernel.div$FD
+    df <- data.frame(Richness = rich, Regularity = reg, Divergence = div)
+    
+   my_fn <- function(data, mapping, ...){
+      p <- ggplot(data = df, mapping = mapping) + 
+        geom_point(alpha = 0.5, size = 2) + 
+        geom_smooth(method = lm, fill = "blue", color = "blue", ...)
+      p
+   }
+   
+   ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
+  })
+   
+   output$beta.comm.corr <- renderPlot({
+     df <- data.frame(Functional_richness_total = as.numeric(beta.FD()$Btotal),
+                      Functional_richness_turnover = as.numeric(beta.FD()$Brepl),
+                      Functional_richness_richness = as.numeric(beta.FD()$Brich),
+                      Functional_regularity = as.numeric(beta.reg.hv()),
+                      Functional_similarity = as.numeric(sim.FD()[[input$dist.sim.metric]]))
+     
+     my_fn <- function(data, mapping, ...){
+       p <- ggplot(data = df, mapping = mapping) + 
+         geom_point(alpha = 0.5, size = 2) + 
+         geom_smooth(method = lm, fill = "blue", color = "blue", ...)
+       p
+     }
+   
+    ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
+  })
+  
+  output$spp.corr <- renderPlot({
+    spp.contrib_list <- spp.contrib()
+  
+    if(input$compute.reg == TRUE){
+      df <- data.frame(Rarity_richness = as.numeric(spp.contrib_list$rich.contrib),
+                       Rarity_regularity = as.numeric(spp.contrib_list$eve.contrib),
+                       Originality = as.numeric(spp.contrib_list$original))
+    
+    } else {
+      df <- data.frame(Rarity_richness = as.numeric(spp.contrib_list$rich.contrib),
+                       Originality = as.numeric(spp.contrib_list$original))
+    }
+    
+    my_fn <- function(data, mapping, ...){
+      p <- ggplot(data = df, mapping = mapping) + 
+        geom_point(alpha = 0.5, size = 2) + 
+        geom_smooth(method = lm, fill = "blue", color = "blue", ...)
+      p
+    }
+    
+    ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
   })
   
  formData <- reactive({
