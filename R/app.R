@@ -490,10 +490,13 @@ ui <-dashboardPage(
             
             box(title = "Contribution to functional richness method", status = "primary",
                 solidHeader = TRUE,
-                radioButtons("rich.contrib.method", label = "",
+                radioButtons("rich.contrib.method", label = "Method",
                              choices = c("Nearest neighbor" = "neighbor",
                                          "Leave-one-out approach" = "one out"),
-                             select = "neighbor")
+                             select = "neighbor"),
+                
+                checkboxInput("compute.reg", "Compute contribution to functional
+                              regularity? It may take a while", value = FALSE)
                 ),
             
             box(title = "Contribution to functional richness", status = "warning", 
@@ -504,6 +507,14 @@ ui <-dashboardPage(
             box(title = "Contribution to functional regularity", status = "warning", 
                 solidHeader = TRUE,
                 plotOutput("kernel.eve.contrib")
+                ),
+            
+            box(title = "Functional originality inputs", status = "primary",
+                solidHeader = TRUE,
+                sliderInput("fraction", "Proportion of random points to be used", 
+                            min = 0, max = 1, value = 0.1),
+                checkboxInput("rel.original", "Should originality be relative to the 
+                               most original species in the community?", value = FALSE)
                 ),
             
             box(title = "Functional originality", status = "warning", 
@@ -968,12 +979,24 @@ server <- function(input, output, session) {
   
   # Tab: "Functional rarity and originality"
   spp.contrib <- eventReactive(input$build.hv6, {
+    if(input$compute.reg == TRUE){
     rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
     rich.contrib[is.na(rich.contrib)] <- 0
-    #eve.contrib <- kernel.evenness.contribution(hypervolumes())
-    original <- kernel.originality(hypervolumes(), frac = 0.1, relative = FALSE)
+    eve.contrib <- kernel.evenness.contribution(hypervolumes())
+    original <- kernel.originality(hypervolumes(), frac = input$fraction, 
+                                   relative = input$rel.original)
     original[is.na(original)] <- 0
-    list(rich.contrib, original)
+    list(rich.contrib = rich.contrib, eve.contrib = eve.contrib, original = original)
+    
+    } else {
+      
+      rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
+      rich.contrib[is.na(rich.contrib)] <- 0
+      original <- kernel.originality(hypervolumes(), frac = input$fraction, 
+                                     relative = input$rel.original)
+      original[is.na(original)] <- 0
+      list(rich.contrib = rich.contrib, original = original)
+    }
   })
   
   output$kernel.rich.contrib <- renderPlot({
