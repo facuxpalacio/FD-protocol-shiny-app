@@ -29,9 +29,7 @@ ui <-dashboardPage(
                menuSubItem("Trait space", tabName = "traitspace")),
       menuItem("Step 6. Functional diversity", tabName = "step6",
                menuItem("Hypervolume building", tabName = "hypervolumes"),
-               menuItem("Richness", tabName = "richness",
-                           menuSubItem("Alpha", tabName = "alpharich"),
-                           menuSubItem("Beta", tabName = "betarich")),
+               menuItem("Richness", tabName = "richness"),
                menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
                menuItem("Similarity", tabName = "similarity"),
@@ -296,12 +294,18 @@ ui <-dashboardPage(
               
               # Input: Select traits with missing data
               box(title = "You have the following traits with missing data",
-                  status = "warning",
+                  status = "warning", solidHeader = TRUE,
                   checkboxGroupInput("traits_na", label = "", choices = NULL)
                   ),
               
-              box(title = "Where's your missing data?", label = "", status = "warning",
-                  plotOutput("missing.data1"))
+              box(title = "Where's your missing data?", label = "", 
+                  status = "warning", solidHeader = TRUE,
+                  plotOutput("missing.data1")
+                  ),
+              
+              box(title = "Distribution of missing data", label = "",
+                  status = "warning", solidHeader = TRUE,
+                  plotOutput("data.imputation"))
               ),
                           
       tabItem(tabName = "traitspace",
@@ -319,7 +323,7 @@ ui <-dashboardPage(
                   status = "primary", solidHeader = TRUE,
                   checkboxInput("standardize", "Standardize traits", value = FALSE),
                   
-                  radioButtons("dist.metric",
+                  selectInput("dist.metric",
                                label = "Dissimilarity metric",
                                choices = c("Euclidean" = "euclidean", 
                                            "Manhattan" = "manhattan", 
@@ -327,7 +331,7 @@ ui <-dashboardPage(
                                            "Mahalanobis" = "mahalanobis"),
                                selected = "gower"),
                   
-                  radioButtons("cluster.method",
+                  selectInput("cluster.method",
                                label = "Clustering method",
                                choices = c("Single" = "single",
                                            "Complete" = "complete",
@@ -338,7 +342,7 @@ ui <-dashboardPage(
               
               # Input: PCoA arguments
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                  radioButtons("corrections",
+                  selectInput("corrections",
                                label = "Correction method for negative eigenvalues",
                                choices = c("None" = "none", 
                                            "Lingoes" = "lingoes",
@@ -404,7 +408,7 @@ ui <-dashboardPage(
                 sliderInput("hv.axes", "Number of dimensions",
                             min = 0, max = 10, value = 2),
                 
-                radioButtons("hv.method", "Method",
+                selectInput("hv.method", "Method",
                              choices = c("Gaussian kernel density" = "gaussian",
                                          "Box kernel density" = "box",
                                          "Support vector machines" = "svm"),
@@ -424,42 +428,38 @@ ui <-dashboardPage(
             
             ),  
       
-    tabItem(tabName = "alpharich",
+    tabItem(tabName = "richness",
                
             actionButton("build.hv1", "Compute functional richness"),
             
             box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
-                plotOutput("alpha.hv.FD"))
+                plotOutput("alpha.hv.FD")
+                ),
                    
-            ),
-                          
-    tabItem(tabName = "betarich",
             # Inputs: similarity metric
             box(title = "Similarity metric", status = "primary", solidHeader = TRUE,
-                radioButtons("sim.beta.rich", label = "",
+                selectInput("sim.beta.rich", label = "",
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
-                             selected = "jaccard"),
-                
-                actionButton("build.hv2", "Compute functional richness")
-            ),
+                             selected = "jaccard")
+                ),
             
-            box(title = "Total beta functional diversity", status = "warning", solidHeader = TRUE,
+            box(title = "Beta functional diversity", status = "warning", solidHeader = TRUE,
                 plotOutput("total.beta")
                 ),
             
-            box(title = "Turnover", status = "warning", solidHeader = TRUE,
+            box(title = "Turnover component", status = "warning", solidHeader = TRUE,
                 plotOutput("turnover.beta")
             ),
             
-            box(title = "Species richness", status = "warning", solidHeader = TRUE,
+            box(title = "Species richness component", status = "warning", solidHeader = TRUE,
                 plotOutput("richness.beta")
-            ),
                 ),
+    ),
     
     tabItem(tabName = "regularity",
             
-            actionButton("build.hv3", "Compute functional regularity"),
+            actionButton("build.hv2", "Compute functional regularity"),
             
             box(title = "Alpha functional regularity", status = "warning", solidHeader = TRUE,
                 plotOutput("alpha.regularity")
@@ -473,10 +473,10 @@ ui <-dashboardPage(
     
     tabItem(tabName = "divergence",
             
-            actionButton("build.hv4", "Compute functional divergence"),
+            actionButton("build.hv3", "Compute functional divergence"),
             
             box(title = "Function for computing divergence", status = "primary", solidHeader = TRUE,
-                radioButtons("function.disp", label = "",
+                selectInput("function.disp", label = "",
                              choices = c("Divergence" = "divergence", 
                                          "Dissimilarity" = "dissimilarity",
                                          "Regression" = "regression"),
@@ -491,11 +491,11 @@ ui <-dashboardPage(
     
     tabItem(tabName = "similarity",
             
-            actionButton("build.hv5", "Compute functional similarity"),
+            actionButton("build.hv4", "Compute functional similarity"),
             
             # Input: Distance or similarity metric
             box(title = "Distance/similarity metric", status = "primary", solidHeader = TRUE,
-                radioButtons("dist.sim.metric", label = "",
+                selectInput("dist.sim.metric", label = "",
                              choices = c("Distance between centroids" = "Distance_centroids", 
                                          "Minimum distance" = "Minimum_distance",
                                          "Jaccard overlap" = "Jaccard",
@@ -512,7 +512,7 @@ ui <-dashboardPage(
     
     tabItem(tabName = "spcontrib",
             
-            actionButton("build.hv6", "Compute species contributions"),
+            actionButton("build.hv5", "Compute species contributions"),
             
             box(title = "Contribution to functional richness method", status = "primary",
                 solidHeader = TRUE,
@@ -817,7 +817,13 @@ server <- function(input, output, session) {
                              choices = NAcolumns())
   })
   
+  # Plot missing data and imputed values
   output$missing.data1 <- renderPlot(aggr(trait_dataset()))
+  
+  output$data.imputation <- renderPlot({
+    traits <- trait_dataset()[, input$traits_na]
+    marginplot(traits, alpha = 0.6, col = c("skyblue", "orange"), pch = 19)
+  })
   
   # Print scatterplot matrix + correlations
   output$scatterplots <- renderPlot({
@@ -914,10 +920,8 @@ server <- function(input, output, session) {
   output$raw_eigenvalues <- renderPlot({
     if(input$remove.na == TRUE){
       traits <- na.omit(trait_dataset())
-      rownames(traits) <- make.names(traits[, 1], unique = TRUE)
     } else {
       traits <- trait_dataset()
-      rownames(traits) <- make.names(traits[, 1], unique = TRUE)
     }
     
     if(input$standardize == TRUE){
@@ -1005,7 +1009,7 @@ server <- function(input, output, session) {
   })
   
   # Tab "Richness": Beta
-  beta.FD <- eventReactive(input$build.hv2, {
+  beta.FD <- eventReactive(input$build.hv1, {
     kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
     kernel.beta.hv
   })
@@ -1023,7 +1027,7 @@ server <- function(input, output, session) {
   })
   
   # Tab: "Regularity"
-  alpha.reg.hv <- eventReactive(input$build.hv3, {
+  alpha.reg.hv <- eventReactive(input$build.hv2, {
     kernel.reg.alpha <- data.frame(site = 1:input$hv.sites,
                                    FD = kernel.evenness(hypervolumes()))
   })
@@ -1041,7 +1045,7 @@ server <- function(input, output, session) {
     }
   })
   
-  beta.reg.hv <- eventReactive(input$build.hv3, {
+  beta.reg.hv <- eventReactive(input$build.hv2, {
     kernel.reg.beta <- kernel.beta.evenness(hypervolumes())
     kernel.reg.beta
   })
@@ -1051,7 +1055,7 @@ server <- function(input, output, session) {
   })
   
   # Tab: "Divergence"
-  div.hv <- eventReactive(input$build.hv4, {
+  div.hv <- eventReactive(input$build.hv3, {
     kernel.div <- data.frame(site = 1:input$hv.sites,
                              FD = kernel.dispersion(hypervolumes(), 
                                                     func = input$function.disp))
@@ -1071,7 +1075,7 @@ server <- function(input, output, session) {
   })
   
   # Tab: "Similarity"
-  sim.FD <- eventReactive(input$build.hv5, {
+  sim.FD <- eventReactive(input$build.hv4, {
     kernel.sim <- kernel.similarity(hypervolumes())
     kernel.sim
   })
@@ -1082,7 +1086,7 @@ server <- function(input, output, session) {
   })
   
   # Tab: "Functional rarity and originality"
-  spp.contrib <- eventReactive(input$build.hv6, {
+  spp.contrib <- eventReactive(input$build.hv5, {
     if(input$compute.reg == TRUE){
     rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
     rich.contrib[is.na(rich.contrib)] <- 0
