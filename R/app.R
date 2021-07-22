@@ -8,6 +8,7 @@ library(pheatmap) #1.0.12
 library(vegan) #2.5-6
 library(alphahull) #2.2
 library(BAT) #2.6.0
+library(VIM) #6.0.0
 
 ui <-dashboardPage(
   dashboardHeader(title = "An eight-step protocol for functional diversity analysis"),
@@ -215,7 +216,7 @@ ui <-dashboardPage(
               
               fluidRow(
               box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = 6,
-              checkboxInput("LogX", "Log-transform occurrences", value = FALSE),
+              checkboxInput("LogX1", "Log-transform occurrences", value = FALSE),
               # Output: heatmap
               plotOutput("heatmap_community"),
               textInput('filename', "Filename"),
@@ -248,8 +249,8 @@ ui <-dashboardPage(
                               choices = NULL),
                                      
               # Input: Select species to plot (if ITV is accounted for)
-                  selectInput("species", label = "Species (if several measurements
-                               per species are available):", choices = NULL),
+                  selectInput("group.var", label = "Grouping factor (e.g., habitat type,
+                              species):", choices = NULL),
                                      
               # Input: Select type of plot
                   selectInput("plot.type", label = "Plot type:",
@@ -259,6 +260,7 @@ ui <-dashboardPage(
               
               # Input: histogram inputs
               box(title = "Inputs", status = "primary", solidHeader = TRUE,
+                  checkboxInput("LogX2", "Log-transform data", value = FALSE),
                   sliderInput("bins2", "Number of bins:", min = 5, max = 20, value = 10),
               ),
                                      
@@ -274,6 +276,13 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits", status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("traits_xy1", label = "", choices = NULL)
                   ),
+              
+              box(title = "Model fit", status = "primary", solidHeader = TRUE,
+                  checkboxGroupInput("model.scatt", label = "",
+                                     choices = c("Linear regression" = "lm",
+                                                 "LOESS" = "loess"),
+                                     selected = "lm")
+                  ),
                                      
               # Output: scatterplots
               fluidRow(
@@ -287,7 +296,12 @@ ui <-dashboardPage(
               
               # Input: Select traits with missing data
               box(title = "You have the following traits with missing data",
-               checkboxGroupInput("traits_na", label = "", choices = NULL))
+                  status = "warning",
+                  checkboxGroupInput("traits_na", label = "", choices = NULL)
+                  ),
+              
+              box(title = "Where's your missing data?", label = "", status = "warning",
+                  plotOutput("missing.data1"))
               ),
                           
       tabItem(tabName = "traitspace",
@@ -295,7 +309,9 @@ ui <-dashboardPage(
               # Input: Select traits to plot
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE,
-                  checkboxGroupInput("traits_xy2", label = "", choices = NULL)
+                  checkboxGroupInput("traits_xy2", label = "", choices = NULL),
+                  checkboxInput("remove.na", label = "Remove missing data?",
+                                value = TRUE)
               ),
               
               # Inputs: dendrogram inputs
@@ -662,7 +678,7 @@ server <- function(input, output, session) {
   
   # Tab "Community data": Heatmap, rarefaction curves and histograms
   output$heatmap_community <- renderPlot({
-    if(input$LogX == TRUE){
+    if(input$LogX1 == TRUE){
     pheatmap(log(community_dataset() + 1))
       if(input$savePlot)
       {
@@ -719,6 +735,17 @@ server <- function(input, output, session) {
   })
   
   # Tab "Trait plot": Plot univariate graphs
+  # Update non-numeric variables
+  factorColumns <- reactive({
+    df <- trait_dataset()
+    colnames(df)[sapply(df, function(x) !is.numeric(x))]
+  })
+  
+  observe({
+    updateSelectInput(session, inputId = "group.var", 
+                      choices = c("None", factorColumns()))
+  })
+  
   output$caption <- renderText({
     switch(input$plot.type,
            "boxplot" = "Boxplot",
@@ -727,20 +754,26 @@ server <- function(input, output, session) {
   })
   
   output$trait_plot <- renderPlot({
-    sp <- trait_dataset()[, input$species]
-    tr <- trait_dataset()[, input$trait]
     
-    if(is.null(sp)){ 
+    if(input$LogX2 == TRUE){
+      tr <- log(trait_dataset()[, input$trait])
+    } else {
+      tr <- trait_dataset()[, input$trait]
+    }
+    
+    if(input$group.var == "None"){ 
       plot.type <- switch(input$plot.type,
-                          "histogram" = geom_histogram(color = "black", 
+                          "histogram" = geom_histogram(color = "black", bins = input$bins2,
                                                        fill = "white", alpha = 0.5),
                           "density" = geom_density(fill = "blue", alpha = 0.5, 
                                                    col = "blue"),
                           "boxplot" = geom_boxplot())
-      ggplot(trait_dataset(), aes(x = tr)) + plot.type
+      ggplot(trait_dataset(), aes(x = tr)) + plot.type + 
+        xlab(input$trait) + ylab("Frequency")
       
     } else {
       
+      group <- trait_dataset()[, input$group.var]
       plot.type <- switch(input$plot.type,
                           "histogram" = geom_histogram(alpha = 0.5, bins = input$bins2),
                           "density" = geom_density(alpha = 0.5),
@@ -748,11 +781,12 @@ server <- function(input, output, session) {
       
       if(input$plot.type == "boxplot"){
         
-        ggplot(trait_dataset(), aes(x = sp, y = tr)) + plot.type
+        ggplot(trait_dataset(), aes(x = group, y = tr)) + plot.type +
+          xlab(input$trait) + ylab("Frequency")
         
       } else {
         
-        ggplot(trait_dataset(), aes(x = tr, group = sp, fill = sp)) + plot.type
+        ggplot(trait_dataset(), aes(x = tr, group = group, fill = group)) + plot.type
       }
     }
     
@@ -783,12 +817,14 @@ server <- function(input, output, session) {
                              choices = NAcolumns())
   })
   
+  output$missing.data1 <- renderPlot(aggr(trait_dataset()))
+  
   # Print scatterplot matrix + correlations
   output$scatterplots <- renderPlot({
     my_fn <- function(data, mapping, ...){
       p <- ggplot(data = trait_dataset(), mapping = mapping) + 
         geom_point(alpha = 0.5, size = 2) + 
-        geom_smooth(method = loess, fill = "blue", color = "blue", ...)
+        geom_smooth(method = input$model.scatt, fill = "blue", color = "blue", ...)
       p
     }
     
@@ -810,8 +846,20 @@ server <- function(input, output, session) {
   })
   
   output$dendrogram <- renderPlot({
-    traits <- trait_dataset()
-    rownames(traits) <- traits[, 1]
+    if(input$remove.na == TRUE){
+      traits <- na.omit(trait_dataset())
+    } else {
+      traits <- trait_dataset()
+    }
+    
+    if(input$standardize == TRUE){
+      traits <- scale(trait_dataset())
+    } else {
+      traits <- trait_dataset() 
+    }
+    
+    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
@@ -823,8 +871,16 @@ server <- function(input, output, session) {
       traits <- scale(trait_dataset())
     } else {
       traits <- trait_dataset() 
-      }
-    rownames(traits) <- traits[, 1]
+    }
+    
+    if(input$remove.na == TRUE){
+      traits <- na.omit(trait_dataset())
+    } else {
+      traits <- trait_dataset()
+    }
+    
+    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
@@ -856,12 +912,22 @@ server <- function(input, output, session) {
   
   # Screeplots
   output$raw_eigenvalues <- renderPlot({
+    if(input$remove.na == TRUE){
+      traits <- na.omit(trait_dataset())
+      rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    } else {
+      traits <- trait_dataset()
+      rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    }
+    
     if(input$standardize == TRUE){
       traits <- scale(trait_dataset())
     } else {
       traits <- trait_dataset() 
     }
-    rownames(traits) <- traits[, 1]
+    
+    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
@@ -874,12 +940,20 @@ server <- function(input, output, session) {
   })
   
   output$rel_eigenvalues <- renderPlot({
+    if(input$remove.na == TRUE){
+      traits <- na.omit(trait_dataset())
+    } else {
+      traits <- trait_dataset()
+    }
+    
     if(input$standardize == TRUE){
       traits <- scale(trait_dataset())
     } else {
       traits <- trait_dataset() 
     }
-    rownames(traits) <- traits[, 1]
+    
+    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    
     dist.matrix <- vegdist(traits[, input$traits_xy2], 
                            method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
