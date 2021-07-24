@@ -115,10 +115,10 @@ ui <-dashboardPage(
                                        ",")),
                           
                           # Output: community dataset
-                          box(title = "Number of sites and species", width = 4, height = 300,
+                          box(title = "Number of sites and species/individuals", width = 4, height = 300,
                               status = "warning", solidHeader = TRUE,
-                          textOutput("nrow_community"),
-                          textOutput("ncol_community"))
+                          strong(textOutput("nrow_community")),
+                          strong(textOutput("ncol_community")))
                            ),
                           
                           fluidRow(
@@ -172,8 +172,8 @@ ui <-dashboardPage(
                           # Output: trait dataset
                           box(title = "Number of species/individuals and traits", 
                               width = 4, height = 300, status = "warning", solidHeader = TRUE,
-                          textOutput("nrow_traits"),
-                          textOutput("ncol_traits"))
+                          strong(textOutput("nrow_traits")),
+                          strong(textOutput("ncol_traits")))
                           ),
                           
                           box(title = "Trait data", width = 12, height = 300, 
@@ -315,7 +315,7 @@ ui <-dashboardPage(
                   status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
                   checkboxInput("remove.na", label = "Remove missing data?",
-                                value = TRUE)
+                                value = FALSE)
               ),
               
               # Inputs: dendrogram inputs
@@ -353,6 +353,11 @@ ui <-dashboardPage(
                   
                   sliderInput("alpha1", "Convex hull transparency",
                               min = 0, max = 1, value = 0.5)
+              ),
+              
+              # Output: variance explained
+              box(title = "% variance explained", status = "warning", solidHeader = TRUE,
+                  textOutput("var.explained.pcoa")
               ),
               
               # Output: dendrogram, and PCoA
@@ -651,10 +656,10 @@ server <- function(input, output, session) {
   
   # View data tables
   output$community_table <- renderDataTable(community_dataset(),
-                                            options = list(pageLength = 10)) # antes renderTable
+                                            options = list(pageLength = 10)) 
   
   output$trait_table <- renderDataTable(trait_dataset(),
-                                        options = list(pageLength = 10)) # antes renderTable
+                                        options = list(pageLength = 10)) 
   
   # Tab "Summary": Create a summary of the data 
   output$summary_community <- renderPrint(summary(community_dataset()))
@@ -852,43 +857,45 @@ server <- function(input, output, session) {
   })
   
   output$dendrogram <- renderPlot({
-    if(input$remove.na == TRUE){
-      traits <- na.omit(trait_dataset())
-    } else {
-      traits <- trait_dataset()
-    }
+    selected.traits <- trait_dataset()[, input$traits_xy2]
     
     if(input$standardize == TRUE){
-      traits <- scale(trait_dataset())
+      traits1 <- scale(selected.traits)
     } else {
-      traits <- trait_dataset() 
+      traits1 <- selected.traits
+    }
+    
+    if(input$remove.na == TRUE){
+      traits <- na.omit(traits1)
+    } else {
+      traits <- traits1
     }
     
     rownames(traits) <- make.names(traits[, 1], unique = TRUE)
     
-    dist.matrix <- vegdist(traits[, input$traits_xy2], 
-                           method = input$dist.metric)
+    dist.matrix <- vegdist(traits, method = input$dist.metric)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
   })
   
   output$pcoa <- renderPlot({
+    selected.traits <- trait_dataset()[, input$traits_xy2]
+    
     if(input$standardize == TRUE){
-      traits <- scale(trait_dataset())
+      traits1 <- scale(selected.traits)
     } else {
-      traits <- trait_dataset() 
+      traits1 <- selected.traits
     }
     
     if(input$remove.na == TRUE){
-      traits <- na.omit(trait_dataset())
+      traits <- na.omit(traits1)
     } else {
-      traits <- trait_dataset()
+      traits <- traits1
     }
     
     rownames(traits) <- make.names(traits[, 1], unique = TRUE)
     
-    dist.matrix <- vegdist(traits[, input$traits_xy2], 
-                           method = input$dist.metric)
+    dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
     pcoa.axes <- as.data.frame(pco$points)
     efit <- envfit(ord = pco, env = traits[, input$traits_xy2])
@@ -918,22 +925,23 @@ server <- function(input, output, session) {
   
   # Screeplots
   output$raw_eigenvalues <- renderPlot({
-    if(input$remove.na == TRUE){
-      traits <- na.omit(trait_dataset())
-    } else {
-      traits <- trait_dataset()
-    }
+    selected.traits <- trait_dataset()[, input$traits_xy2]
     
     if(input$standardize == TRUE){
-      traits <- scale(trait_dataset())
+      traits1 <- scale(selected.traits)
     } else {
-      traits <- trait_dataset() 
+      traits1 <- selected.traits
+    }
+    
+    if(input$remove.na == TRUE){
+      traits <- na.omit(traits1)
+    } else {
+      traits <- traits1
     }
     
     rownames(traits) <- make.names(traits[, 1], unique = TRUE)
     
-    dist.matrix <- vegdist(traits[, input$traits_xy2], 
-                           method = input$dist.metric)
+    dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
     naxes <- input$axes.eigenvalues
     df <- data.frame(axis = 1:naxes, eig = pco$eig[1:naxes])
@@ -944,22 +952,23 @@ server <- function(input, output, session) {
   })
   
   output$rel_eigenvalues <- renderPlot({
-    if(input$remove.na == TRUE){
-      traits <- na.omit(trait_dataset())
-    } else {
-      traits <- trait_dataset()
-    }
+    selected.traits <- trait_dataset()[, input$traits_xy2]
     
     if(input$standardize == TRUE){
-      traits <- scale(trait_dataset())
+      traits1 <- scale(selected.traits)
     } else {
-      traits <- trait_dataset() 
+      traits1 <- selected.traits
+    }
+    
+    if(input$remove.na == TRUE){
+      traits <- na.omit(traits1)
+    } else {
+      traits <- traits1
     }
     
     rownames(traits) <- make.names(traits[, 1], unique = TRUE)
     
-    dist.matrix <- vegdist(traits[, input$traits_xy2], 
-                           method = input$dist.metric)
+    dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
     naxes <- input$axes.eigenvalues
     df <- data.frame(axis = 1:naxes, eig = 100*pco$eig[1:naxes]/sum(pco$eig[1:naxes]))
