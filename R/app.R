@@ -26,9 +26,8 @@ ui <-dashboardPage(
                menuSubItem("Trait plots", tabName = "traitplots"),
                menuSubItem("Collinearity", tabName = "collinearity"),
                menuSubItem("Missing data", tabName = "missingdata"),
-               menuSubItem("Trait space", tabName = "traitspace")),
+               menuSubItem("Trait spaces", tabName = "traitspace")),
       menuItem("Step 6. Functional diversity", tabName = "step6",
-               menuItem("Hypervolume building", tabName = "hypervolumes"),
                menuItem("Richness", tabName = "richness"),
                menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
@@ -315,13 +314,13 @@ ui <-dashboardPage(
                   status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
                   checkboxInput("remove.na", label = "Remove missing data?",
-                                value = FALSE)
+                                value = FALSE),
+                  checkboxInput("standardize", "Standardize traits", value = FALSE)
               ),
               
               # Inputs: dendrogram inputs
               box(title = "Dendrogram inputs",
                   status = "primary", solidHeader = TRUE,
-                  checkboxInput("standardize", "Standardize traits", value = FALSE),
                   
                   selectInput("dist.metric",
                                label = "Dissimilarity metric",
@@ -340,13 +339,18 @@ ui <-dashboardPage(
                                selected = "average")
               ),
               
+              # Output: dendrogram
+              box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
+                  plotOutput("dendrogram")
+              ),
+              
               # Input: PCoA arguments
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
                   selectInput("corrections",
-                               label = "Correction method for negative eigenvalues",
-                               choices = c("None" = "none", 
-                                           "Lingoes" = "lingoes",
-                                           "Cailliez" = "cailliez")),
+                              label = "Correction method for negative eigenvalues",
+                              choices = c("None" = "none", 
+                                          "Lingoes" = "lingoes",
+                                          "Cailliez" = "cailliez")),
                   
                   sliderInput("max.naxes", "Maximum number of dimensions of the trait space",
                               min = 2, max = 10, value = 2),
@@ -357,12 +361,8 @@ ui <-dashboardPage(
               
               # Output: variance explained
               box(title = "% variance explained", status = "warning", solidHeader = TRUE,
-                  textOutput("var.explained.pcoa")
-              ),
-              
-              # Output: dendrogram, and PCoA
-              box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
-                  plotOutput("dendrogram")
+                  numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
+                  tableOutput("var.explained.pcoa")
               ),
               
               box(title = "PCoA", status = "warning", solidHeader = TRUE,
@@ -383,7 +383,34 @@ ui <-dashboardPage(
                            plotOutput("raw_eigenvalues")),
                     column(6,
                            plotOutput("rel_eigenvalues"))
-                ))
+                )),
+              
+              
+              # Input: hypervolumes
+              box(title = "Hypervolume inputs", 
+                  status = "primary", solidHeader = TRUE, width = 8,
+                  numericInput("hv.sites", "Number of sites to plot", value = 1),
+                  
+                  sliderInput("hv.axes", "Number of dimensions",
+                              min = 0, max = 10, value = 2),
+                  
+                  selectInput("hv.method", "Method",
+                              choices = c("Gaussian kernel density" = "gaussian",
+                                          "Box kernel density" = "box",
+                                          "Support vector machines" = "svm"),
+                              selected = "gaussian"),
+                  
+                  numericInput("npoints", "Number of sampling points", value = 1000),
+                  
+                  checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
+                  
+                  actionButton("build.hv0", "Build hypervolumes")
+              ),
+              
+              # Output: hypervolumes
+              box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
+                  plotOutput("hv")
+              ),
       ),       
       
       tabItem(tabName = "step6",
@@ -397,42 +424,6 @@ ui <-dashboardPage(
                                                      "Identify the level of functional diversity metric measurement"))
                       ),
                           
-    tabItem(tabName = "hypervolumes",
-            
-            # Input: Select traits to plot
-            box(title = "Select two or more functional traits", 
-                status = "primary", solidHeader = TRUE, width = 4,
-                checkboxGroupInput("traits_xy3", label = "", choices = NULL)
-            ),
-            
-            # Input: hypervolumes
-            box(title = "Hypervolume inputs", 
-                status = "primary", solidHeader = TRUE, width = 8,
-                numericInput("hv.sites", "Number of sites to plot", value = 1),
-                
-                sliderInput("hv.axes", "Number of dimensions",
-                            min = 0, max = 10, value = 2),
-                
-                selectInput("hv.method", "Method",
-                             choices = c("Gaussian kernel density" = "gaussian",
-                                         "Box kernel density" = "box",
-                                         "Support vector machines" = "svm"),
-                             selected = "gaussian"),
-                
-                numericInput("npoints", "Number of sampling points", value = 1000),
-                
-                checkboxInput("hv.abund", "Use abundance as weights?", value = FALSE),
-                
-                actionButton("build.hv0", "Build hypervolumes")
-            ),
-            
-            # Output: hypervolumes
-            box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
-                plotOutput("hv")
-                ),
-            
-            ),  
-      
     tabItem(tabName = "richness",
                
             actionButton("build.hv1", "Compute functional richness"),
@@ -871,7 +862,7 @@ server <- function(input, output, session) {
       traits <- traits1
     }
     
-    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
     
     dist.matrix <- vegdist(traits, method = input$dist.metric)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
@@ -893,7 +884,7 @@ server <- function(input, output, session) {
       traits <- traits1
     }
     
-    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
     
     dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
@@ -902,7 +893,7 @@ server <- function(input, output, session) {
     vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
     trait.names <- colnames(traits[, input$traits_xy2])
     
-    hull <- chull(vec.sp.df[, 1:2])
+    hull <- chull(pcoa.axes[, 1:2])
     
     ggplot() + 
       xlab("Principal Component 1") + ylab("Principal Component 2") +
@@ -916,11 +907,20 @@ server <- function(input, output, session) {
                                          y = 0, yend = Dim2 + 0.01),
                    arrow = arrow(length = unit(0.2, "cm")),
                    col = "cornflowerblue") +
-      geom_polygon(data = vec.sp.df[hull, ], aes(x = Dim1, y = Dim2), fill = "firebrick1", alpha = input$alpha1) +
+      geom_polygon(data = pcoa.axes[hull, ], aes(x = V1, y = V2), fill = "firebrick1", alpha = input$alpha1) +
       geom_text(data = vec.sp.df, aes(x = Dim1, y = Dim2, label = trait.names),
                 size = 4, check_overlap = TRUE) + theme_minimal() +
       xlim(min(vec.sp.df$Dim1) - 0.1, max(vec.sp.df$Dim1 + 0.1)) +
       ylim(min(vec.sp.df$Dim2) - 0.1, max(vec.sp.df$Dim2 + 0.1))
+  })
+  
+  # % variance explained
+  output$var.explained.pcoa <- renderTable({
+    cum_var <- 100*cumsum(pcoa$eig)/sum(pcoa$eig)
+    df <- data.frame(axis = 1:input$show.pcoa.axes, 
+                     cum_var = cum_var[1:input$show.pcoa.axes])
+    colnames(df) <- c("PCoA component", "Cumulative variance (%)")
+    df
   })
   
   # Screeplots
@@ -939,7 +939,7 @@ server <- function(input, output, session) {
       traits <- traits1
     }
     
-    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
     
     dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
@@ -966,7 +966,7 @@ server <- function(input, output, session) {
       traits <- traits1
     }
     
-    rownames(traits) <- make.names(traits[, 1], unique = TRUE)
+    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
     
     dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
@@ -981,12 +981,12 @@ server <- function(input, output, session) {
   # Tab: "Hypervolume building"
   # Update variable selection
   observe({
-    updateCheckboxGroupInput(session, inputId = "traits_xy3", 
+    updateCheckboxGroupInput(session, inputId = "traits_xy2", 
                              choices = numericColumns())
   })
   
   hypervolumes <- eventReactive(input$build.hv0, {
-    trait <- as.matrix(trait_dataset()[, input$traits_xy3])
+    trait <- as.matrix(trait_dataset()[, input$traits_xy2])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
     
