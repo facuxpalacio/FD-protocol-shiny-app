@@ -362,7 +362,12 @@ ui <-dashboardPage(
                                           "Cailliez" = "cailliez")),
                   
                   sliderInput("alpha1", "Convex hull transparency",
-                              min = 0, max = 1, value = 0.5)
+                              min = 0, max = 1, value = 0),
+                  
+                  sliderInput("alpha2", "Kernel density transparency",
+                              min = 0, max = 1, value = 0),
+                  
+                  sliderInput("bins3", "Number of bins:", min = 5, max = 20, value = 10)
               ),
               
               # Output: variance explained
@@ -930,6 +935,9 @@ server <- function(input, output, session) {
                    col = "cornflowerblue") +
       geom_polygon(data = pcoa.axes[hull, ], aes(x = Dim1, y = Dim2), 
                    fill = "firebrick1", alpha = input$alpha1) +
+      geom_density2d_filled(data = pcoa.axes, aes(x = Dim1, y = Dim2),
+                            size = 0.8, alpha = input$alpha2, 
+                            bins = input$bins3) +
       geom_text(data = pcoa.vectors, aes(x = Dim1, y = Dim2, label = trait.names),
                 size = 4, check_overlap = TRUE) + theme_minimal() +
       xlim(min(pcoa.vectors$Dim1) - 0.1, max(pcoa.vectors$Dim1 + 0.1)) +
