@@ -3,7 +3,7 @@ library(shinydashboard) #0.7.1
 library(shinyjs) #2.0.0
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
-library(ggdendro) # 0.1.22
+library(factoextra) # 1.0.7
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
 library(alphahull) #2.2
@@ -339,6 +339,16 @@ ui <-dashboardPage(
                                selected = "average")
               ),
               
+              box(title = "Functional groups",
+                  status = "primary", solidHeader = TRUE,
+                  numericInput("k.groups", "Number of functional groups",
+                               min = 2, value = 3),
+                  sliderInput("label.size", "Label size", 
+                              min = 0.1, max = 1.5, value = 0.5),
+                  checkboxInput("rectangle", "Draw rectangles",
+                                     value = FALSE)
+                  ),
+              
               # Output: dendrogram
               box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
                   plotOutput("dendrogram")
@@ -346,14 +356,10 @@ ui <-dashboardPage(
               
               # Input: PCoA arguments
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                  selectInput("corrections",
+                  selectInput("eig.correction",
                               label = "Correction method for negative eigenvalues",
-                              choices = c("None" = "none", 
-                                          "Lingoes" = "lingoes",
+                              choices = c("Lingoes" = "lingoes",
                                           "Cailliez" = "cailliez")),
-                  
-                  sliderInput("max.naxes", "Maximum number of dimensions of the trait space",
-                              min = 2, max = 10, value = 2),
                   
                   sliderInput("alpha1", "Convex hull transparency",
                               min = 0, max = 1, value = 0.5)
@@ -848,6 +854,7 @@ server <- function(input, output, session) {
   })
   
   output$dendrogram <- renderPlot({
+    req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
     
     if(input$standardize == TRUE){
@@ -866,10 +873,15 @@ server <- function(input, output, session) {
     
     dist.matrix <- vegdist(traits, method = input$dist.metric)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
-    ggdendrogram(cluster, rotate = TRUE, theme_dendro = FALSE)
+    fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
+              k = input$k.groups, color_labels_by_k = TRUE, 
+              rect = input$rectangle, rect_fill = input$rectangle,
+              xlab = "Species", ylab = "Dissimilarity",
+              ggtheme = theme_minimal())
   })
   
-  output$pcoa <- renderPlot({
+  pcoa.function <- reactive({
+    req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
     
     if(input$standardize == TRUE){
@@ -887,11 +899,20 @@ server <- function(input, output, session) {
     rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
     
     dist.matrix <- vegdist(traits, method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = 2, eig = TRUE, add = TRUE)
+    pco <- wcmdscale(dist.matrix, eig = TRUE, add = input$eig.correction)
     pcoa.axes <- as.data.frame(pco$points)
     efit <- envfit(ord = pco, env = traits[, input$traits_xy2])
     vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
     trait.names <- colnames(traits[, input$traits_xy2])
+    list(pcoa.eig = pco$eig, pcoa.axes = pcoa.axes, pcoa.vectors = vec.sp.df,
+         trait.names = trait.names)
+  })
+    
+  output$pcoa <- renderPlot({
+    pco <- pcoa.function()
+    pcoa.axes <- pco$pcoa.axes
+    pcoa.vectors <- pco$pcoa.vectors
+    trait.names <- pco$trait.names
     
     hull <- chull(pcoa.axes[, 1:2])
     
@@ -901,22 +922,26 @@ server <- function(input, output, session) {
                  col = "gray") + 
       geom_vline(xintercept = 0, linetype = "dashed", size = 1,
                  col = "gray") +
-      geom_point(data = pcoa.axes, aes(x = V1, y = V2), size = 4, 
+      geom_point(data = pcoa.axes, aes(x = Dim1, y = Dim2), size = 4, 
                  col = "olivedrab3") +
-      geom_segment(data = vec.sp.df, aes(x = 0, xend = Dim1 + 0.01, 
+      geom_segment(data = pcoa.vectors, aes(x = 0, xend = Dim1 + 0.01, 
                                          y = 0, yend = Dim2 + 0.01),
                    arrow = arrow(length = unit(0.2, "cm")),
                    col = "cornflowerblue") +
-      geom_polygon(data = pcoa.axes[hull, ], aes(x = V1, y = V2), fill = "firebrick1", alpha = input$alpha1) +
-      geom_text(data = vec.sp.df, aes(x = Dim1, y = Dim2, label = trait.names),
+      geom_polygon(data = pcoa.axes[hull, ], aes(x = Dim1, y = Dim2), 
+                   fill = "firebrick1", alpha = input$alpha1) +
+      geom_text(data = pcoa.vectors, aes(x = Dim1, y = Dim2, label = trait.names),
                 size = 4, check_overlap = TRUE) + theme_minimal() +
-      xlim(min(vec.sp.df$Dim1) - 0.1, max(vec.sp.df$Dim1 + 0.1)) +
-      ylim(min(vec.sp.df$Dim2) - 0.1, max(vec.sp.df$Dim2 + 0.1))
+      xlim(min(pcoa.vectors$Dim1) - 0.1, max(pcoa.vectors$Dim1 + 0.1)) +
+      ylim(min(pcoa.vectors$Dim2) - 0.1, max(pcoa.vectors$Dim2 + 0.1))
   })
   
   # % variance explained
   output$var.explained.pcoa <- renderTable({
-    cum_var <- 100*cumsum(pcoa$eig)/sum(pcoa$eig)
+    pco <- pcoa.function()
+    pcoa.eig <- pco$pcoa.eig
+    
+    cum_var <- 100*cumsum(pcoa.eig)/sum(pcoa.eig)
     df <- data.frame(axis = 1:input$show.pcoa.axes, 
                      cum_var = cum_var[1:input$show.pcoa.axes])
     colnames(df) <- c("PCoA component", "Cumulative variance (%)")
@@ -925,26 +950,11 @@ server <- function(input, output, session) {
   
   # Screeplots
   output$raw_eigenvalues <- renderPlot({
-    selected.traits <- trait_dataset()[, input$traits_xy2]
+    pco <- pcoa.function()
+    pcoa.eig <- pco$pcoa.eig
     
-    if(input$standardize == TRUE){
-      traits1 <- scale(selected.traits)
-    } else {
-      traits1 <- selected.traits
-    }
-    
-    if(input$remove.na == TRUE){
-      traits <- na.omit(traits1)
-    } else {
-      traits <- traits1
-    }
-    
-    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
-    
-    dist.matrix <- vegdist(traits, method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
     naxes <- input$axes.eigenvalues
-    df <- data.frame(axis = 1:naxes, eig = pco$eig[1:naxes])
+    df <- data.frame(axis = 1:naxes, eig = pcoa.eig[1:naxes])
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Raw eigenvalue") +
@@ -952,26 +962,11 @@ server <- function(input, output, session) {
   })
   
   output$rel_eigenvalues <- renderPlot({
-    selected.traits <- trait_dataset()[, input$traits_xy2]
+    pco <- pcoa.function()
+    pcoa.eig <- pco$pcoa.eig
     
-    if(input$standardize == TRUE){
-      traits1 <- scale(selected.traits)
-    } else {
-      traits1 <- selected.traits
-    }
-    
-    if(input$remove.na == TRUE){
-      traits <- na.omit(traits1)
-    } else {
-      traits <- traits1
-    }
-    
-    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
-    
-    dist.matrix <- vegdist(traits, method = input$dist.metric)
-    pco <- cmdscale(dist.matrix, k = input$max.naxes, eig = TRUE, add = TRUE)
     naxes <- input$axes.eigenvalues
-    df <- data.frame(axis = 1:naxes, eig = 100*pco$eig[1:naxes]/sum(pco$eig[1:naxes]))
+    df <- data.frame(axis = 1:naxes, eig = 100*pcoa.eig[1:naxes]/sum(pcoa.eig[1:naxes]))
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Relative eigenvalue (%)") +
