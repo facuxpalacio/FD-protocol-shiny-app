@@ -1,6 +1,7 @@
 library(shiny) #1.6.0
 library(shinydashboard) #0.7.1
 library(shinyjs) #2.0.0
+library(shinyFeedback) #0.3.0
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
 library(factoextra) # 1.0.7
@@ -240,8 +241,10 @@ ui <-dashboardPage(
               ),
       
       tabItem(tabName = "traitplots",
+              fluidRow(
               # Input: Select traits to plot
               box(title = "Trait plots", status = "primary", solidHeader = TRUE,
+                  height = 300, width = 6,
                   selectInput("trait", label = "Select a functional trait",
                               choices = NULL),
                                      
@@ -257,22 +260,26 @@ ui <-dashboardPage(
               
               # Input: histogram inputs
               box(title = "Inputs", status = "primary", solidHeader = TRUE,
+                  height = 300, width = 6,
                   checkboxInput("LogX2", "Log-transform data", value = FALSE),
                   sliderInput("bins2", "Number of bins:", min = 5, max = 20, value = 10),
-              ),
+              )),
                                      
               # Output: Trait plot
-               box(title = textOutput("caption"), status = "warning", solidHeader = TRUE,
+              fluidRow(
+               box(title = textOutput("caption"), status = "warning", 
+                   solidHeader = TRUE, width = 10,
                    plotOutput("trait_plot"))
-              ),
+              )),
                             
                           
       tabItem(tabName = "collinearity",
-              
+              useShinyFeedback(),
               # Input: Select traits to plot
               box(title = "Select two or more functional traits", status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("traits_xy1", label = "", choices = NULL)
                   ),
+              textOutput("select.more.traits"),
               
               box(title = "Model fit", status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("model.scatt", label = "",
@@ -292,20 +299,22 @@ ui <-dashboardPage(
       tabItem(tabName = "missingdata",
               
               # Input: Select traits with missing data
+              fluidRow(
               box(title = "You have the following traits with missing data",
-                  status = "warning", solidHeader = TRUE,
+                  status = "warning", solidHeader = TRUE, width = 4,
                   checkboxGroupInput("traits_na", label = "", choices = NULL)
-                  ),
+                  )),
               
+              fluidRow(
               box(title = "Where's your missing data?", label = "", 
-                  status = "warning", solidHeader = TRUE,
+                  status = "warning", solidHeader = TRUE, height = 300, width = 6,
                   plotOutput("missing.data1")
                   ),
               
               box(title = "Distribution of missing data", label = "",
-                  status = "warning", solidHeader = TRUE,
+                  status = "warning", solidHeader = TRUE, height = 300, width = 6,
                   plotOutput("data.imputation"))
-              ),
+              )),
                           
       tabItem(tabName = "traitspace",
               
@@ -761,6 +770,7 @@ server <- function(input, output, session) {
   })
   
   output$trait_plot <- renderPlot({
+    req(input$trait)
     
     if(input$LogX2 == TRUE){
       tr <- log(trait_dataset()[, input$trait])
@@ -793,7 +803,8 @@ server <- function(input, output, session) {
         
       } else {
         
-        ggplot(trait_dataset(), aes(x = tr, group = group, fill = group)) + plot.type
+        ggplot(trait_dataset(), aes(x = tr, group = group, fill = group)) + plot.type +
+          xlab(input$trait) + ylab("Frequency")
       }
     }
     
@@ -824,16 +835,18 @@ server <- function(input, output, session) {
                              choices = NAcolumns())
   })
   
-  # Plot missing data and imputed values
-  output$missing.data1 <- renderPlot(aggr(trait_dataset()))
-  
-  output$data.imputation <- renderPlot({
-    traits <- trait_dataset()[, input$traits_na]
-    marginplot(traits, alpha = 0.6, col = c("skyblue", "orange"), pch = 19)
-  })
   
   # Print scatterplot matrix + correlations
+  select <- reactive({
+    ntraits <- ncol(trait_dataset()[ ,input$traits_xy1])
+    feedbackWarning("scatterplots", ntraits == 1, 
+                    text = "Please select 2 or more traits")
+ })
+ 
+  output$select.more.traits <- renderText(select())
+  
   output$scatterplots <- renderPlot({
+    req(input$traits_xy1)
     my_fn <- function(data, mapping, ...){
       p <- ggplot(data = trait_dataset(), mapping = mapping) + 
         geom_point(alpha = 0.5, size = 2) + 
@@ -845,6 +858,15 @@ server <- function(input, output, session) {
             lower = list(continuous = my_fn),
             upper = list(continuous = "cor"))
   })
+  
+  # Plot missing data
+  output$missing.data1 <- renderPlot(aggr(trait_dataset()))
+  
+  output$data.imputation <- renderPlot({
+    traits <- trait_dataset()[, input$traits_na]
+    marginplot(traits, alpha = 0.6, col = c("skyblue", "orange"), pch = 19)
+  })
+  
   
   ### Tab "Trait data space": dendrogram and PCoA
   allColumns <- reactive({
