@@ -267,7 +267,7 @@ ui <-dashboardPage(
                                      
               # Output: Trait plot
               fluidRow(
-               box(title = textOutput("caption"), status = "warning", 
+               box(title = textOutput("caption1"), status = "warning", 
                    solidHeader = TRUE, width = 10,
                    plotOutput("trait_plot"))
               )),
@@ -280,7 +280,8 @@ ui <-dashboardPage(
                   ),
               
               box(title = "Transformations", status = "primary", solidHeader = TRUE,
-                  selectInput("trans", "", choices = c("Log", "Square-root")),
+                  selectInput("trans", "", choices = c("None", "Log", "Square-root"),
+                              selected = "None"),
                   textOutput("invalid.trans")
                   ),
               
@@ -294,8 +295,8 @@ ui <-dashboardPage(
               # Output: scatterplots
               fluidRow(
                 box(title = "Scatterplots", status = "warning", solidHeader = TRUE, width = 12,
-                    plotOutput("scatterplots"),
-                    textOutput("select.more.traits"))
+                    textOutput("select.more.traits"),
+                    plotOutput("scatterplots"))
                   )
               ),
                             
@@ -304,19 +305,19 @@ ui <-dashboardPage(
               
               # Input: Select traits with missing data
               fluidRow(
-              box(title = "You have the following traits with missing data",
+              box(title = textOutput("caption2"),
                   status = "warning", solidHeader = TRUE, width = 4,
                   checkboxGroupInput("traits_na", label = "", choices = NULL)
                   )),
               
               fluidRow(
               box(title = "Where's your missing data?", label = "", 
-                  status = "warning", solidHeader = TRUE, height = 300, width = 6,
+                  status = "warning", solidHeader = TRUE, height = 600, width = 6,
                   plotOutput("missing.data1")
                   ),
               
               box(title = "Distribution of missing data", label = "",
-                  status = "warning", solidHeader = TRUE, height = 300, width = 6,
+                  status = "warning", solidHeader = TRUE, height = 600, width = 6,
                   plotOutput("data.imputation"))
               )),
                           
@@ -766,7 +767,7 @@ server <- function(input, output, session) {
                       choices = c("None", factorColumns()))
   })
   
-  output$caption <- renderText({
+  output$caption1 <- renderText({
     switch(input$plot.type,
            "boxplot" = "Boxplot",
            "histogram" = "Histogram",
@@ -840,21 +841,18 @@ server <- function(input, output, session) {
   })
   
   # Print scatterplot matrix + correlations
-  select <- reactive({
-    if(ncol(trait_dataset()[ ,input$traits_xy1]) == 1)
-    validate("Please select 2 or more traits")
- })
- 
-  output$select.more.traits <- renderText(select())
-  
-  output$invalid.trans <- renderText({
-    if(input$traits_xy1 < 0 && input$trans %in% c("Log", "Square-root")) {
+    output$invalid.trans <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy1]
+    neg <- traits[traits < 0]
+    if(length(neg) > 0 && input$trans %in% c("Log", "Square-root")) {
     validate("Traits cannot be negative for this transformation")
-  }
-  
-  switch(input$trans,
-         "Log" = log(input$traits_xy1),
-         "Square-root" = sqrt(input$traits_xy1))
+      }
+    })
+    
+    output$select.more.traits <- renderText({
+      traits <- trait_dataset()[ , input$traits_xy1]
+      if(is.numeric(traits) == TRUE)
+        validate("Please select 2 or more traits")
     })
   
   output$scatterplots <- renderPlot({
@@ -866,21 +864,32 @@ server <- function(input, output, session) {
       p
     }
     
-    if(input$LogX3 == TRUE){
-      tr <- log(trait_dataset()[, input$traits_xy1])
-    } else {
-      tr <- trait_dataset()[, input$input$traits_xy1]
-    }
-    
-    ggpairs(tr, 
-            lower = list(continuous = my_fn),
-            upper = list(continuous = "cor"))
+    traits <- trait_dataset()[, input$traits_xy1]
+    switch(input$trans,
+           "None" = ggpairs(traits,
+                            lower = list(continuous = my_fn),
+                            upper = list(continuous = "cor")),
+           "Log" = ggpairs(log(traits + 1),
+                           lower = list(continuous = my_fn),
+                           upper = list(continuous = "cor")),
+           "Square-root" = ggpairs(sqrt(traits),
+                                   lower = list(continuous = my_fn),
+                                   upper = list(continuous = "cor")))
   })
   
   # Plot missing data
-  output$missing.data1 <- renderPlot(aggr(trait_dataset()))
+  output$caption2 <- renderText({
+    ntraits.missing <- length(NAcolumns())
+    paste0("You have ", ntraits.missing, " trait/s with missing values")
+  })
+  
+  output$missing.data1 <- renderPlot({
+    req(input$traits_na)
+    aggr(trait_dataset())
+    })
   
   output$data.imputation <- renderPlot({
+    req(input$traits_na)
     traits <- trait_dataset()[, input$traits_na]
     marginplot(traits, alpha = 0.6, col = c("skyblue", "orange"), pch = 19)
   })
