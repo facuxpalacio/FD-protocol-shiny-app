@@ -274,12 +274,15 @@ ui <-dashboardPage(
                             
                           
       tabItem(tabName = "collinearity",
-              useShinyFeedback(),
               # Input: Select traits to plot
               box(title = "Select two or more functional traits", status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("traits_xy1", label = "", choices = NULL)
                   ),
-              textOutput("select.more.traits"),
+              
+              box(title = "Transformations", status = "primary", solidHeader = TRUE,
+                  selectInput("trans", "", choices = c("Log", "Square-root")),
+                  textOutput("invalid.trans")
+                  ),
               
               box(title = "Model fit", status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("model.scatt", label = "",
@@ -291,7 +294,8 @@ ui <-dashboardPage(
               # Output: scatterplots
               fluidRow(
                 box(title = "Scatterplots", status = "warning", solidHeader = TRUE, width = 12,
-                    plotOutput("scatterplots"))
+                    plotOutput("scatterplots"),
+                    textOutput("select.more.traits"))
                   )
               ),
                             
@@ -835,15 +839,23 @@ server <- function(input, output, session) {
                              choices = NAcolumns())
   })
   
-  
   # Print scatterplot matrix + correlations
   select <- reactive({
-    ntraits <- ncol(trait_dataset()[ ,input$traits_xy1])
-    feedbackWarning("scatterplots", ntraits == 1, 
-                    text = "Please select 2 or more traits")
+    if(ncol(trait_dataset()[ ,input$traits_xy1]) == 1)
+    validate("Please select 2 or more traits")
  })
  
   output$select.more.traits <- renderText(select())
+  
+  output$invalid.trans <- renderText({
+    if(input$traits_xy1 < 0 && input$trans %in% c("Log", "Square-root")) {
+    validate("Traits cannot be negative for this transformation")
+  }
+  
+  switch(input$trans,
+         "Log" = log(input$traits_xy1),
+         "Square-root" = sqrt(input$traits_xy1))
+    })
   
   output$scatterplots <- renderPlot({
     req(input$traits_xy1)
@@ -854,7 +866,13 @@ server <- function(input, output, session) {
       p
     }
     
-    ggpairs(trait_dataset()[, input$traits_xy1], 
+    if(input$LogX3 == TRUE){
+      tr <- log(trait_dataset()[, input$traits_xy1])
+    } else {
+      tr <- trait_dataset()[, input$input$traits_xy1]
+    }
+    
+    ggpairs(tr, 
             lower = list(continuous = my_fn),
             upper = list(continuous = "cor"))
   })
