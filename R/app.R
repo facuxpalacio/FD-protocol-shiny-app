@@ -227,7 +227,7 @@ ui <-dashboardPage(
               ),
               
               box(title = "Inputs", status = "primary", solidHeader = TRUE,
-                  sliderInput("bins1", "Number of bins:", min = 5, max = 20, value = 10),
+                  sliderInput("bins1", "Number of bins", min = 5, max = 20, value = 10),
               ),
               
               fluidRow(
@@ -261,8 +261,11 @@ ui <-dashboardPage(
               # Input: histogram inputs
               box(title = "Inputs", status = "primary", solidHeader = TRUE,
                   height = 300, width = 6,
-                  checkboxInput("LogX2", "Log-transform data", value = FALSE),
-                  sliderInput("bins2", "Number of bins:", min = 5, max = 20, value = 10),
+                  selectInput("trans1", "Transformation", 
+                              choices = c("None", "Log", "Square-root"),
+                              selected = "None"),
+                  sliderInput("bins2", "Number of bins", min = 5, max = 20, value = 10),
+                  textOutput("invalid.trans1")
               )),
                                      
               # Output: Trait plot
@@ -280,9 +283,9 @@ ui <-dashboardPage(
                   ),
               
               box(title = "Transformations", status = "primary", solidHeader = TRUE,
-                  selectInput("trans", "", choices = c("None", "Log", "Square-root"),
+                  selectInput("trans2", "", choices = c("None", "Log", "Square-root"),
                               selected = "None"),
-                  textOutput("invalid.trans")
+                  textOutput("invalid.trans2")
                   ),
               
               box(title = "Model fit", status = "primary", solidHeader = TRUE,
@@ -295,7 +298,7 @@ ui <-dashboardPage(
               # Output: scatterplots
               fluidRow(
                 box(title = "Scatterplots", status = "warning", solidHeader = TRUE, width = 12,
-                    textOutput("select.more.traits"),
+                    textOutput("select.more.traits1"),
                     plotOutput("scatterplots"))
                   )
               ),
@@ -329,7 +332,8 @@ ui <-dashboardPage(
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
                   checkboxInput("remove.na", label = "Remove missing data?",
                                 value = FALSE),
-                  checkboxInput("standardize", "Standardize traits", value = FALSE)
+                  checkboxInput("standardize", "Standardize traits", value = FALSE),
+                  textOutput("select.more.traits2"),
               ),
               
               # Inputs: dendrogram inputs
@@ -364,12 +368,15 @@ ui <-dashboardPage(
                   ),
               
               # Output: dendrogram
+              fluidRow(
               box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
-                  plotOutput("dendrogram")
+                  plotOutput("dendrogram"))
               ),
               
               # Input: PCoA arguments
+              fluidRow(
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
+                  height = 300, width = 4,
                   selectInput("eig.correction",
                               label = "Correction method for negative eigenvalues",
                               choices = c("Lingoes" = "lingoes",
@@ -381,29 +388,31 @@ ui <-dashboardPage(
                   sliderInput("alpha2", "Kernel density transparency",
                               min = 0, max = 1, value = 0),
                   
-                  sliderInput("bins3", "Number of bins:", min = 5, max = 20, value = 10)
-              ),
-              
-              # Output: variance explained
-              box(title = "% variance explained", status = "warning", solidHeader = TRUE,
-                  numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
-                  tableOutput("var.explained.pcoa")
+                  sliderInput("bins3", "Number of bins", min = 5, max = 20, value = 10)
               ),
               
               box(title = "PCoA", status = "warning", solidHeader = TRUE,
+                  height = 300, width = 8,
                   plotOutput("pcoa")
-              ),
+              )),
+              
+              # Output: variance explained
+              fluidRow(
+              box(title = "% variance explained", status = "warning", solidHeader = TRUE,
+                  numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
+                  tableOutput("var.explained.pcoa")
+                  ),
               
               # Input: eigenvalues plot
               box(title = "Screeplot inputs", status = "primary", solidHeader = TRUE,
-                  sliderInput("axes.eigenvalues", "Number of axes to plot",
-                              min = 2, max = 20, value = 5)
-              ),
+                  numericInput("axes.eigenvalues", "Number of axes to plot",
+                              min = 2, value = 5)
+                  )),
               
               # Output: eigenvalues
               fluidRow(
                 box(title = "Screeplots", 
-                    status = "warning", solidHeader = TRUE, width = 12,
+                    status = "warning", solidHeader = TRUE, heigth = 150, width = 12,
                     column(6,
                            plotOutput("raw_eigenvalues")),
                     column(6,
@@ -412,12 +421,13 @@ ui <-dashboardPage(
               
               
               # Input: hypervolumes
+              fluidRow(
               box(title = "Hypervolume inputs", 
-                  status = "primary", solidHeader = TRUE, width = 8,
+                  status = "primary", solidHeader = TRUE, height = 300, width = 4,
                   numericInput("hv.sites", "Number of sites to plot", value = 1),
                   
-                  sliderInput("hv.axes", "Number of dimensions",
-                              min = 0, max = 10, value = 2),
+                  numericInput("hv.axes", "Number of dimensions",
+                              min = 1, value = 2),
                   
                   selectInput("hv.method", "Method",
                               choices = c("Gaussian kernel density" = "gaussian",
@@ -434,8 +444,8 @@ ui <-dashboardPage(
               
               # Output: hypervolumes
               box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
-                  plotOutput("hv")
-              ),
+                  height = 300, width = 8, plotOutput("hv")
+              )),
       ),       
       
       tabItem(tabName = "step6",
@@ -774,13 +784,26 @@ server <- function(input, output, session) {
            "density" = "Density plot")
   })
   
+  output$invalid.trans1 <- renderText({
+    req(input$trait)
+    traits <- trait_dataset()[ , input$trait]
+    neg <- traits[traits < 0]
+    if(length(neg) > 0 && input$trans1 %in% c("Log", "Square-root")) {
+      validate("Traits cannot be negative for this transformation")
+    }
+  })
+  
   output$trait_plot <- renderPlot({
     req(input$trait)
     
-    if(input$LogX2 == TRUE){
-      tr <- log(trait_dataset()[, input$trait])
-    } else {
+    if(input$trans1 == "None"){
       tr <- trait_dataset()[, input$trait]
+    } else {
+      if(input$trans1 == "Log"){
+        tr <- log(trait_dataset()[, input$trait] + 1)
+      } else {
+        tr <- sqrt(trait_dataset()[, input$trait])
+      }
     }
     
     if(input$group.var == "None"){ 
@@ -841,15 +864,15 @@ server <- function(input, output, session) {
   })
   
   # Print scatterplot matrix + correlations
-    output$invalid.trans <- renderText({
+    output$invalid.trans2 <- renderText({
     traits <- trait_dataset()[ , input$traits_xy1]
     neg <- traits[traits < 0]
-    if(length(neg) > 0 && input$trans %in% c("Log", "Square-root")) {
+    if(length(neg) > 0 && input$trans2 %in% c("Log", "Square-root")) {
     validate("Traits cannot be negative for this transformation")
       }
     })
     
-    output$select.more.traits <- renderText({
+    output$select.more.traits1 <- renderText({
       traits <- trait_dataset()[ , input$traits_xy1]
       if(is.numeric(traits) == TRUE)
         validate("Please select 2 or more traits")
@@ -865,7 +888,7 @@ server <- function(input, output, session) {
     }
     
     traits <- trait_dataset()[, input$traits_xy1]
-    switch(input$trans,
+    switch(input$trans2,
            "None" = ggpairs(traits,
                             lower = list(continuous = my_fn),
                             upper = list(continuous = "cor")),
@@ -905,6 +928,12 @@ server <- function(input, output, session) {
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy2",
                              choices = allColumns())
+  })
+  
+  output$select.more.traits2 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy2]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
   })
   
   output$dendrogram <- renderPlot({
@@ -1047,7 +1076,10 @@ server <- function(input, output, session) {
                  samples.per.point = input$npoints)
   })
   
-  output$hv <- renderPlot(plot(hypervolumes()))
+  output$hv <- renderPlot({
+    req(hypervolumes())
+    plot(hypervolumes())
+    })
   
   ### Tab "Richness": Alpha
   alpha.FD <- eventReactive(input$build.hv1, {
