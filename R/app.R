@@ -12,7 +12,8 @@ library(BAT) #2.6.0
 library(VIM) #6.0.0
 
 ui <-dashboardPage(
-  dashboardHeader(title = "An eight-step protocol for functional diversity analysis"),
+  dashboardHeader(title = "A protocol for functional diversity analysis",
+                  titleWidth = 450),
   ## Sidebar content
   dashboardSidebar(
     sidebarMenu(
@@ -22,6 +23,7 @@ ui <-dashboardPage(
       menuItem("Step 3. Community data", tabName = "step3"),
       menuItem("Step 4. Trait data", tabName = "step4"),
       menuItem("Step 5. Explore your data!", tabName = "step5",
+               menuSubItem("Checklist", tabName = "checkliststep5"),
                menuSubItem("Data summary", tabName = "datasummary"),
                menuSubItem("Community data", tabName = "communitydata"),
                menuSubItem("Trait plots", tabName = "traitplots"),
@@ -29,6 +31,7 @@ ui <-dashboardPage(
                menuSubItem("Missing data", tabName = "missingdata"),
                menuSubItem("Trait spaces", tabName = "traitspace")),
       menuItem("Step 6. Functional diversity", tabName = "step6",
+               menuItem("Checklist", tabName = "checkliststep6"),
                menuItem("Richness", tabName = "richness"),
                menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
@@ -44,54 +47,76 @@ ui <-dashboardPage(
   dashboardBody(
     shinyjs::useShinyjs(),
     tabItems(
+      
       # Tab contents
       tabItem(tabName = "dashboard",
-      p("This application is intended to provide students and researchers with 
-        a checklist to maximize methods' reproducibility, comparability, and transparency across 
-        trait-based studies. For further details, see: "), 
-      uiOutput("tab"), 
-      style = "background-color:lightblue; border-radius:5px"),
+              box(Title = "", 
+                  "This application is intended to provide students and researchers with a checklist to maximize methods' reproducibility, 
+                  comparability, and transparency across trait-based studies. For further details, see:",
+                  tags$a(a("Palacio", em("et al."), " (2021). A protocol for conducting functional diversity 
+                           analyses and maximizing their reproducibility. Journal name. XX: XX-XX", 
+                           href = "https://www.google.com/")), "and the ",
+                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/FD-protocol-shiny-app"),
+                  br(),
+                  br(),
+                  em("This app is maintained by ",
+                  tags$a("Facundo X. Palacio, ", href = "https://github.com/facuxpalacio"),
+                  tags$a("Emma J. Hudgins ", href = "https://github.com/emmajhudgins"), "and ",
+                  tags$a("Caio Graco Roza.", href = "https://github.com/graco-roza"),
+                  "Please feel free to contact us with any suggestions!"))
+      ),
       
       tabItem(tabName = "step1",
-      helpText("Start with the conceptualization of an ecological question 
-               ingrained in a theoretical framing with a set of hypotheses and 
-               predictions.", style = "background-color:lightblue; border-radius:5px"),
+              box(Title = "Start with the conceptualization of an ecological question 
+                  ingrained in a theoretical framing with a set of hypotheses and 
+                  predictions.", background = "maroon",
       radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
-                   choices = c("My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?","My work is open-ended, e.g. How do abiotic variables shape leaf morphology?")),     
+                   choices = c("My work focuses on a particular question, e.g. Does seed size diversity decrease at higher latitudes?",
+                               "My work is open-ended, e.g. How do abiotic variables shape leaf morphology?")),     
                       fluidRow(
                         column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
                       fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended, e.g. How do abiotic variables shape leaf morphology?"]',
                                                           textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))
-      ),
+      )),
              
       tabItem(tabName = "step2",
-                      helpText("Choose an appropriate sampling or experimental design, along with the 
-                               scale of analysis and the study organisms and units (populations, 
-                               species, communities) selected to answer the research question.",
-                               style = "background-color:lightblue; border-radius:5px"),
-                      div(id="step2", "Identify an appropriate experimental or sampling design"),
-                                      textInput("scale","What is(are) your scale(s) of analysis?"),
-                      textInput("unit","What is your target ecological unit?"),
-                      radioButtons("pow1", "Did you perform a power analysis?", choices=c("Yes", "No")),
-              textInput("pow2", "Results of power analysis or rationale for lack of need", value = "", placeholder = "I can detect an effect size of..."),
-                                   radioButtons("prer1", "Did you preregister?", choices=c("Yes", "No")),
-      textInput("prer2", "Link to preregistration or rationale for lack of need", value = "", placeholder = "My preregistration is hosted at osf.io/...")),
+              box(Title = "Choose an appropriate sampling or experimental design, along with the 
+                  scale of analysis and the study organisms and units (populations, 
+                  species, communities) selected to answer the research question.",
+                  background = "maroon",
+                  div(id="step2", "Identify an appropriate experimental or sampling design"),
+                  textInput("scale","What is(are) your scale(s) of analysis?"),
+                  textInput("unit","What is your target ecological unit?"),
+                  radioButtons("pow1", "Did you perform a power analysis?", choices=c("Yes", "No")),
+                  textInput("pow2", "Results of power analysis or rationale for lack of need", value = "", 
+                            placeholder = "I can detect an effect size of..."),
+                  radioButtons("prer1", "Did you preregister?", choices=c("Yes", "No")),
+                  textInput("prer2", "Link to preregistration or rationale for lack of need", value = "", 
+                  placeholder = "My preregistration is hosted at osf.io/..."))
+      ),
             
       tabItem(tabName = "step3",
                       withMathJax(),
                        sidebarLayout(
                         sidebarPanel(
-                          helpText("Collect occurrence data and build a matrix of", em("S"),
-                                   "sampling units \\(\\times\\)", em("N"), "taxa.",
-                                   style = "background-color:lightblue; border-radius:5px"),
-                          div(id="step3", "Assemble a community data matrix"),
-                          textInput("foc","Indicate the focal taxon/taxa"),
-                          textInput("reso", "What is your taxonomic resolution?"),
-                          textInput("ntax", "Indicate the number of taxa"),
-                          textInput("s_eff", "Report sampling effort"),
-                          textInput("s_units", "Indicate the number of sampling units"),
-                          selectInput("dtyp","Indicate the occurrence data type", 
-                                      choices=c("Presence-only","Presence-background", "Presence-absence", "Abundance", "Biomass", "Percent cover"))),
+                          box(Title = "", "Collect occurrence data and build a matrix of", em("S"),
+                              "sampling units \\(\\times\\)", em("N"), "taxa.",
+                              width = 12, background = "maroon",
+                              br(),
+                              br(),
+                              div(id="step3", em("Assemble a community data matrix")), # Could we omit this?
+                              br(),
+                              br(),
+                              textInput("foc","Indicate the focal taxon/taxa"),
+                              textInput("reso", "What is your taxonomic resolution?"),
+                              textInput("ntax", "Indicate the number of taxa"),
+                              textInput("s_eff", "Report sampling effort"),
+                              textInput("s_units", "Indicate the number of sampling units"),
+                              selectInput("dtyp","Indicate the occurrence data type", 
+                                          choices = c("Presence-absence", "Presence-only", 
+                                                      "Occupancy probability", "Abundance", 
+                                                      "Biomass", "Percent cover")))
+                          ),
                          
                          mainPanel(
                           # Input: Load your community data
@@ -122,7 +147,7 @@ ui <-dashboardPage(
                            ),
                           
                           fluidRow(
-                          box(title = "Community data", width = 12, height = 300,
+                          box(title = "Community data", width = 12, height = 500,
                               status = "warning", solidHeader = TRUE,
                           dataTableOutput("community_table"))
                           )
@@ -134,9 +159,11 @@ ui <-dashboardPage(
       tabItem(tabName = "step4",
                       sidebarLayout( 
                         sidebarPanel(
-                          helpText("Collect functional trait data and build a matrix of", em("N"), 
-                                   "taxa \\(\\times\\)", em("p"), "traits.",
-                                   style = "background-color:lightblue; border-radius:5px"),
+                          box(Title = "", "Collect functional trait data and build a matrix of", em("N"), 
+                              "taxa \\(\\times\\)", em("p"), "traits.",
+                              background = "maroon", width = 12,
+                              br(),
+                              br(),
                           checkboxGroupInput("step4", "Assemble a trait data matrix",
                                              choices = c("Indicate the number of traits",
                                              "Indicate the trait data type",
@@ -145,7 +172,8 @@ ui <-dashboardPage(
                                              "Are traits soft or hard traits?",
                                              "Which is the ecological meaning of your traits?",
                                              "Did you account for intraspecific trait variation?",
-                                             "Indicate the data sources"))),
+                                             "Indicate the data sources")))
+                          ),
                         
                         mainPanel(
                           # Input: Load your trait data
@@ -176,24 +204,22 @@ ui <-dashboardPage(
                           strong(textOutput("ncol_traits")))
                           ),
                           
-                          box(title = "Trait data", width = 12, height = 300, 
+                          box(title = "Trait data", width = 12, height = 500, 
                               status = "warning", solidHeader = TRUE,
                           dataTableOutput("trait_table")))
                         )
                       ),
              
-      tabItem(tabName = "step5",
-                          helpText("Visually inspect the community and trait matrices to familiarize with your
-                               data and deal with any issue therein.",
-                                   style = "background-color:lightblue; border-radius:5px"),
-                          
-                          checkboxGroupInput("step5", "Explore and preprocess the data",
-                                             choices = c("Plot your data!",
-                                                         "Is there collinearity among traits?",
-                                                         "Did you transform trait data?",
-                                                         "Do you have missing data? How did you handle these?",
-                                                         "Did you account for imperfect detection?"))
-              ),
+      tabItem(tabName = "checkliststep5",
+              box(Title = "Visually inspect the community and trait matrices to familiarize with your
+                  data and deal with any issue therein.", background = "maroon",
+                  checkboxGroupInput("step5", "Explore and preprocess the data",
+                                     choices = c("Plot your data!",
+                                                 "Is there collinearity among traits?",
+                                                 "Did you transform trait data?",
+                                                 "Do you have missing data? How did you handle these?",
+                                                 "Did you account for imperfect detection?"))
+              )),
       
       tabItem(tabName = "datasummary",
               
@@ -323,6 +349,7 @@ ui <-dashboardPage(
                   status = "warning", solidHeader = TRUE, height = 600, width = 6,
                   plotOutput("data.imputation"))
               )),
+      
                           
       tabItem(tabName = "traitspace",
               
@@ -376,7 +403,7 @@ ui <-dashboardPage(
               # Input: PCoA arguments
               fluidRow(
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                  height = 300, width = 4,
+                  height = 450, width = 4,
                   selectInput("eig.correction",
                               label = "Correction method for negative eigenvalues",
                               choices = c("Lingoes" = "lingoes",
@@ -392,7 +419,7 @@ ui <-dashboardPage(
               ),
               
               box(title = "PCoA", status = "warning", solidHeader = TRUE,
-                  height = 300, width = 8,
+                  height = 450, width = 8,
                   plotOutput("pcoa")
               )),
               
@@ -419,11 +446,10 @@ ui <-dashboardPage(
                            plotOutput("rel_eigenvalues"))
                 )),
               
-              
               # Input: hypervolumes
               fluidRow(
               box(title = "Hypervolume inputs", 
-                  status = "primary", solidHeader = TRUE, height = 300, width = 4,
+                  status = "primary", solidHeader = TRUE, height = 450, width = 4,
                   numericInput("hv.sites", "Number of sites to plot", value = 1),
                   
                   numericInput("hv.axes", "Number of dimensions",
@@ -444,20 +470,20 @@ ui <-dashboardPage(
               
               # Output: hypervolumes
               box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
-                  height = 300, width = 8, plotOutput("hv")
+                  height = 450, width = 8, plotOutput("hv")
               )),
       ),       
       
-      tabItem(tabName = "step6",
-                      helpText("Now you can compute functional diversity metrics!",
-                               style = "background-color:lightblue; border-radius:5px"),
-                      checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
-                                         choices = c("Identify the level of analysis (alpha, beta, gamma)",
-                                                     "Did you subset your trait data?",
-                                                     "Select the appropriate method based on the research question",
-                                                     "Select the appropriate functional diversity metric",
-                                                     "Identify the level of functional diversity metric measurement"))
-                      ),
+      tabItem(tabName = "checkliststep6",
+              box(Title = "Now you can compute functional diversity metrics!",
+                  background = "maroon",
+                  checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
+                                     choices = c("Identify the level of analysis (alpha, beta, gamma)",
+                                                 "Did you subset your trait data?",
+                                                 "Select the appropriate method based on the research question",
+                                                 "Select the appropriate functional diversity metric",
+                                                 "Identify the level of functional diversity metric measurement"))
+                      )),
                           
     tabItem(tabName = "richness",
                
@@ -517,7 +543,6 @@ ui <-dashboardPage(
             box(title = "Functional divergence", status = "warning", solidHeader = TRUE,
                 plotOutput("f.divergence")
                 )
-            
             ),
     
     tabItem(tabName = "similarity",
@@ -600,26 +625,22 @@ ui <-dashboardPage(
             ),
     
     tabItem(tabName = "step7",
-            helpText("Fit, interpret, report and validate your statistical model.",
-                     style = "background-color:lightblue; border-radius:5px"),
-                      
-              checkboxGroupInput("step7", "Interpret and validate the results",
-                                 choices = c("Select an appropriate statistical model or test to answer your research question",
-                                 "Report effect sizes, model support and uncertainty",
-                                 "Provide a graphical output if needed",
-                                 "Did you validate your model and how?"))
-                ),          
+            box(Title = "Fit, interpret, report and validate your statistical model.",
+                background = "maroon",
+                checkboxGroupInput("step7", "Interpret and validate the results",
+                                  choices = c("Select an appropriate statistical model or test to answer your research question",
+                                              "Report effect sizes, model support and uncertainty",
+                                              "Provide a graphical output if needed",
+                                              "Did you validate your model and how?"))
+                )),          
       
     tabItem(tabName = "step8",
-            helpText("Provide enough data and code detail to allow full reproducibility
-                     of your results.",
-                     style = "background-color:lightblue; border-radius:5px"),
-                      
-                      checkboxGroupInput("step8", "Ensure reproducibility",
-                                         choices = c("Report the software, version and packages you used",
-                                                     "Deposit data in a public repository",
-                                                     
-                                                     "Provide your code (tidy and clean)")),
+            box(Title = "Provide enough data and code detail to allow full reproducibility
+                of your results.", background = "maroon",
+                checkboxGroupInput("step8", "Ensure reproducibility",
+                                   choices = c("Report the software, version and packages you used",
+                                               "Deposit data in a public repository",
+                                               "Provide your code (tidy and clean)")),
                       div(
                         id = "form",
                         actionButton("submit", "Save filled checklist", class = "btn-primary"),
@@ -633,20 +654,14 @@ ui <-dashboardPage(
                 )
               )
       )
-    )
+    ))
 
 ######################################################################################
 
 
 server <- function(input, output, session) {
-  url <- a("Palacio", em("et al."), " (2021). A protocol for conducting trait-based 
-           analyses and maximizing their reproducibility. Journal name. XX: XX-XX.", 
-           href = "https://www.google.com/")
-  
-  output$tab <- renderUI({
-   tagList(url)
-    })
-  # toDisplay <- eventReactive(input$step1, {
+
+    # toDisplay <- eventReactive(input$step1, {
   #   choices <- c("Which is your research question?",
   #                "Indicate your main hypotheses and predictions")
   #   if (all(choices %in% input$step1)){
@@ -1077,7 +1092,6 @@ server <- function(input, output, session) {
   })
   
   output$hv <- renderPlot({
-    req(hypervolumes())
     plot(hypervolumes())
     })
   
