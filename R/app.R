@@ -23,13 +23,16 @@ ui <-dashboardPage(
       menuItem("Step 3. Community data", tabName = "step3"),
       menuItem("Step 4. Trait data", tabName = "step4"),
       menuItem("Step 5. Explore your data!", tabName = "step5",
-               menuSubItem("Checklist", tabName = "checkliststep5"),
-               menuSubItem("Data summary", tabName = "datasummary"),
-               menuSubItem("Community data", tabName = "communitydata"),
-               menuSubItem("Trait plots", tabName = "traitplots"),
-               menuSubItem("Collinearity", tabName = "collinearity"),
-               menuSubItem("Missing data", tabName = "missingdata"),
-               menuSubItem("Trait spaces", tabName = "traitspace")),
+               menuItem("Checklist", tabName = "checkliststep5"),
+               menuItem("Data summary", tabName = "datasummary"),
+               menuItem("Community data", tabName = "communitydata"),
+               menuItem("Trait plots", tabName = "traitplots"),
+               menuItem("Collinearity", tabName = "collinearity"),
+               menuItem("Missing data", tabName = "missingdata"),
+               menuItem("Trait spaces", tabName = "traitspace",
+                        menuSubItem("Functional dendrogram", tabName = "fundend"),
+                        menuSubItem("Functional ordination", tabName = "funord"),
+                        menuSubItem("Hypervolumes", tabName = "funhv"))),
       menuItem("Step 6. Functional diversity", tabName = "step6",
                menuItem("Checklist", tabName = "checkliststep6"),
                menuItem("Richness", tabName = "richness"),
@@ -354,15 +357,16 @@ ui <-dashboardPage(
       tabItem(tabName = "traitspace",
               
               # Input: Select traits to plot
-              box(title = "Select two or more functional traits",
+              box(title = "Select two or more functional traits", width = 4,
                   status = "primary", solidHeader = TRUE,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
                   checkboxInput("remove.na", label = "Remove missing data?",
                                 value = FALSE),
                   checkboxInput("standardize", "Standardize traits", value = FALSE),
                   textOutput("select.more.traits2"),
-              ),
-              
+              )),
+      
+      tabItem(tabName = "fundend",
               # Inputs: dendrogram inputs
               box(title = "Dendrogram inputs",
                   status = "primary", solidHeader = TRUE,
@@ -398,8 +402,9 @@ ui <-dashboardPage(
               fluidRow(
               box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
                   plotOutput("dendrogram"))
-              ),
-              
+              )),
+      
+      tabItem(tabName = "funord",
               # Input: PCoA arguments
               fluidRow(
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
@@ -444,8 +449,10 @@ ui <-dashboardPage(
                            plotOutput("raw_eigenvalues")),
                     column(6,
                            plotOutput("rel_eigenvalues"))
-                )),
+                ))
+              ),
               
+      tabItem(tabName = "funhv",
               # Input: hypervolumes
               fluidRow(
               box(title = "Hypervolume inputs", 
@@ -470,8 +477,10 @@ ui <-dashboardPage(
               
               # Output: hypervolumes
               box(title = "Hypervolumes", status = "warning", solidHeader = TRUE,
-                  height = 450, width = 8, plotOutput("hv")
-              )),
+                  height = 450, width = 8, 
+                  plotOutput("hv"),
+                  textOutput("hv.data")
+                  ))
       ),       
       
       tabItem(tabName = "checkliststep6",
@@ -1092,8 +1101,26 @@ server <- function(input, output, session) {
   })
   
   output$hv <- renderPlot({
+    req(input$community_dataset)
+    req(input$traits_xy2)
     plot(hypervolumes())
     })
+  
+  output$hv.data <- renderText({
+    if(is.null(input$community_dataset) && is.null(input$trait_dataset)){
+      validate("Community and trait data are not given yet")
+    } else {
+      if(is.null(input$community_dataset) && !is.null(input$trait_dataset)){
+        validate("Community data are not given yet")
+      } else {
+        if(!is.null(input$community_dataset) && is.null(input$trait_dataset)){
+        validate("Trait data are not given yet")
+          } else {
+            validate("Now you can build hypervolumes!")
+          }
+        }
+      }
+  })
   
   ### Tab "Richness": Alpha
   alpha.FD <- eventReactive(input$build.hv1, {
