@@ -57,9 +57,9 @@ ui <-dashboardPage(
               box(Title = "", width = 8,
                   "This application is intended to provide students and researchers with a checklist to maximize methods' reproducibility, 
                   comparability, and transparency across trait-based studies. For further details, see:",
-                  tags$a(a("Palacio", em("et al."), " (2021). A protocol for conducting functional diversity 
+                  tags$a("Palacio", em("et al."), " (2021). A protocol for conducting functional diversity 
                            analyses and maximizing their reproducibility. Journal name. XX: XX-XX", 
-                           href = "https://www.google.com/")), "and the ",
+                           href = "https://www.google.com/"), "and the ",
                   tags$a("user's guide.", href = "https://github.com/facuxpalacio/FD-protocol-shiny-app"),
                   br(),
                   br(),
@@ -74,23 +74,25 @@ ui <-dashboardPage(
       ),
       
       tabItem(tabName = "step1",
-              box(Title = "Start with the conceptualization of an ecological question 
+              helpText("Start with the conceptualization of an ecological question 
                   ingrained in a theoretical framing with a set of hypotheses and 
-                  predictions.", background = "maroon",
-      radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
+                  predictions.", style = "background-color:lightblue; border-radius:5px"),
+      
+              radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
                    choices = c("My work focuses on a particular question, e.g. Does seed size diversity decrease at higher latitudes?",
                                "My work is open-ended, e.g. How do abiotic variables shape leaf morphology?")),     
                       fluidRow(
                         column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
                       fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended, e.g. How do abiotic variables shape leaf morphology?"]',
                                                           textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))
-      )),
+      ),
              
       tabItem(tabName = "step2",
-              box(Title = "Choose an appropriate sampling or experimental design, along with the 
+              helpText("Choose an appropriate sampling or experimental design, along with the 
                   scale of analysis and the study organisms and units (populations, 
                   species, communities) selected to answer the research question.",
-                  background = "maroon",
+                  style = "background-color:lightblue; border-radius:5px"),
+                  
                   div(id="step2", "Identify an appropriate experimental or sampling design"),
                   textInput("scale","What is(are) your scale(s) of analysis?"),
                   textInput("unit","What is your target ecological unit?"),
@@ -99,20 +101,18 @@ ui <-dashboardPage(
                             placeholder = "I can detect an effect size of..."),
                   radioButtons("prer1", "Did you preregister?", choices=c("Yes", "No")),
                   textInput("prer2", "Link to preregistration or rationale for lack of need", value = "", 
-                  placeholder = "My preregistration is hosted at osf.io/..."))
+                  placeholder = "My preregistration is hosted at osf.io/...")
       ),
             
       tabItem(tabName = "step3",
                       withMathJax(),
                        sidebarLayout(
                         sidebarPanel(
-                          box(Title = "", "Collect occurrence data and build a matrix of", em("S"),
+                          helpText("Collect occurrence data and build a matrix of", em("S"),
                               "sampling units \\(\\times\\)", em("N"), "taxa.",
-                              width = 12, background = "maroon",
+                              style = "background-color:lightblue; border-radius:5px"),
                               br(),
-                              br(),
-                              div(id="step3", em("Assemble a community data matrix")), # Could we omit this?
-                              br(),
+                              div(id="step3", strong("Assemble a community data matrix")), # Could we omit this?
                               br(),
                               textInput("foc","Indicate the focal taxon/taxa"),
                               textInput("reso", "What is your taxonomic resolution?"),
@@ -122,7 +122,7 @@ ui <-dashboardPage(
                               selectInput("dtyp","Indicate the occurrence data type", 
                                           choices = c("Presence-absence", "Presence-only", 
                                                       "Occupancy probability", "Abundance", 
-                                                      "Biomass", "Percent cover")))
+                                                      "Biomass", "Percent cover"))
                           ),
                          
                          mainPanel(
@@ -166,10 +166,9 @@ ui <-dashboardPage(
       tabItem(tabName = "step4",
                       sidebarLayout( 
                         sidebarPanel(
-                          box(Title = "", "Collect functional trait data and build a matrix of", em("N"), 
+                          helpText("Collect functional trait data and build a matrix of", em("N"), 
                               "taxa \\(\\times\\)", em("p"), "traits.",
-                              background = "maroon", width = 12,
-                              br(),
+                              style = "background-color:lightblue; border-radius:5px"),
                               br(),
                           checkboxGroupInput("step4", "Assemble a trait data matrix",
                                              choices = c("Indicate the number of traits",
@@ -179,7 +178,7 @@ ui <-dashboardPage(
                                              "Are traits soft or hard traits?",
                                              "Which is the ecological meaning of your traits?",
                                              "Did you account for intraspecific trait variation?",
-                                             "Indicate the data sources")))
+                                             "Indicate the data sources"))
                           ),
                         
                         mainPanel(
@@ -218,15 +217,16 @@ ui <-dashboardPage(
                       ),
              
       tabItem(tabName = "checkliststep5",
-              box(Title = "Visually inspect the community and trait matrices to familiarize with your
-                  data and deal with any issue therein.", background = "maroon",
+             helpText("Visually inspect the community and trait matrices to familiarize with your
+                      data and deal with any issue therein.", 
+                      style = "background-color:lightblue; border-radius:5px"),
                   checkboxGroupInput("step5", "Explore and preprocess the data",
                                      choices = c("Plot your data!",
                                                  "Is there collinearity among traits?",
                                                  "Did you transform trait data?",
                                                  "Do you have missing data? How did you handle these?",
                                                  "Did you account for imperfect detection?"))
-              )),
+              ),
       
       tabItem(tabName = "datasummary",
               
@@ -255,7 +255,7 @@ ui <-dashboardPage(
               ),
                                      
               # Output: rarefaction curves
-                box(title = "Rarefaction curves", status = "warning", solidHeader = TRUE, width = ,
+                box(title = "Rarefaction curves", status = "warning", solidHeader = TRUE,
                     plotOutput("rarefaction_curves"))
               ),
               
@@ -265,11 +265,11 @@ ui <-dashboardPage(
               
               fluidRow(
                 # Output: histograms
-                box(title = "Histograms", status = "warning", solidHeader = TRUE, width = 12,
+                box(title = "Histograms", status = "warning", solidHeader = TRUE, width = 12, height = NULL,
                       column(6,
-                             plotOutput("richness")),
+                             plotOutput("richness"), height = 150),
                       column(6,
-                             plotOutput("prevalence")))
+                             plotOutput("prevalence"), height = 150))
                     )
               ),
       
@@ -359,10 +359,10 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 6,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
-                  checkboxInput("remove.na", label = "Remove missing data?",
+                  checkboxInput("remove.na2", label = "Remove missing data?",
                                 value = FALSE),
-                  checkboxInput("standardize", "Standardize traits", value = FALSE),
-                  textOutput("select.more.traits2")
+                  checkboxInput("standardize2", "Standardize traits", value = FALSE),
+                  textOutput("select.more.traits22")
                   ),
               
               # Inputs: dendrogram inputs
@@ -406,11 +406,11 @@ ui <-dashboardPage(
               # Input: Select traits to plot
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 4,
-                  checkboxGroupInput("traits_xy2", label = "", choices = NULL),
-                  checkboxInput("remove.na", label = "Remove missing data?",
+                  checkboxGroupInput("traits_xy3", label = "", choices = NULL),
+                  checkboxInput("remove.na3", label = "Remove missing data?",
                                 value = FALSE),
-                  checkboxInput("standardize", "Standardize traits", value = FALSE),
-                  textOutput("select.more.traits2")
+                  checkboxInput("standardize3", "Standardize traits", value = FALSE),
+                  textOutput("select.more.traits23")
                   ),
               
               # Input: PCoA arguments
@@ -431,13 +431,13 @@ ui <-dashboardPage(
               ),
               
               fluidRow(
-                column(width = 6,
+                column(6,
               box(title = "PCoA", status = "warning", solidHeader = TRUE, height = 450, width = NULL,
-                  plotOutput("pcoa")
-              )),
+                  plotOutput("pcoa"))
+                      ),
               
               # Output: variance explained
-              column(width = 6,
+                column(6,
               box(title = "% variance explained", status = "warning", 
                   solidHeader = TRUE, width = NULL,
                   numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
@@ -454,11 +454,11 @@ ui <-dashboardPage(
               # Output: eigenvalues
               fluidRow(
                 box(title = "Screeplots", 
-                    status = "warning", solidHeader = TRUE, height = 300, width = 12,
+                    status = "warning", solidHeader = TRUE, height = NULL, width = 12,
                     column(6,
-                           plotOutput("raw_eigenvalues")),
+                           plotOutput("raw_eigenvalues"), height = 150),
                     column(6,
-                           plotOutput("rel_eigenvalues"))
+                           plotOutput("rel_eigenvalues"), height = 150)
                 ))
               ),
               
@@ -468,11 +468,10 @@ ui <-dashboardPage(
               fluidRow(
                 box(title = "Select two or more functional traits",
                     status = "primary", solidHeader = TRUE, width = 4,
-                    checkboxGroupInput("traits_xy2", label = "", choices = NULL),
-                    checkboxInput("remove.na", label = "Remove missing data?",
+                    checkboxGroupInput("traits_xy4", label = "", choices = NULL),
+                    checkboxInput("remove.na4", label = "Remove missing data?",
                                   value = FALSE),
-                    checkboxInput("standardize", "Standardize traits", value = FALSE),
-                    textOutput("select.more.traits2")
+                    textOutput("select.more.traits24")
                     )),
               
                 fluidRow(
@@ -505,15 +504,17 @@ ui <-dashboardPage(
       ),       
       
       tabItem(tabName = "checkliststep6",
-              box(Title = "Now you can compute functional diversity metrics!",
-                  background = "maroon",
+             helpText("Now you can compute functional diversity metrics!",
+                      style = "background-color:lightblue; border-radius:5px"),
+                  
                   checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
                                      choices = c("Identify the level of analysis (alpha, beta, gamma)",
-                                                 "Did you subset your trait data?",
+                                                 "Did you subset your trait data into
+                                                 groups of traits reflecting a similar function?",
                                                  "Select the appropriate method based on the research question",
                                                  "Select the appropriate functional diversity metric",
                                                  "Identify the level of functional diversity metric measurement"))
-                      )),
+                      ),
                           
     tabItem(tabName = "richness",
             fluidRow(   
@@ -659,18 +660,19 @@ ui <-dashboardPage(
             ),
     
     tabItem(tabName = "step7",
-            box(Title = "Fit, interpret, report and validate your statistical model.",
-                background = "maroon",
+            helpText("Fit, interpret, report and validate your statistical model.",
+                     style = "background-color:lightblue; border-radius:5px"),
+                
                 checkboxGroupInput("step7", "Interpret and validate the results",
                                   choices = c("Select an appropriate statistical model or test to answer your research question",
                                               "Report effect sizes, model support and uncertainty",
                                               "Provide a graphical output if needed",
                                               "Did you validate your model and how?"))
-                )),          
+                ),          
       
     tabItem(tabName = "step8",
-            box(Title = "Provide enough data and code detail to allow full reproducibility
-                of your results.", background = "maroon",
+            helpText("Provide enough data and code detail to allow full reproducibility
+                of your results.", style = "background-color:lightblue; border-radius:5px"),
                 checkboxGroupInput("step8", "Ensure reproducibility",
                                    choices = c("Report the software, version and packages you used",
                                                "Deposit data in a public repository",
@@ -684,7 +686,7 @@ ui <-dashboardPage(
                             id = "thankyou_msg",
                             h3("Thanks for creating your protocol! See the output folder for your filled form")
                           )
-                        ))
+                        )
                 )
               )
       )
@@ -979,7 +981,7 @@ server <- function(input, output, session) {
                              choices = allColumns())
   })
   
-  output$select.more.traits2 <- renderText({
+  output$select.more.traits22 <- renderText({
     traits <- trait_dataset()[ , input$traits_xy2]
     if(is.numeric(traits) == TRUE)
       validate("Please select 2 or more traits")
@@ -989,13 +991,13 @@ server <- function(input, output, session) {
     req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
     
-    if(input$standardize == TRUE){
+    if(input$standardize2 == TRUE){
       traits1 <- scale(selected.traits)
     } else {
       traits1 <- selected.traits
     }
     
-    if(input$remove.na == TRUE){
+    if(input$remove.na2 == TRUE){
       traits <- na.omit(traits1)
     } else {
       traits <- traits1
@@ -1012,17 +1014,29 @@ server <- function(input, output, session) {
               ggtheme = theme_minimal())
   })
   
+  # Update variable selection
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_xy3",
+                             choices = allColumns())
+  })
+  
+  output$select.more.traits23 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy3]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
+  })
+  
   pcoa.function <- reactive({
-    req(input$traits_xy2)
-    selected.traits <- trait_dataset()[, input$traits_xy2]
+    req(input$traits_xy3)
+    selected.traits <- trait_dataset()[, input$traits_xy3]
     
-    if(input$standardize == TRUE){
+    if(input$standardize3 == TRUE){
       traits1 <- scale(selected.traits)
     } else {
       traits1 <- selected.traits
     }
     
-    if(input$remove.na == TRUE){
+    if(input$remove.na3 == TRUE){
       traits <- na.omit(traits1)
     } else {
       traits <- traits1
@@ -1033,9 +1047,9 @@ server <- function(input, output, session) {
     dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- wcmdscale(dist.matrix, eig = TRUE, add = input$eig.correction)
     pcoa.axes <- as.data.frame(pco$points)
-    efit <- envfit(ord = pco, env = traits[, input$traits_xy2])
+    efit <- envfit(ord = pco, env = traits[, input$traits_xy3])
     vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
-    trait.names <- colnames(traits[, input$traits_xy2])
+    trait.names <- colnames(traits[, input$traits_xy3])
     list(pcoa.eig = pco$eig, pcoa.axes = pcoa.axes, pcoa.vectors = vec.sp.df,
          trait.names = trait.names)
   })
@@ -1110,13 +1124,20 @@ server <- function(input, output, session) {
   
   # Tab: "Hypervolume building"
   # Update variable selection
+  # Update variable selection
   observe({
-    updateCheckboxGroupInput(session, inputId = "traits_xy2", 
-                             choices = numericColumns())
+    updateCheckboxGroupInput(session, inputId = "traits_xy4",
+                             choices = allColumns())
+  })
+  
+  output$select.more.traits24 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy4]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
   })
   
   hypervolumes <- eventReactive(input$build.hv0, {
-    trait <- as.matrix(trait_dataset()[, input$traits_xy2])
+    trait <- as.matrix(trait_dataset()[, input$traits_xy4])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
     
@@ -1127,7 +1148,7 @@ server <- function(input, output, session) {
   
   output$hv <- renderPlot({
     req(input$community_dataset)
-    req(input$traits_xy2)
+    req(input$traits_xy4)
     plot(hypervolumes())
     })
   
