@@ -53,7 +53,8 @@ ui <-dashboardPage(
       
       # Tab contents
       tabItem(tabName = "dashboard",
-              box(Title = "", 
+              fluidRow(
+              box(Title = "", width = 8,
                   "This application is intended to provide students and researchers with a checklist to maximize methods' reproducibility, 
                   comparability, and transparency across trait-based studies. For further details, see:",
                   tags$a(a("Palacio", em("et al."), " (2021). A protocol for conducting functional diversity 
@@ -66,7 +67,10 @@ ui <-dashboardPage(
                   tags$a("Facundo X. Palacio, ", href = "https://github.com/facuxpalacio"),
                   tags$a("Emma J. Hudgins ", href = "https://github.com/emmajhudgins"), "and ",
                   tags$a("Caio Graco Roza.", href = "https://github.com/graco-roza"),
-                  "Please feel free to contact us with any suggestions!"))
+                  "Please feel free to contact us with any suggestions!")
+                  ),
+              
+              img(src = "sticker_app.png", height = 150))
       ),
       
       tabItem(tabName = "step1",
@@ -311,17 +315,14 @@ ui <-dashboardPage(
                   checkboxGroupInput("traits_xy1", label = "", choices = NULL)
                   ),
               
-              box(title = "Transformations", status = "primary", solidHeader = TRUE,
-                  selectInput("trans2", "", choices = c("None", "Log", "Square-root"),
+              box(title = "Plot inputs", status = "primary", solidHeader = TRUE,
+                  selectInput("trans2", "Transformation", choices = c("None", "Log", "Square-root"),
                               selected = "None"),
-                  textOutput("invalid.trans2")
-                  ),
-              
-              box(title = "Model fit", status = "primary", solidHeader = TRUE,
-                  checkboxGroupInput("model.scatt", label = "",
+                  checkboxGroupInput("model.scatt", label = "Model fit",
                                      choices = c("Linear regression" = "lm",
                                                  "LOESS" = "loess"),
-                                     selected = "lm")
+                                     selected = "lm"),
+                  textOutput("invalid.trans2")
                   ),
                                      
               # Output: scatterplots
@@ -353,23 +354,20 @@ ui <-dashboardPage(
                   plotOutput("data.imputation"))
               )),
       
-                          
-      tabItem(tabName = "traitspace",
-              
+      tabItem(tabName = "fundend",
               # Input: Select traits to plot
-              box(title = "Select two or more functional traits", width = 4,
-                  status = "primary", solidHeader = TRUE,
+              box(title = "Select two or more functional traits",
+                  status = "primary", solidHeader = TRUE, width = 6,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
                   checkboxInput("remove.na", label = "Remove missing data?",
                                 value = FALSE),
                   checkboxInput("standardize", "Standardize traits", value = FALSE),
-                  textOutput("select.more.traits2"),
-              )),
-      
-      tabItem(tabName = "fundend",
+                  textOutput("select.more.traits2")
+                  ),
+              
               # Inputs: dendrogram inputs
               box(title = "Dendrogram inputs",
-                  status = "primary", solidHeader = TRUE,
+                  status = "primary", solidHeader = TRUE, width = 6,
                   
                   selectInput("dist.metric",
                                label = "Dissimilarity metric",
@@ -405,10 +403,19 @@ ui <-dashboardPage(
               )),
       
       tabItem(tabName = "funord",
+              # Input: Select traits to plot
+              box(title = "Select two or more functional traits",
+                  status = "primary", solidHeader = TRUE, width = 4,
+                  checkboxGroupInput("traits_xy2", label = "", choices = NULL),
+                  checkboxInput("remove.na", label = "Remove missing data?",
+                                value = FALSE),
+                  checkboxInput("standardize", "Standardize traits", value = FALSE),
+                  textOutput("select.more.traits2")
+                  ),
+              
               # Input: PCoA arguments
-              fluidRow(
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                  height = 450, width = 4,
+                  height = 450,
                   selectInput("eig.correction",
                               label = "Correction method for negative eigenvalues",
                               choices = c("Lingoes" = "lingoes",
@@ -423,28 +430,31 @@ ui <-dashboardPage(
                   sliderInput("bins3", "Number of bins", min = 5, max = 20, value = 10)
               ),
               
-              box(title = "PCoA", status = "warning", solidHeader = TRUE,
-                  height = 450, width = 8,
+              fluidRow(
+                column(width = 6,
+              box(title = "PCoA", status = "warning", solidHeader = TRUE, height = 450, width = NULL,
                   plotOutput("pcoa")
               )),
               
               # Output: variance explained
-              fluidRow(
-              box(title = "% variance explained", status = "warning", solidHeader = TRUE,
+              column(width = 6,
+              box(title = "% variance explained", status = "warning", 
+                  solidHeader = TRUE, width = NULL,
                   numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
-                  tableOutput("var.explained.pcoa")
+                  tableOutput("var.explained.pcoa"), 
                   ),
               
               # Input: eigenvalues plot
-              box(title = "Screeplot inputs", status = "primary", solidHeader = TRUE,
+              box(title = "Screeplot inputs", status = "primary", 
+                  solidHeader = TRUE, width = NULL,
                   numericInput("axes.eigenvalues", "Number of axes to plot",
                               min = 2, value = 5)
-                  )),
+                  ))),
               
               # Output: eigenvalues
               fluidRow(
                 box(title = "Screeplots", 
-                    status = "warning", solidHeader = TRUE, heigth = 150, width = 12,
+                    status = "warning", solidHeader = TRUE, height = 300, width = 12,
                     column(6,
                            plotOutput("raw_eigenvalues")),
                     column(6,
@@ -454,7 +464,18 @@ ui <-dashboardPage(
               
       tabItem(tabName = "funhv",
               # Input: hypervolumes
+                # Input: Select traits to plot
               fluidRow(
+                box(title = "Select two or more functional traits",
+                    status = "primary", solidHeader = TRUE, width = 4,
+                    checkboxGroupInput("traits_xy2", label = "", choices = NULL),
+                    checkboxInput("remove.na", label = "Remove missing data?",
+                                  value = FALSE),
+                    checkboxInput("standardize", "Standardize traits", value = FALSE),
+                    textOutput("select.more.traits2")
+                    )),
+              
+                fluidRow(
               box(title = "Hypervolume inputs", 
                   status = "primary", solidHeader = TRUE, height = 450, width = 4,
                   numericInput("hv.sites", "Number of sites to plot", value = 1),
@@ -495,7 +516,7 @@ ui <-dashboardPage(
                       )),
                           
     tabItem(tabName = "richness",
-               
+            fluidRow(   
             actionButton("build.hv1", "Compute functional richness"),
             
             box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
@@ -508,19 +529,23 @@ ui <-dashboardPage(
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
                              selected = "jaccard")
-                ),
+                )),
             
+            fluidRow(
             box(title = "Beta functional diversity", status = "warning", solidHeader = TRUE,
+                height = 300, width = 4,
                 plotOutput("total.beta")
                 ),
             
             box(title = "Turnover component", status = "warning", solidHeader = TRUE,
+                height = 300, width = 4,
                 plotOutput("turnover.beta")
             ),
             
             box(title = "Species richness component", status = "warning", solidHeader = TRUE,
+                height = 300, width = 4,
                 plotOutput("richness.beta")
-                ),
+                )),
     ),
     
     tabItem(tabName = "regularity",
