@@ -1,33 +1,33 @@
-species	body.mass	vertebrates	invertebrates	leaves	fruits	seeds	nectar	water	mud	ground	vegetation	air	pursuit	gleaning	reaching	pecking	screening	probing
-agebad	45.3	0	1	0	1	1	1	0	0	1	1	0	0	1	0	1	0	0
-amabra	582.2	0	1	1	1	0	0	1	0	0	0	0	0	1	0	1	1	0
-chlluc	3.5	0	1	0	0	0	1	0	0	0	1	1	1	0	0	0	0	1
-colmel	127.7	0	1	0	1	0	0	0	0	1	1	0	0	1	0	1	0	1
-cycguj	28.8	0	1	0	0	0	0	0	0	0	1	0	0	1	0	0	0	1
-elapar	13.8	0	1	0	1	0	0	0	0	0	1	1	1	1	0	0	0	0
-furruf	43.7	0	1	0	0	1	0	0	0	1	0	0	0	1	0	0	0	0
-geoaeq	13.1	0	1	0	0	0	0	0	0	0	1	0	0	1	0	0	0	0
-ictpyr	29.7	0	1	0	1	0	1	0	0	1	1	0	0	1	0	0	0	1
-lepang	27.8	0	1	0	0	0	0	0	0	0	1	0	0	1	0	1	0	1
-micmel	13.1	0	1	0	1	1	0	0	0	1	1	0	0	1	0	0	0	0
-mimsat	63.7	0	1	0	1	1	0	0	0	1	1	0	1	1	0	1	0	0
-molbon	50.2	0	1	0	0	1	0	0	0	1	0	0	0	1	0	0	0	0
-myimac	43.2	1	1	0	1	0	0	0	0	0	1	1	1	0	1	0	0	0
-myimon	120	0	0	1	1	1	0	0	0	1	1	0	0	1	0	1	0	0
-pacpol	20.8	0	1	0	1	0	0	0	0	0	1	1	1	0	1	0	0	0
-patpic	279	0	0	0	1	1	0	0	0	1	1	0	0	1	0	0	0	0
-phastr	25.7	0	1	0	0	0	0	0	0	1	1	0	0	1	0	0	0	0
-pitsul	61	1	1	0	1	0	0	1	0	1	1	1	1	1	0	1	0	0
-poldum	7	0	1	0	0	0	0	0	0	0	1	0	0	1	0	0	0	0
-rossoc	321.5	0	1	0	0	0	0	1	0	0	0	0	0	0	1	0	0	0
-rupmag	269	1	1	0	0	0	0	0	0	1	0	0	0	0	1	0	0	0
-sicfla	15.9	0	0	0	0	1	0	0	0	1	0	0	0	1	0	0	0	0
-siclut	15.9	0	0	0	0	1	0	0	0	1	0	0	0	1	0	0	0	0
-spimag	13.6	0	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	0
-spocae	9.8	0	0	0	0	1	0	0	0	1	1	0	0	1	0	0	0	0
-synspi	12.6	0	1	0	0	0	0	0	0	1	1	0	0	1	0	0	0	0
-troaed	10.4	0	1	0	0	0	0	0	0	1	1	0	0	1	0	0	0	0
-turruf	69.5	0	1	0	1	0	0	0	0	1	1	0	0	1	0	1	0	0
-viroli	14.2	0	1	0	1	0	0	0	0	0	1	0	0	1	0	0	0	0
-zenaur	136	0	0	0	0	1	0	0	0	1	0	0	0	1	0	0	0	0
-zoncap	19.6	0	0	1	1	1	0	0	0	1	0	0	0	1	0	0	0	0
+species	body.mass	vertebrates	invertebrates	leaves	fruits	seeds	nectar	water	ground	vegetation	air	pursuit	gleaning	reaching	pecking	screening	probing
+agebad	45.3	0	1	0	1	1	1	0	1	1	0	0	1	0	1	0	0
+amabra	582.2	0	1	1	1	0	0	1	0	0	0	0	1	0	1	1	0
+chlluc	3.5	0	1	0	0	0	1	0	0	1	1	1	0	0	0	0	1
+colmel	127.7	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	1
+cycguj	28.8	0	1	0	0	0	0	0	0	1	0	0	1	0	0	0	1
+elapar	13.8	0	1	0	1	0	0	0	0	1	1	1	1	0	0	0	0
+furruf	43.7	0	1	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+geoaeq	13.1	0	1	0	0	0	0	0	0	1	0	0	1	0	0	0	0
+ictpyr	29.7	0	1	0	1	0	1	0	1	1	0	0	1	0	0	0	1
+lepang	27.8	0	1	0	0	0	0	0	0	1	0	0	1	0	1	0	1
+micmel	13.1	0	1	0	1	1	0	0	1	1	0	0	1	0	0	0	0
+mimsat	63.7	0	1	0	1	1	0	0	1	1	0	1	1	0	1	0	0
+molbon	50.2	0	1	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+myimac	43.2	1	1	0	1	0	0	0	0	1	1	1	0	1	0	0	0
+myimon	120	0	0	1	1	1	0	0	1	1	0	0	1	0	1	0	0
+pacpol	20.8	0	1	0	1	0	0	0	0	1	1	1	0	1	0	0	0
+patpic	279	0	0	0	1	1	0	0	1	1	0	0	1	0	0	0	0
+phastr	25.7	0	1	0	0	0	0	0	1	1	0	0	1	0	0	0	0
+pitsul	61	1	1	0	1	0	0	1	1	1	1	1	1	0	1	0	0
+poldum	7	0	1	0	0	0	0	0	0	1	0	0	1	0	0	0	0
+rossoc	321.5	0	1	0	0	0	0	1	0	0	0	0	0	1	0	0	0
+rupmag	269	1	1	0	0	0	0	0	1	0	0	0	0	1	0	0	0
+sicfla	15.9	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+siclut	15.9	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+spimag	13.6	0	0	1	0	1	0	0	1	1	0	0	1	0	1	0	0
+spocae	9.8	0	0	0	0	1	0	0	1	1	0	0	1	0	0	0	0
+synspi	12.6	0	1	0	0	0	0	0	1	1	0	0	1	0	0	0	0
+troaed	10.4	0	1	0	0	0	0	0	1	1	0	0	1	0	0	0	0
+turruf	69.5	0	1	0	1	0	0	0	1	1	0	0	1	0	1	0	0
+viroli	14.2	0	1	0	1	0	0	0	0	1	0	0	1	0	0	0	0
+zenaur	136	0	0	0	0	1	0	0	1	0	0	0	1	0	0	0	0
+zoncap	19.6	0	0	1	1	1	0	0	1	0	0	0	1	0	0	0	0
