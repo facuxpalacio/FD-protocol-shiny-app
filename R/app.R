@@ -75,14 +75,14 @@ ui <-dashboardPage(
       
       tabItem(tabName = "step1",
               helpText("Start with the conceptualization of an ecological question 
-                  ingrained in a theoretical framing with a set of hypotheses and 
+                  embedded in a theoretical framework with a set of hypotheses and 
                   predictions.", style = "background-color:lightblue; border-radius:5px"),
       
               radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
                    choices = c("My work focuses on a particular question, e.g. Does seed size diversity decrease at higher latitudes?",
                                "My work is open-ended, e.g. How do abiotic variables shape leaf morphology?")),     
                       fluidRow(
-                        column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
+                        column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size diversity decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
                       fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended, e.g. How do abiotic variables shape leaf morphology?"]',
                                                           textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))
       ),
@@ -170,16 +170,14 @@ ui <-dashboardPage(
                               "taxa \\(\\times\\)", em("p"), "traits.",
                               style = "background-color:lightblue; border-radius:5px"),
                               br(),
-                          checkboxGroupInput("step4", "Assemble a trait data matrix",
-                                             choices = c("Indicate the number of traits",
-                                             "Indicate the trait data type",
-                                             "Report the sample sizes per species and trait",
-                                             "Are traits response or effect traits?",
-                                             "Are traits soft or hard traits?",
-                                             "Which is the ecological meaning of your traits?",
-                                             "Did you account for intraspecific trait variation?",
-                                             "Indicate the data sources"))
-                          ),
+                          textInput("ntraits","Indicate the number of traits"),
+                          textInput("tdtype", "Indicate the trait data type"),
+                          textInput("samps", "Report the sample sizes per species and trait"),
+                          radioButtons("respeff", "Are traits response or effect traits?", choices=c("response", "effect")),
+                          radioButtons("sofhar", "Are traits soft or hard traits?", choices=c("soft", "hard")),
+                          textInput("mean", "What is the ecological significance of the selected traits?"),
+                          radioButtons("intra",  "Did you account for intraspecific trait variation?", choices=c("Yes", "No")),
+                          textInput("dsource","Indicate the data source") ),
                         
                         mainPanel(
                           # Input: Load your trait data
@@ -220,13 +218,12 @@ ui <-dashboardPage(
              helpText("Visually inspect the community and trait matrices to familiarize with your
                       data and deal with any issue therein.", 
                       style = "background-color:lightblue; border-radius:5px"),
-                  checkboxGroupInput("step5", "Explore and preprocess the data",
-                                     choices = c("Plot your data!",
-                                                 "Is there collinearity among traits?",
-                                                 "Did you transform trait data?",
-                                                 "Do you have missing data? How did you handle these?",
-                                                 "Did you account for imperfect detection?"))
-              ),
+             radioButtons("plot", "Have you plotted your data?", choices=c("Yes", "No")),
+             textInput("coll", "Indicate which traits possess collinearity, if any"),
+             textInput("trans","Indicate any data transformations performed"),
+             textInput("miss", "Do you have missing data? How did you handle these?"),
+            radioButtons("det", "Did you account for imperfect detection?", choices=c("Yes", "No"))),
+      
       
       tabItem(tabName = "datasummary",
               
@@ -507,14 +504,13 @@ ui <-dashboardPage(
              helpText("Now you can compute functional diversity metrics!",
                       style = "background-color:lightblue; border-radius:5px"),
                   
-                  checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
-                                     choices = c("Identify the level of analysis (alpha, beta, gamma)",
-                                                 "Did you subset your trait data into
-                                                 groups of traits reflecting a similar function?",
-                                                 "Select the appropriate method based on the research question",
-                                                 "Select the appropriate functional diversity metric",
-                                                 "Identify the level of functional diversity metric measurement"))
-                      ),
+                selectInput("level", "Identify the level of analysis", choices=c('alpha diversity', 'beta diversity', 'gamma diversity')),
+                            textInput('group', "Indicate if any grouping of traits reflecting a similar function wasperformed"),
+                            selectInput("methods", "Select the appropriate method based on the research question", choices=c("Richness", "Regularity", "Divergence", "Similarity", "Rarity/Originality")),
+            textInput('metric',"Provide more specifics on implementation here (e.g. use of Jaccard dissimilarity metric)")),
+             ### Emma removed these because they seemed redundant?
+                            # selectInput(metric,"Select the appropriate functional diversity metric", choices=c("")),
+                            # selectInput("level", "Identify the level of functional diversity metric measurement", choices=c())),
                           
     tabItem(tabName = "richness",
             fluidRow(   
@@ -663,20 +659,26 @@ ui <-dashboardPage(
             helpText("Fit, interpret, report and validate your statistical model.",
                      style = "background-color:lightblue; border-radius:5px"),
                 
-                checkboxGroupInput("step7", "Interpret and validate the results",
-                                  choices = c("Select an appropriate statistical model or test to answer your research question",
-                                              "Report effect sizes, model support and uncertainty",
-                                              "Provide a graphical output if needed",
-                                              "Did you validate your model and how?"))
-                ),          
+                textInput("model", "Indicate the statistical model or test chosen that is appropriate to answer your research question"),
+            textInput('effs',   "Report effect sizes, model support and uncertainty"),
+            radioButtons("graph", "Do you require graphical output? If so, save your plots!", choices=c("Yes", "No")),
+            textInput("valid",  "Did you validate your model? If so, how?")),          
       
     tabItem(tabName = "step8",
             helpText("Provide enough data and code detail to allow full reproducibility
                 of your results.", style = "background-color:lightblue; border-radius:5px"),
-                checkboxGroupInput("step8", "Ensure reproducibility",
-                                   choices = c("Report the software, version and packages you used",
-                                               "Deposit data in a public repository",
-                                               "Provide your code (tidy and clean)")),
+                                   checkboxGroupInput('dms',"Data management and storage",
+                                                      choices = c('I have a Research Data Management Plan', 'My data and code are stored in a location with version control','I have backup copies of my data and code','My data and code are in an organized file system','my raw data is unaltered')),
+                                   checkboxGroupInput('ip',"Intellectual property",
+                                                      choices = c("My metadata and/or RDMP make it clear whose intellectual property this work represents", 'I have appointed a data steward','My project has a license that describes conditions of reuse')),
+                                   checkboxGroupInput('metadata',"Metadata",
+                                                      choices = c("I have a README file", 'My README explains how all my files interact','My README contains the title, authors, date and License', 'If applicable, my README contains download dates for external data and any filters used', 'I will update my README continuously as my project progresses')),
+                                   checkboxGroupInput('code',"Code",
+                                                      choices = c("I've included software and package version numbers", 'My code has informative comments','The code I provided can reproduce all results,figures and tables,', 'If applicable, my README contains download dates for external data and any filters used', 'I will update my README continuously as my project progresses')),
+                                   checkboxGroupInput('host',"Hosting",
+                                                      choices = c('My project files can be linked to a DOI (such as Zenodo in combination with GitHub')),
+                                   checkboxGroupInput('naming',"Naming",
+                                                      choices = c('I have named data files, variables, and scripts in an informative way')),
                       div(
                         id = "form",
                         actionButton("submit", "Save filled checklist", class = "btn-primary"),
@@ -690,8 +692,8 @@ ui <-dashboardPage(
                 )
               )
       )
-    ))
-
+    )
+)
 ######################################################################################
 
 
@@ -1363,8 +1365,10 @@ server <- function(input, output, session) {
    data <- sapply(fieldsAll, function(x) input[[x]])
    data <- c(data, date = humanTime())#add escape characters to commas to avoid breaking up into more than 1 cell
   data<-gsub(",", "\\,", data)
-   data <- t(data)
-  colnames(data)<-c(fieldsAll, "date")
+  data<-gsub("c\\(", "", data)
+  data<-gsub("\\)", "", data)
+  data<-cbind(fieldnames,data)
+  colnames(data)<-c("Field of checklist", "Response")
    data
  })
  saveData <- function(data) {
@@ -1380,7 +1384,9 @@ server <- function(input, output, session) {
  })
 }
 
-fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff", "step4", "step5", "step6", "step7", "step8")
+fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff","ntraits","tdtype","samps", "respeff","sofhar","mean","intra","dsource", "plot","coll","trans","miss", "det", "level",'group', "methods", 'metric', "model", "graph", "valid", "dms",'ip','metadata','code','host','naming')
+
+fieldnames <- c("Focus","Hypothesis","Patterns examined", "Scale", "Unit","Power analysis", "Power analysis results/rationale", "Preregistration", "Justification/location", "Focal taxa","Resolution", "Number of taxa","Sampling effort","Number of traits","ttrait data type","Number of samples", "Response or effect","Soft or hard","Ecological Significance","Intraspecific variation","Data source", "Plots made?","Collinearity","Transformation","Missing data", "Imperfect detection control", "Level of analysis",'Grouping/subsetting', "FD method", 'Method detail', "Model", "Graph needed?", "Validation method", "Data management system",'Intellectual property','Metadata','Code','Hosting','Naming', "Date")
 responsesDir <- file.path("../output")
 
 humanTime <- function() format(Sys.time(), "%Y%m%d")
