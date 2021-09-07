@@ -41,7 +41,11 @@ ui <-dashboardPage(
                menuItem("Similarity", tabName = "similarity"),
                menuItem("Species rarity and originality", tabName = "spcontrib"),
                menuItem("Correlations among metrics", tabName = "corrFD")),
-      menuItem("Step 7. Modelling", tabName = "step7"),
+      menuItem("Step 7. Modelling", tabName = "step7",
+      menuItem("Checklist", tabName = "checkliststep7"),
+      menuItem("GLM", tabName="GLM"),
+      menuItem("GLMM", tabName="GLMM"),
+      menuItem("Validation", tabName="valid")),
       menuItem("Step 8. Reproducibility", tabName = "step8")
     )
   ),
@@ -655,15 +659,25 @@ ui <-dashboardPage(
             
             ),
     
-    tabItem(tabName = "step7",
+    tabItem(tabName = "checkliststep7",
             helpText("Fit, interpret, report and validate your statistical model.",
                      style = "background-color:lightblue; border-radius:5px"),
                 
                 textInput("model", "Indicate the statistical model or test chosen that is appropriate to answer your research question"),
             textInput('effs',   "Report effect sizes, model support and uncertainty"),
             radioButtons("graph", "Do you require graphical output? If so, save your plots!", choices=c("Yes", "No")),
-            textInput("valid",  "Did you validate your model? If so, how?")),          
-      
+            textInput("valid",  "Did you validate your model? If so, how?")), 
+    tabItem(tabName = "GLM",
+            helpText("Fit a GLM",
+                     style = "background-color:lightblue; border-radius:5px")), 
+    tabItem(tabName = "GLMM",
+            helpText("Fit a GLMM (mixed model)",
+                     style = "background-color:lightblue; border-radius:5px")),
+          
+    tabItem(tabName = "valid",
+            helpText("Validate your model",
+                     style = "background-color:lightblue; border-radius:5px")),
+
     tabItem(tabName = "step8",
             helpText("Provide enough data and code detail to allow full reproducibility
                 of your results.", style = "background-color:lightblue; border-radius:5px"),
