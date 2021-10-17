@@ -43,6 +43,7 @@ ui <-dashboardPage(
                menuItem("Correlations among metrics", tabName = "corrFD")),
       menuItem("Step 7. Modelling", tabName = "step7",
       menuItem("Checklist", tabName = "checkliststep7"),
+      menuItem("Predictors", tabName = "Predictors"),
       menuItem("GLM", tabName="GLM"),
       menuItem("GLMM", tabName="GLMM"),
       menuItem("Validation", tabName="valid")),
@@ -658,21 +659,68 @@ ui <-dashboardPage(
                 )
             
             ),
-    
     tabItem(tabName = "checkliststep7",
             helpText("Fit, interpret, report and validate your statistical model.",
-                     style = "background-color:lightblue; border-radius:5px"),
-                
+                     style = "background-color:lightblue; border-radius:5px"), # Input: Load your community data
                 textInput("model", "Indicate the statistical model or test chosen that is appropriate to answer your research question"),
             textInput('effs',   "Report effect sizes, model support and uncertainty"),
             radioButtons("graph", "Do you require graphical output? If so, save your plots!", choices=c("Yes", "No")),
-            textInput("valid",  "Did you validate your model? If so, how?")), 
+            textInput("valid",  "Did you validate your model? If so, how?")),
+    tabItem(tabName = "Predictors",
+            helpText("Load your predictor data",
+                     style = "background-color:lightblue; border-radius:5px"),
+            box(title = "Load your predictor data", width = 8, height = 300,
+                status = "primary", solidHeader = TRUE,
+                fileInput("covariates_dataset", 
+                          "",
+                          accept = c("text/csv", 
+                                     "text/comma-separated-values,text/plain", 
+                                     ".csv")),
+                
+                # Input: Checkbox if file has header
+                checkboxInput("header3", "Header", TRUE),
+                
+                # Input: Select separator
+                radioButtons("sep3", "Separator",
+                             c(Comma = ",",
+                               Semicolon = ";",
+                               Tab = "\t"),
+                             ",")),
+            
+            # Output: community dataset
+            box(title = "Number of sites and predictors", width = 4, height = 300,
+                status = "warning", solidHeader = TRUE,
+                strong(textOutput("nrow_covariates")),
+                strong(textOutput("ncol_covariates"))),
+    fluidRow(
+      box(title = "Predictor data", width = 12, height = 500,
+          status = "warning", solidHeader = TRUE,
+          dataTableOutput("pred_table"))
+    )),
     tabItem(tabName = "GLM",
             helpText("Fit a GLM",
-                     style = "background-color:lightblue; border-radius:5px")), 
+                     style = "background-color:lightblue; border-radius:5px"),   
+            box(title = "Select a pre-calculated FD metric", status = "primary", solidHeader = TRUE,
+                selectInput("metric", label = "", choices = NULL)),
+            box(title = "Select one or more predictor variables", status = "primary", solidHeader = TRUE,
+                                                                                                 checkboxGroupInput("preds", label = "", choices = NULL) ),
+            box(title = "Select a GLM error family", status = "primary", solidHeader = TRUE,
+                selectInput("family", label = "", choices = c("gaussian", "poisson", "Gamma", "quasi"))),
+            fluidRow(   
+              box(title = "GLM results", status = "warning", solidHeader = TRUE,
+                  tableOutput("summary.mod")
+              ))), 
     tabItem(tabName = "GLMM",
             helpText("Fit a GLMM (mixed model)",
-                     style = "background-color:lightblue; border-radius:5px")),
+                     style = "background-color:lightblue; border-radius:5px"),            box(title = "Select a pre-calculated FD metric", status = "primary", solidHeader = TRUE,
+                                                                                              selectInput("metric", label = "", choices = NULL)),
+            box(title = "Select one or more fixed predictor variables", status = "primary", solidHeader = TRUE,
+                checkboxGroupInput("preds2", label = "", choices = NULL) ),
+            box(title = "Select one or more random predictor variables", status = "primary", solidHeader = TRUE,
+                checkboxGroupInput("preds3", label = "", choices = NULL) ),
+            box(title = "Select a GLMM error family", status = "primary", solidHeader = TRUE,
+                selectInput("family", label = "", choices = c("gaussian", "poisson", "Gamma", "quasi"))),
+    ),
           
     tabItem(tabName = "valid",
             helpText("Validate your model",
@@ -747,6 +795,13 @@ server <- function(input, output, session) {
     return(df)
   })
   
+  # Update traits based on data
+  covariates_dataset <- reactive({
+    req(input$covariates_dataset) # require data
+    inFile <- input$covariates_dataset
+    df <- read.csv(inFile$datapath, header = input$header3, sep = input$sep3)
+  })
+  
   # View data tables
   output$community_table <- renderDataTable(community_dataset(),
                                             options = list(pageLength = 10)) 
@@ -771,8 +826,24 @@ server <- function(input, output, session) {
   })
   
   output$ncol_traits <- renderText({
-    paste0("Number of traits = ", ncol(trait_dataset()))
+    paste0("Number of traits = ", ncol(trait_dataset())-1)
+  }) # Emma subtracted 1 here for the column with species names
+  
+  
+  output$pred_table <- renderDataTable(covariates_dataset(),
+                                        options = list(pageLength = 10)) 
+  
+  # Tab "Summary": Create a summary of the data 
+  output$summary_covariates <- renderPrint(summary(covariates_dataset()))
+  
+  output$nrow_covariates <- renderText({
+    paste0("Number of sampling units = ", nrow(covariates_dataset()))
   })
+  
+  output$ncol_covariates <- renderText({
+    paste0("Number of covariates = ", ncol(covariates_dataset())-1)
+  })
+  
   
   # Tab "Community data": Heatmap, rarefaction curves and histograms
   output$heatmap_community <- renderPlot({
@@ -1373,6 +1444,61 @@ server <- function(input, output, session) {
     }
     
     ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
+  })
+  
+  ### Tab "Trait data space": dendrogram and PCoA
+  allPredColumns <- reactive({
+    df <- covariates_dataset()
+    colnames(df)
+  })
+  # Update variable selection
+  observe({
+    updateCheckboxGroupInput(session, inputId = "preds",
+                             choices = allPredColumns())
+  })
+  observe({
+    updateCheckboxGroupInput(session, inputId = "preds2",
+                             choices = allPredColumns())
+  })
+  observe({
+    updateCheckboxGroupInput(session, inputId = "preds3",
+                             choices = allPredColumns())
+  })
+  
+  CalculatedFD <- reactive({
+## Alpha
+    spp.contrib_list <- spp.contrib()
+    #    df<-list(ifelse(exists(alpha.FD()$kernelFD$FD),alpha.FD()$kernelFD$FD,"NA"), ifelse(exists(alpha.reg.hv()$kernel.reg.alpha$FD),alpha.reg.hv()$kernel.reg.alpha$FD, "NA"),ifelse(exists(div.hv()$kernel.div$FD),div.hv()$kernel.div$FD, "NA"),ifelse(exists(as.numeric(beta.FD()$Btotal)),as.numeric(beta.FD()$Btotal), "NA"), ifelse(exists(as.numeric(beta.FD()$Brepl)),as.numeric(beta.FD()$Brepl), "NA"),ifelse(exists(as.numeric(beta.FD()$Brich)), as.numeric(beta.FD()$Brich), "NA"),ifelse(exists(as.numeric(beta.reg.hv())),as.numeric(beta.reg.hv()), "NA"), ifelse(exists(as.numeric(sim.FD()[[input$dist.sim.metric]])),as.numeric(sim.FD()[[input$dist.sim.metric]]), "NA"),ifelse(exists(as.numeric(spp.contrib_list$rich.contrib)), as.numeric(spp.contrib_list$rich.contrib), "NA"), ifelse(exists(as.numeric(spp.contrib_list$eve.contrib)), as.numeric(spp.contrib_list$eve.contrib), "NA"), ifelse(exists(as.numeric(spp.contrib_list$original)), as.numeric(spp.contrib_list$original), "NA"))# Emma tried this and it didnt work
+    df<-list(alpha.FD()$kernelFD$FD, alpha.reg.hv()$kernel.reg.alpha$FD,div.hv()$kernel.div$FD,as.numeric(beta.FD()$Btotal), as.numeric(beta.FD()$Brepl), as.numeric(beta.FD()$Brich),as.numeric(beta.reg.hv()), as.numeric(sim.FD()[[input$dist.sim.metric]]),as.numeric(spp.contrib_list$rich.contrib), as.numeric(spp.contrib_list$eve.contrib), as.numeric(spp.contrib_list$original))
+   names(df)<-c("Alpha Richness", "Alpha Regularity", "Alpha Divergence","Beta Functional Richness - ˇTotal", "Beta Functional Richness - Turnover Component", "Beta Functional Richness - Richness Component", "Beta Functional Regularity", "Beta Functional similarity", "Species Rarity Richness", "Species Rarity Regularity", "Species Originality")
+  df
+  })
+  
+  observe({
+    updateSelectInput(session, inputId = "metric", 
+                             choices = names(CalculatedFD()))
+  })
+  
+  observe({
+    updateCheckboxGroupInput(session, inputId = "preds",
+                             choices = allPredColumns())
+  })
+  
+  glm.function <- reactive({
+    req(input$metric)
+    req(input$preds)
+    req(input$family)
+    selected.preds <- input$preds
+    metric<-CalculatedFD()[[input$metric]]
+    formula<-as.formula(paste("metric ~ ", paste(selected.preds, collapse= "+")))
+    mod<-glm(formula, family=input$family, data=covariates_dataset())
+    mod
+  })
+  
+  # % variance explained
+  output$summary.mod <- renderTable({
+    mod <- glm.function()
+    summary(mod)
   })
   
  formData <- reactive({
