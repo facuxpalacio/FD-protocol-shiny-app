@@ -479,16 +479,14 @@ ui <-dashboardPage(
       tabItem(tabName = "funhv",
               # Input: hypervolumes
                 # Input: Select traits to plot
-              fluidRow(
                 box(title = "Select two or more functional traits",
                     status = "primary", solidHeader = TRUE, width = 4,
                     checkboxGroupInput("traits_xy4", label = "", choices = NULL),
                     checkboxInput("remove.na4", label = "Remove missing data?",
                                   value = FALSE),
                     textOutput("select.more.traits24")
-                    )),
+                    ),
               
-                fluidRow(
               box(title = "Hypervolume inputs", 
                   status = "primary", solidHeader = TRUE, height = 450, width = 4,
                   numericInput("hv.sites", "Number of sites to plot", value = 1),
@@ -514,7 +512,7 @@ ui <-dashboardPage(
                   height = 450, width = 8, 
                   plotOutput("hv"),
                   textOutput("hv.data")
-                  ))
+                  )
       ),       
       
       tabItem(tabName = "checkliststep6",
@@ -542,13 +540,13 @@ ui <-dashboardPage(
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
                              selected = "jaccard"),
+                actionButton("build.hv1", "Compute functional richness"),
                 selectInput("dist.metric3",
                             label = "Dissimilarity or correlation metric of the dendrograms",
                             choices = c("Euclidean" = "euclidean", 
                                         "Manhattan" = "manhattan",
                                         "Correlation" = "correlation"),
-                            selected = "euclidean"),
-                actionButton("build.hv1", "Compute functional richness")
+                            selected = "euclidean")
                 )),
             
             box(title = "Beta functional diversity", status = "warning", solidHeader = TRUE,
@@ -569,7 +567,7 @@ ui <-dashboardPage(
             fluidRow(width = 6,
             box(title = "Functional regularity inputs", status = "primary", solidHeader = TRUE, 
                 selectInput("dist.metric4",
-                            label = "Dissimilarity or correlation metric of the dendrograms",
+                            label = "Dissimilarity or correlation metric of the dendrogram",
                             choices = c("Euclidean" = "euclidean", 
                                         "Manhattan" = "manhattan",
                                         "Correlation" = "correlation"),
@@ -1158,16 +1156,25 @@ server <- function(input, output, session) {
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
     
-    kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
-                 method = input$hv.method, abund = input$hv.abund,
-                 samples.per.point = input$npoints)
+    withProgress(message = "Building hypervolumes", {
+      
+      for (i in seq_len(input$hv.sites)) {
+        k <- kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
+                     method = input$hv.method, abund = input$hv.abund,
+                     samples.per.point = input$npoints)
+        incProgress(1/input$hv.sites)
+      }
+      
+      plot(k)
+      
+      })
   })
   
-  output$hv <- renderPlot({
-    req(input$community_dataset)
-    req(input$traits_xy4)
-    plot(hypervolumes())
-    })
+  #output$hv <- renderPlot({
+  #  req(input$community_dataset)
+  #  req(input$traits_xy4)
+  #  plot(hypervolumes())
+  #  })
   
   output$hv.data <- renderText({
     if(is.null(input$community_dataset) && is.null(input$trait_dataset)){
@@ -1212,21 +1219,21 @@ server <- function(input, output, session) {
   })
   
   output$total.beta <- renderPlot({
-    pheatmap(as.matrix(beta.FD()$Btotal,
+    pheatmap(as.matrix(beta.FD()$Btotal),
                        clustering_distance_rows = input$dist.metric3,
-                       clustering_distance_columns = input$dist.metric3))
+                       clustering_distance_columns = input$dist.metric3)
   })
     
   output$turnover.beta <- renderPlot({
-    pheatmap(as.matrix(beta.FD()$Brepl,
+    pheatmap(as.matrix(beta.FD()$Brepl),
                        clustering_distance_rows = input$dist.metric3,
-                       clustering_distance_columns = input$dist.metric3))
+                       clustering_distance_columns = input$dist.metric3)
   })
     
   output$richness.beta <- renderPlot({
-    pheatmap(as.matrix(beta.FD()$Brich,
+    pheatmap(as.matrix(beta.FD()$Brich),
                        clustering_distance_rows = input$dist.metric3,
-                       clustering_distance_columns = input$dist.metric3))
+                       clustering_distance_columns = input$dist.metric3)
   })
   
   # Tab: "Regularity"
