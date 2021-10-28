@@ -2,12 +2,14 @@ library(shiny) #1.6.0
 library(shinydashboard) #0.7.1
 library(shinyjs) #2.0.0
 library(shinyFeedback) #0.3.0
+library(waiter) # 0.2.4
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
 library(factoextra) # 1.0.7
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
 library(alphahull) #2.2
+library(hypervolume) #2.0.12
 library(BAT) #2.6.0
 library(VIM) #6.0.0
 
@@ -49,6 +51,7 @@ ui <-dashboardPage(
   ## Body content
   dashboardBody(
     shinyjs::useShinyjs(),
+    use_waiter(),
     tabItems(
       
       # Tab contents
@@ -58,9 +61,9 @@ ui <-dashboardPage(
                   "This application is intended to provide students and researchers with a checklist to maximize methods' reproducibility, 
                   comparability, and transparency across trait-based studies. For further details, see:",
                   tags$a("Palacio", em("et al."), " (2021). A protocol for reproducible functional diversity 
-                           analyses. Journal name. XX: XX-XX", 
-                           href = "https://www.google.com/"), "and the ",
-                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/FD-protocol-shiny-app"),
+                           analyses. EcoEvoRxiv. doi: 10.32942/osf.io/yt9sb", 
+                           href = "https://doi.org/10.32942/osf.io/yt9sb"), "and the ",
+                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/stepFD"),
                   br(),
                   br(),
                   em("This app is maintained by ",
@@ -1155,26 +1158,28 @@ server <- function(input, output, session) {
     trait <- as.matrix(trait_dataset()[, input$traits_xy4])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
+    khv <- list()
     
     withProgress(message = "Building hypervolumes", {
       
-      for (i in seq_len(input$hv.sites)) {
-        k <- kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
+      for (i in 1:input$hv.sites) {
+        khv <- hypervolume_join(khv,
+          kernel.build(comm = comm[i, ], trait = trait, axes = input$hv.axes,
                      method = input$hv.method, abund = input$hv.abund,
-                     samples.per.point = input$npoints)
-        incProgress(1/input$hv.sites)
+                     samples.per.point = input$npoints))
+        incProgress(1/input$hv.sites, detail = paste("Hypervolume", i))
       }
       
-      plot(k)
-      
+       khv
+       
       })
   })
   
-  #output$hv <- renderPlot({
-  #  req(input$community_dataset)
-  #  req(input$traits_xy4)
-  #  plot(hypervolumes())
-  #  })
+  output$hv <- renderPlot({
+    req(input$community_dataset)
+    req(input$traits_xy4)
+    plot(hypervolumes())
+    })
   
   output$hv.data <- renderText({
     if(is.null(input$community_dataset) && is.null(input$trait_dataset)){
@@ -1194,10 +1199,21 @@ server <- function(input, output, session) {
   
   ### Tab "Richness": Alpha
   alpha.FD <- eventReactive(input$build.hv1, {
-    kernelFD <- data.frame(site = 1:input$hv.sites, 
-                           FD = kernel.alpha(hypervolumes()))
-    kernelFD
+
+    kernelFD <- data.frame(site = numeric(0), FD = numeric(0))
+    
+    withProgress(message = "Computing alpha functional richness", {
+      
+      for (i in 1:input$hv.sites) {
+        kernelFD <- rbind(kernelFD, 
+                          data.frame(site = i, FD = kernel.alpha(hypervolumes()[[i]])))
+        incProgress(1/input$hv.sites)
+      }
+      
     })
+        kernelFD
+  })
+    
   
   output$alpha.hv.FD <- renderPlot({
     df <- alpha.FD()
@@ -1214,6 +1230,10 @@ server <- function(input, output, session) {
   
   # Tab "Richness": Beta
   beta.FD <- eventReactive(input$build.hv1, {
+    waiter <- Waiter$new()
+    waiter$show()
+    on.exit(waiter$hide())
+    
     kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
     kernel.beta.hv
   })
