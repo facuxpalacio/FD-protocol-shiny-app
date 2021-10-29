@@ -2,7 +2,7 @@ library(shiny) #1.6.0
 library(shinydashboard) #0.7.1
 library(shinyjs) #2.0.0
 library(shinyFeedback) #0.3.0
-library(waiter) # 0.2.4
+library(waiter) #0.2.4
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
 library(factoextra) # 1.0.7
@@ -29,10 +29,10 @@ ui <-dashboardPage(
                menuItem("Checklist", tabName = "checkliststep5"),
                menuItem("Data summary", tabName = "datasummary"),
                menuItem("Community data", tabName = "communitydata"),
-               menuItem("Trait plots", tabName = "traitplots"),
+               menuItem("Univariate trait plots", tabName = "traitplots"),
                menuItem("Collinearity", tabName = "collinearity"),
                menuItem("Missing data", tabName = "missingdata"),
-               menuItem("Trait spaces", tabName = "traitspace",
+               menuItem("Multivariate trait spaces", tabName = "traitspace",
                         menuSubItem("Functional dendrogram", tabName = "fundend"),
                         menuSubItem("Functional ordination", tabName = "funord"),
                         menuSubItem("Hypervolumes", tabName = "funhv"))),
@@ -376,9 +376,9 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 6,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
-                  checkboxInput("remove.na2", label = "Remove missing data?",
+                  checkboxInput("remove.na1", label = "Remove rows with missing data?",
                                 value = FALSE),
-                  checkboxInput("standardize2", "Standardize traits", value = FALSE),
+                  checkboxInput("standardize1", "Standardize traits", value = FALSE),
                   textOutput("select.more.traits22")
                   ),
               
@@ -424,9 +424,9 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 4,
                   checkboxGroupInput("traits_xy3", label = "", choices = NULL),
-                  checkboxInput("remove.na3", label = "Remove missing data?",
+                  checkboxInput("remove.na2", label = "Remove rows with missing data?",
                                 value = FALSE),
-                  checkboxInput("standardize3", "Standardize traits", value = FALSE),
+                  checkboxInput("standardize2", "Standardize traits", value = FALSE),
                   textOutput("select.more.traits23")
                   ),
               
@@ -485,14 +485,14 @@ ui <-dashboardPage(
                 box(title = "Select two or more functional traits",
                     status = "primary", solidHeader = TRUE, width = 4,
                     checkboxGroupInput("traits_xy4", label = "", choices = NULL),
-                    checkboxInput("remove.na4", label = "Remove missing data?",
+                    checkboxInput("remove.na3", label = "Remove rows with missing data?",
                                   value = FALSE),
                     textOutput("select.more.traits24")
                     ),
               
               box(title = "Hypervolume inputs", 
                   status = "primary", solidHeader = TRUE, height = 450, width = 4,
-                  numericInput("hv.sites", "Number of sites to plot", value = 1),
+                  numericInput("hv.sites", "Number of sites to plot", value = 5),
                   
                   numericInput("hv.axes", "Number of dimensions",
                               min = 1, value = 2),
@@ -634,15 +634,15 @@ ui <-dashboardPage(
                 actionButton("build.hv4", "Compute species contributions") 
            )),
             
-            box(title = "Contribution to functional regularity", status = "warning", 
-                solidHeader = TRUE,
-                plotOutput("kernel.eve.contrib")
-                ),
-            
             box(title = "Contribution to functional richness", status = "warning", 
                 solidHeader = TRUE,
                 plotOutput("kernel.rich.contrib")
                 ),
+           
+           box(title = "Contribution to functional regularity", status = "warning", 
+               solidHeader = TRUE,
+               plotOutput("kernel.eve.contrib")
+               ),
             
             box(title = "Functional originality", status = "warning", 
                 solidHeader = TRUE,
@@ -1009,21 +1009,26 @@ server <- function(input, output, session) {
     req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
     
-    if(input$standardize2 == TRUE){
-      traits1 <- scale(selected.traits)
+    if(input$standardize1 == TRUE && input$remove.na1 == TRUE){
+      traits1 <- scale(na.omit(selected.traits))
     } else {
+      if(input$standardize1 == TRUE && input$remove.na1 == FALSE){
+        traits1 <- scale(selected.traits)
+      } else {
+        if(input$standardize == FALSE && input$remove.na1 == TRUE){
+          traits1 <- na.omit(selected.traits)
+        } else {
       traits1 <- selected.traits
+        }
+      }
     }
     
-    if(input$remove.na2 == TRUE){
-      traits <- na.omit(traits1)
-    } else {
-      traits <- traits1
-    }
+    # Identify rows with NA's
+    rowsNA <- which(is.na(trait_dataset()), arr.ind = TRUE)
     
-    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
+    rownames(traits1) <- make.names(trait_dataset()[-rowsNA, 1], unique = TRUE)
     
-    dist.matrix <- vegdist(traits, method = input$dist.metric2)
+    dist.matrix <- vegdist(traits1, method = input$dist.metric2)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
               k = input$k.groups, color_labels_by_k = TRUE, 
@@ -1048,13 +1053,13 @@ server <- function(input, output, session) {
     req(input$traits_xy3)
     selected.traits <- trait_dataset()[, input$traits_xy3]
     
-    if(input$standardize3 == TRUE){
+    if(input$standardize2 == TRUE){
       traits1 <- scale(selected.traits)
     } else {
       traits1 <- selected.traits
     }
     
-    if(input$remove.na3 == TRUE){
+    if(input$remove.na2 == TRUE){
       traits <- na.omit(traits1)
     } else {
       traits <- traits1
@@ -1141,7 +1146,6 @@ server <- function(input, output, session) {
   })
   
   # Tab: "Hypervolume building"
-  # Update variable selection
   # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy4",
@@ -1258,8 +1262,19 @@ server <- function(input, output, session) {
   
   # Tab: "Regularity"
   alpha.reg.hv <- eventReactive(input$build.hv2, {
-    kernel.reg.alpha <- data.frame(site = 1:input$hv.sites,
-                                   FD = kernel.evenness(hypervolumes()))
+    
+    kernel.reg.alpha <- data.frame(site = numeric(0), FD = numeric(0))
+    
+    withProgress(message = "Computing alpha functional regularity", {
+      
+      for (i in 1:input$hv.sites) {
+        kernel.reg.alpha <- rbind(kernel.reg.alpha, 
+                          data.frame(site = i, FD = kernel.evenness(hypervolumes()[[i]])))
+        incProgress(1/input$hv.sites)
+      }
+      
+    })
+    kernel.reg.alpha
   })
   
   output$alpha.regularity <- renderPlot({
@@ -1288,10 +1303,21 @@ server <- function(input, output, session) {
   
   # Tab: "Divergence"
   div.hv <- eventReactive(input$build.hv3, {
-    kernel.div <- data.frame(site = 1:input$hv.sites,
-                             FD = kernel.dispersion(hypervolumes(), 
-                                                    func = input$function.disp,
-                                                    frac = input$fraction1))
+    
+    kernel.div <- data.frame(site = numeric(0), FD = numeric(0))
+    
+    withProgress(message = "Computing alpha functional divergence", {
+      
+      for (i in 1:input$hv.sites) {
+        kernel.div <- rbind(kernel.div, 
+                            data.frame(site = i, FD = kernel.dispersion(hypervolumes()[[i]],
+                                                                        func = input$function.disp,
+                                                                        frac = input$fraction1)))
+        incProgress(1/input$hv.sites)
+      }
+      
+    })
+    kernel.div
   })
   
   output$f.divergence <- renderPlot({
@@ -1309,9 +1335,14 @@ server <- function(input, output, session) {
   
   # Tab: "Species contribution and originality"
   spp.contrib <- eventReactive(input$build.hv4, {
+    waiter <- Waiter$new()
+    waiter$show()
+    on.exit(waiter$hide())
+    
     if(input$compute.reg == TRUE){
     rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
     rich.contrib[is.na(rich.contrib)] <- 0
+    
     eve.contrib <- kernel.evenness.contribution(hypervolumes())
     original <- kernel.originality(hypervolumes(), frac = input$fraction2, 
                                    relative = input$rel.original)
@@ -1352,10 +1383,9 @@ server <- function(input, output, session) {
   
   # Tab: correlations among FD metrics
   output$alpha.comm.corr <- renderPlot({
-    rich <- alpha.FD()$kernelFD$FD
-    reg <- alpha.reg.hv()$kernel.reg.alpha$FD
-    div <- div.hv()$kernel.div$FD
-    df <- data.frame(Richness = rich, Regularity = reg, Divergence = div)
+     df <- data.frame(Richness = alpha.FD()$kernelFD$FD, 
+                      Regularity = alpha.reg.hv()$kernel.reg.alpha$FD, 
+                      Divergence = div.hv()$kernel.div$FD)
     
    my_fn <- function(data, mapping, ...){
       p <- ggplot(data = df, mapping = mapping) + 
@@ -1371,8 +1401,7 @@ server <- function(input, output, session) {
      df <- data.frame(Functional_richness_total = as.numeric(beta.FD()$Btotal),
                       Functional_richness_turnover = as.numeric(beta.FD()$Brepl),
                       Functional_richness_richness = as.numeric(beta.FD()$Brich),
-                      Functional_regularity = as.numeric(beta.reg.hv()),
-                      Functional_similarity = as.numeric(sim.FD()[[input$dist.sim.metric]]))
+                      Functional_regularity = as.numeric(beta.reg.hv()))
      
      my_fn <- function(data, mapping, ...){
        p <- ggplot(data = df, mapping = mapping) + 
