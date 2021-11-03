@@ -1009,26 +1009,24 @@ server <- function(input, output, session) {
     req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
     
-    if(input$standardize1 == TRUE && input$remove.na1 == TRUE){
-      traits1 <- scale(na.omit(selected.traits))
+    if(input$standardize1 == TRUE){
+      traits1 <- scale(selected.traits)
     } else {
-      if(input$standardize1 == TRUE && input$remove.na1 == FALSE){
-        traits1 <- scale(selected.traits)
-      } else {
-        if(input$standardize == FALSE && input$remove.na1 == TRUE){
-          traits1 <- na.omit(selected.traits)
-        } else {
       traits1 <- selected.traits
-        }
-      }
     }
     
-    # Identify rows with NA's
-    rowsNA <- which(is.na(trait_dataset()), arr.ind = TRUE)
+    if(input$remove.na1 == TRUE){
+      traits2 <- na.omit(traits1)
+      rowsNA <- unique(which(is.na(selected.traits), arr.ind = TRUE)[, 1])
+      rownames(traits2) <- make.names(trait_dataset()[-rowsNA, 1], unique = TRUE)
+      # falta caso donde se eliminan NA pero no hay ninguno en la matriz (msj)
+    } else {
+      traits2 <- traits1
+      rownames(traits2) <- make.names(trait_dataset()[, 1], unique = TRUE)
+    }
     
-    rownames(traits1) <- make.names(trait_dataset()[-rowsNA, 1], unique = TRUE)
     
-    dist.matrix <- vegdist(traits1, method = input$dist.metric2)
+    dist.matrix <- vegdist(traits2, method = input$dist.metric2, na.rm = TRUE)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
               k = input$k.groups, color_labels_by_k = TRUE, 
