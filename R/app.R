@@ -424,15 +424,21 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 4,
                   checkboxGroupInput("traits_xy3", label = "", choices = NULL),
-                  checkboxInput("remove.na2", label = "Remove rows with missing data?",
-                                value = FALSE),
                   checkboxInput("standardize2", "Standardize traits", value = FALSE),
                   textOutput("select.more.traits23")
                   ),
               
               # Input: PCoA arguments
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                  height = 450,
+                  height = 500,
+                  selectInput("dist.metric3",
+                              label = "Dissimilarity metric",
+                              choices = c("Euclidean" = "euclidean", 
+                                          "Manhattan" = "manhattan", 
+                                          "Gower" = "gower",
+                                          "Mahalanobis" = "mahalanobis"),
+                              selected = "gower"),
+                  
                   selectInput("eig.correction",
                               label = "Correction method for negative eigenvalues",
                               choices = c("Lingoes" = "lingoes",
@@ -544,7 +550,7 @@ ui <-dashboardPage(
                                          "Sorensen" = "sorensen"),
                              selected = "jaccard"),
                 actionButton("build.hv1", "Compute functional richness"),
-                selectInput("dist.metric3",
+                selectInput("dist.metric4",
                             label = "Dissimilarity or correlation metric of the dendrograms",
                             choices = c("Euclidean" = "euclidean", 
                                         "Manhattan" = "manhattan",
@@ -569,7 +575,7 @@ ui <-dashboardPage(
             
             fluidRow(width = 6,
             box(title = "Functional regularity inputs", status = "primary", solidHeader = TRUE, 
-                selectInput("dist.metric4",
+                selectInput("dist.metric5",
                             label = "Dissimilarity or correlation metric of the dendrogram",
                             choices = c("Euclidean" = "euclidean", 
                                         "Manhattan" = "manhattan",
@@ -625,7 +631,7 @@ ui <-dashboardPage(
                             min = 0, max = 1, value = 0.1),
                 checkboxInput("rel.original", "Should originality be relative to the 
                                most original species in the community?", value = FALSE),
-                selectInput("dist.metric5",
+                selectInput("dist.metric6",
                             label = "Dissimilarity or correlation metric of the dendrograms",
                             choices = c("Euclidean" = "euclidean", 
                                         "Manhattan" = "manhattan",
@@ -765,7 +771,7 @@ server <- function(input, output, session) {
   })
   
   output$ncol_traits <- renderText({
-    paste0("Number of traits = ", ncol(trait_dataset()))
+    paste0("Number of traits = ", ncol(trait_dataset())-1)
   })
   
   # Tab "Community data": Heatmap, rarefaction curves and histograms
@@ -1025,7 +1031,6 @@ server <- function(input, output, session) {
       rownames(traits2) <- make.names(trait_dataset()[, 1], unique = TRUE)
     }
     
-    
     dist.matrix <- vegdist(traits2, method = input$dist.metric2, na.rm = TRUE)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
@@ -1052,25 +1057,18 @@ server <- function(input, output, session) {
     selected.traits <- trait_dataset()[, input$traits_xy3]
     
     if(input$standardize2 == TRUE){
-      traits1 <- scale(selected.traits)
+      traits1 <- na.omit(scale(selected.traits))
     } else {
-      traits1 <- selected.traits
+      traits1 <- na.omit(selected.traits)
     }
+
+    dist.matrix <- vegdist(traits1, method = input$dist.metric3, na.rm = TRUE)
     
-    if(input$remove.na2 == TRUE){
-      traits <- na.omit(traits1)
-    } else {
-      traits <- traits1
-    }
-    
-    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
-    
-    dist.matrix <- vegdist(traits, method = input$dist.metric2)
     pco <- wcmdscale(dist.matrix, eig = TRUE, add = input$eig.correction)
     pcoa.axes <- as.data.frame(pco$points)
-    efit <- envfit(ord = pco, env = traits[, input$traits_xy3])
+    efit <- envfit(ord = pco, env = traits1[, input$traits_xy3])
     vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
-    trait.names <- colnames(traits[, input$traits_xy3])
+    trait.names <- colnames(traits1[, input$traits_xy3])
     list(pcoa.eig = pco$eig, pcoa.axes = pcoa.axes, pcoa.vectors = vec.sp.df,
          trait.names = trait.names)
   })
@@ -1102,8 +1100,8 @@ server <- function(input, output, session) {
                             bins = input$bins3) +
       geom_text(data = pcoa.vectors, aes(x = Dim1, y = Dim2, label = trait.names),
                 size = 4, check_overlap = TRUE) + theme_minimal() +
-      xlim(min(pcoa.vectors$Dim1) - 0.1, max(pcoa.vectors$Dim1 + 0.1)) +
-      ylim(min(pcoa.vectors$Dim2) - 0.1, max(pcoa.vectors$Dim2 + 0.1))
+      xlim(min(pcoa.vectors$Dim1) - 0.2, max(pcoa.vectors$Dim1 + 0.2)) +
+      ylim(min(pcoa.vectors$Dim2) - 0.2, max(pcoa.vectors$Dim2 + 0.2))
   })
   
   # % variance explained
@@ -1114,7 +1112,7 @@ server <- function(input, output, session) {
     cum_var <- 100*cumsum(pcoa.eig)/sum(pcoa.eig)
     df <- data.frame(axis = 1:input$show.pcoa.axes, 
                      cum_var = cum_var[1:input$show.pcoa.axes])
-    colnames(df) <- c("PCoA component", "Cumulative variance (%)")
+    colnames(df) <- c("Principal component", "Cumulative variance (%)")
     df
   })
   
@@ -1242,20 +1240,20 @@ server <- function(input, output, session) {
   
   output$total.beta <- renderPlot({
     pheatmap(as.matrix(beta.FD()$Btotal),
-                       clustering_distance_rows = input$dist.metric3,
-                       clustering_distance_columns = input$dist.metric3)
+                       clustering_distance_rows = input$dist.metric4,
+                       clustering_distance_columns = input$dist.metric4)
   })
     
   output$turnover.beta <- renderPlot({
     pheatmap(as.matrix(beta.FD()$Brepl),
-                       clustering_distance_rows = input$dist.metric3,
-                       clustering_distance_columns = input$dist.metric3)
+                       clustering_distance_rows = input$dist.metric4,
+                       clustering_distance_columns = input$dist.metric4)
   })
     
   output$richness.beta <- renderPlot({
     pheatmap(as.matrix(beta.FD()$Brich),
-                       clustering_distance_rows = input$dist.metric3,
-                       clustering_distance_columns = input$dist.metric3)
+                       clustering_distance_rows = input$dist.metric4,
+                       clustering_distance_columns = input$dist.metric4)
   })
   
   # Tab: "Regularity"
@@ -1295,8 +1293,8 @@ server <- function(input, output, session) {
   
   output$beta.regularity <- renderPlot({
     pheatmap(as.matrix(beta.reg.hv()),
-             clustering_distance_rows = input$dist.metric4,
-             clustering_distance_columns = input$dist.metric4)
+             clustering_distance_rows = input$dist.metric5,
+             clustering_distance_columns = input$dist.metric5)
   })
   
   # Tab: "Divergence"
@@ -1361,22 +1359,22 @@ server <- function(input, output, session) {
   output$kernel.rich.contrib <- renderPlot({
     spp.contrib_list <- spp.contrib()
     pheatmap(spp.contrib_list$rich.contrib,
-             clustering_distance_rows = input$dist.metric5,
-             clustering_distance_columns = input$dist.metric5)
+             clustering_distance_rows = input$dist.metric6,
+             clustering_distance_columns = input$dist.metric6)
   })
   
   output$kernel.eve.contrib <- renderPlot({
   spp.contrib_list <- spp.contrib()
     pheatmap(spp.contrib_list$eve.contrib,
-             clustering_distance_rows = input$dist.metric5,
-             clustering_distance_columns = input$dist.metric5)
+             clustering_distance_rows = input$dist.metric6,
+             clustering_distance_columns = input$dist.metric6)
   })
   
   output$kernel.originality <- renderPlot({
     spp.contrib_list <- spp.contrib()
     pheatmap(spp.contrib_list$original,
-             clustering_distance_rows = input$dist.metric5,
-             clustering_distance_columns = input$dist.metric5)
+             clustering_distance_rows = input$dist.metric6,
+             clustering_distance_columns = input$dist.metric6)
   })
   
   # Tab: correlations among FD metrics
