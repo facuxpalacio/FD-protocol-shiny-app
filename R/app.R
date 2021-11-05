@@ -1025,7 +1025,8 @@ server <- function(input, output, session) {
       traits2 <- na.omit(traits1)
       rowsNA <- unique(which(is.na(selected.traits), arr.ind = TRUE)[, 1])
       rownames(traits2) <- make.names(trait_dataset()[-rowsNA, 1], unique = TRUE)
-      # falta caso donde se eliminan NA pero no hay ninguno en la matriz (msj)
+      if(sum(is.na(traits1)) == 0)
+        validate("You have no missing data")
     } else {
       traits2 <- traits1
       rownames(traits2) <- make.names(trait_dataset()[, 1], unique = TRUE)
@@ -1038,6 +1039,12 @@ server <- function(input, output, session) {
               rect = input$rectangle, rect_fill = input$rectangle,
               xlab = "Species", ylab = "Dissimilarity",
               ggtheme = theme_minimal())
+  })
+  
+  output$select.more.traits23 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy3]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
   })
   
   # Update variable selection
@@ -1158,6 +1165,10 @@ server <- function(input, output, session) {
     trait <- as.matrix(trait_dataset()[, input$traits_xy4])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
+    if(input$remove.na3 == TRUE){
+      trait <- na.omit(trait)
+    } else { trait }
+    
     khv <- list()
     
     withProgress(message = "Building hypervolumes", {
@@ -1346,7 +1357,6 @@ server <- function(input, output, session) {
     list(rich.contrib = rich.contrib, eve.contrib = eve.contrib, original = original)
     
     } else {
-      
       rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
       rich.contrib[is.na(rich.contrib)] <- 0
       original <- kernel.originality(hypervolumes(), frac = input$fraction2, 
@@ -1379,9 +1389,9 @@ server <- function(input, output, session) {
   
   # Tab: correlations among FD metrics
   output$alpha.comm.corr <- renderPlot({
-     df <- data.frame(Richness = alpha.FD()$kernelFD$FD, 
-                      Regularity = alpha.reg.hv()$kernel.reg.alpha$FD, 
-                      Divergence = div.hv()$kernel.div$FD)
+     df <- data.frame(Richness = alpha.FD()$FD, 
+                      Regularity = alpha.reg.hv()$FD, 
+                      Divergence = div.hv()$FD)
     
    my_fn <- function(data, mapping, ...){
       p <- ggplot(data = df, mapping = mapping) + 
