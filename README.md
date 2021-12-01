@@ -76,7 +76,7 @@ Gianluigi Ottaviani, Pedro Cardoso and Stefano Mammola provided valuable feedbac
 
 **References**
 
-Blonder, B. (2016). Do hypervolumes have holes?. The American Naturalist, 187(4), E93-E105.
+Blonder, B. (2016). Do hypervolumes have holes?. American Naturalist, 187(4), E93-E105.
 
 Blonder, B. (2018). Hypervolume concepts in niche‐and trait‐based ecology. Ecography, 41(9), 1441-1455.
 
@@ -94,7 +94,7 @@ Hurlbert, S. H. (1971). The nonconcept of species diversity: a critique and alte
 
 Magurran, A. E. (2013). Measuring biological diversity. John Wiley & Sons.
 
-Mammola, S. (2019). Assessing similarity of n‐dimensional hypervolumes: Which metric to use?. Journal of Biogeography, 46(9), 2012-2023.
+Mammola, S. (2019). Assessing similarity of n‐dimensional hypervolumes: Which metric to use? Journal of Biogeography, 46(9), 2012-2023.
 
 Mammola, S., & Cardoso, P. (2020). Functional diversity metrics using kernel density n‐dimensional hypervolumes. Methods in Ecology and Evolution, 11(8), 986-995.
 
@@ -112,12 +112,12 @@ Ovaskainen, O., & Abrego, N. (2020). Joint species distribution modelling: with 
 
 Palacio, F. X., Ibañez, L. M., Maragliano, R. E., & Montalti, D. (2018). Urbanization as a driver of taxonomic, functional, and phylogenetic diversity losses in bird communities. Canadian Journal of Zoology, 96(10), 1114-1121.
 
-Palacio, F. X., Maragliano, R. E., & Montalti, D. (2020). The costs of ignoring species detectability on functional diversity estimation. The Auk, 137(4), ukaa057.
+Palacio, F. X., Maragliano, R. E., & Montalti, D. (2020). The costs of ignoring species detectability on functional diversity estimation. Auk, 137(4), ukaa057.
 
 Palacio, F.X., Callaghan, C.T., Cardoso, P., Hudgins, E.J., Jarzyna, M.A., Ottaviani, G., Riva, F., Graco-Roza, C., Shirey, V., & Mammola, S. (2021). A protocol for reproducible functional diversity analyses. EcoEvoRxiv https://doi.org/10.32942/osf.io/yt9sb
 
-Petchey, O. L., & Gaston, K. J. (2002). Functional diversity (FD), species richness and community composition. Ecology letters, 5(3), 402-411.
+Petchey, O. L., & Gaston, K. J. (2002). Functional diversity (FD), species richness and community composition. Ecology Letters, 5(3), 402-411.
 
 Segrestin, J., Sartori, K., Navas, M. L., Kattge, J., Díaz, S., & Garnier, E. (2021). PhenoSpace: A Shiny application to visualize trait data in the phenotypic space of the global spectrum of plant form and function. Ecology and Evolution, 11(4), 1526-1534.
 
-Zuur, A. F., Ieno, E. N., & Elphick, C. S. (2010). A protocol for data exploration to avoid common statistical problems. Methods in ecology and evolution, 1(1), 3-14.
+Zuur, A. F., Ieno, E. N., & Elphick, C. S. (2010). A protocol for data exploration to avoid common statistical problems. Methods in Ecology and Evolution, 1(1), 3-14.
