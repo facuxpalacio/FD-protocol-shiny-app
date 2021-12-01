@@ -2,20 +2,23 @@ library(shiny) #1.6.0
 library(shinydashboard) #0.7.1
 library(shinyjs) #2.0.0
 library(shinyFeedback) #0.3.0
+library(waiter) #0.2.4
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
 library(factoextra) # 1.0.7
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
 library(alphahull) #2.2
+library(hypervolume) #2.0.12
 library(BAT) #2.6.0
 library(VIM) #6.0.0
 
 ui <-dashboardPage(
-  dashboardHeader(title = "A protocol for functional diversity analysis",
+  dashboardHeader(title = "A protocol for functional diversity analyses",
                   titleWidth = 450),
   ## Sidebar content
   dashboardSidebar(
+    width = 250,
     sidebarMenu(
       menuItem("About", tabName = "dashboard", icon = icon("home")),
       menuItem("Step 1. Research question", tabName = "step1"),
@@ -26,10 +29,10 @@ ui <-dashboardPage(
                menuItem("Checklist", tabName = "checkliststep5"),
                menuItem("Data summary", tabName = "datasummary"),
                menuItem("Community data", tabName = "communitydata"),
-               menuItem("Trait plots", tabName = "traitplots"),
+               menuItem("Univariate trait plots", tabName = "traitplots"),
                menuItem("Collinearity", tabName = "collinearity"),
                menuItem("Missing data", tabName = "missingdata"),
-               menuItem("Trait spaces", tabName = "traitspace",
+               menuItem("Multivariate trait spaces", tabName = "traitspace",
                         menuSubItem("Functional dendrogram", tabName = "fundend"),
                         menuSubItem("Functional ordination", tabName = "funord"),
                         menuSubItem("Hypervolumes", tabName = "funhv"))),
@@ -38,8 +41,7 @@ ui <-dashboardPage(
                menuItem("Richness", tabName = "richness"),
                menuItem("Regularity", tabName = "regularity"),
                menuItem("Divergence", tabName = "divergence"),
-               menuItem("Similarity", tabName = "similarity"),
-               menuItem("Species rarity and originality", tabName = "spcontrib"),
+               menuItem("Species contribution and originality", tabName = "spcontrib"),
                menuItem("Correlations among metrics", tabName = "corrFD")),
       menuItem("Step 7. Modelling", tabName = "step7",
       menuItem("Checklist", tabName = "checkliststep7"),
@@ -54,6 +56,7 @@ ui <-dashboardPage(
   ## Body content
   dashboardBody(
     shinyjs::useShinyjs(),
+    use_waiter(),
     tabItems(
       
       # Tab contents
@@ -62,16 +65,16 @@ ui <-dashboardPage(
               box(Title = "", width = 8,
                   "This application is intended to provide students and researchers with a checklist to maximize methods' reproducibility, 
                   comparability, and transparency across trait-based studies. For further details, see:",
-                  tags$a("Palacio", em("et al."), " (2021). A protocol for conducting functional diversity 
-                           analyses and maximizing their reproducibility. Journal name. XX: XX-XX", 
-                           href = "https://www.google.com/"), "and the ",
-                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/FD-protocol-shiny-app"),
+                  tags$a("Palacio", em("et al."), " (2021). A protocol for reproducible functional diversity 
+                           analyses. EcoEvoRxiv. doi: 10.32942/osf.io/yt9sb", 
+                           href = "https://doi.org/10.32942/osf.io/yt9sb"), "and the ",
+                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/stepFD"),
                   br(),
                   br(),
                   em("This app is maintained by ",
                   tags$a("Facundo X. Palacio, ", href = "https://github.com/facuxpalacio"),
                   tags$a("Emma J. Hudgins ", href = "https://github.com/emmajhudgins"), "and ",
-                  tags$a("Caio Graco Roza.", href = "https://github.com/graco-roza"),
+                  tags$a("Caio Graco-Roza.", href = "https://github.com/graco-roza"),
                   "Please feel free to contact us with any suggestions!")
                   ),
               
@@ -171,7 +174,7 @@ ui <-dashboardPage(
       tabItem(tabName = "step4",
                       sidebarLayout( 
                         sidebarPanel(
-                          helpText("Collect functional trait data and build a matrix of", em("N"), 
+                          helpText("Collect functional trait data and build a table of", em("N"), 
                               "taxa \\(\\times\\)", em("p"), "traits.",
                               style = "background-color:lightblue; border-radius:5px"),
                               br(),
@@ -248,22 +251,36 @@ ui <-dashboardPage(
       tabItem(tabName = "communitydata",
               
               fluidRow(
-              box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = 6,
-              checkboxInput("LogX1", "Log-transform occurrences", value = FALSE),
+                column(width = 6,
+              box(title = "Community heatmap inputs", status = "primary", 
+                  solidHeader = TRUE, width = NULL,
+                  selectInput("dist.metric1",
+                          label = "Dissimilarity or correlation metric",
+                          choices = c("Euclidean" = "euclidean", 
+                                      "Manhattan" = "manhattan",
+                                      "Binary" = "binary",
+                                      "Correlation" = "correlation"),
+                          selected = "euclidean"),
+                  checkboxInput("LogX1", "Log-transform occurrences", value = FALSE)
+                  ),
+              
+              box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = NULL,
               # Output: heatmap
               plotOutput("heatmap_community"),
               textInput('filename', "Filename"),
               checkboxInput('savePlot', "Check to save")
-              ),
-                                     
+              )),
+               
+              column(width = 6,                      
               # Output: rarefaction curves
-                box(title = "Rarefaction curves", status = "warning", solidHeader = TRUE,
-                    plotOutput("rarefaction_curves"))
-              ),
+                box(title = "Rarefaction curves", status = "warning", 
+                    solidHeader = TRUE, width = NULL,
+                    plotOutput("rarefaction_curves")
+                    ),
               
-              box(title = "Inputs", status = "primary", solidHeader = TRUE,
-                  sliderInput("bins1", "Number of bins", min = 5, max = 20, value = 10),
-              ),
+                 box(title = "Inputs", status = "primary", solidHeader = TRUE, width = NULL,
+                  sliderInput("bins1", "Number of bins", min = 5, max = 20, value = 10)
+                     ))),
               
               fluidRow(
                 # Output: histograms
@@ -361,9 +378,9 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 6,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
-                  checkboxInput("remove.na2", label = "Remove missing data?",
+                  checkboxInput("remove.na1", label = "Remove rows with missing data?",
                                 value = FALSE),
-                  checkboxInput("standardize2", "Standardize traits", value = FALSE),
+                  checkboxInput("standardize1", "Standardize traits", value = FALSE),
                   textOutput("select.more.traits22")
                   ),
               
@@ -371,7 +388,7 @@ ui <-dashboardPage(
               box(title = "Dendrogram inputs",
                   status = "primary", solidHeader = TRUE, width = 6,
                   
-                  selectInput("dist.metric",
+                  selectInput("dist.metric2",
                                label = "Dissimilarity metric",
                                choices = c("Euclidean" = "euclidean", 
                                            "Manhattan" = "manhattan", 
@@ -409,15 +426,21 @@ ui <-dashboardPage(
               box(title = "Select two or more functional traits",
                   status = "primary", solidHeader = TRUE, width = 4,
                   checkboxGroupInput("traits_xy3", label = "", choices = NULL),
-                  checkboxInput("remove.na3", label = "Remove missing data?",
-                                value = FALSE),
-                  checkboxInput("standardize3", "Standardize traits", value = FALSE),
+                  checkboxInput("standardize2", "Standardize traits", value = FALSE),
                   textOutput("select.more.traits23")
                   ),
               
               # Input: PCoA arguments
               box(title = "PCoA inputs", status = "primary", solidHeader = TRUE,
-                  height = 450,
+                  height = 500,
+                  selectInput("dist.metric3",
+                              label = "Dissimilarity metric",
+                              choices = c("Euclidean" = "euclidean", 
+                                          "Manhattan" = "manhattan", 
+                                          "Gower" = "gower",
+                                          "Mahalanobis" = "mahalanobis"),
+                              selected = "gower"),
+                  
                   selectInput("eig.correction",
                               label = "Correction method for negative eigenvalues",
                               choices = c("Lingoes" = "lingoes",
@@ -467,19 +490,17 @@ ui <-dashboardPage(
       tabItem(tabName = "funhv",
               # Input: hypervolumes
                 # Input: Select traits to plot
-              fluidRow(
                 box(title = "Select two or more functional traits",
                     status = "primary", solidHeader = TRUE, width = 4,
                     checkboxGroupInput("traits_xy4", label = "", choices = NULL),
-                    checkboxInput("remove.na4", label = "Remove missing data?",
+                    checkboxInput("remove.na3", label = "Remove rows with missing data?",
                                   value = FALSE),
                     textOutput("select.more.traits24")
-                    )),
+                    ),
               
-                fluidRow(
               box(title = "Hypervolume inputs", 
                   status = "primary", solidHeader = TRUE, height = 450, width = 4,
-                  numericInput("hv.sites", "Number of sites to plot", value = 1),
+                  numericInput("hv.sites", "Number of sites to plot", value = 5),
                   
                   numericInput("hv.axes", "Number of dimensions",
                               min = 1, value = 2),
@@ -502,7 +523,7 @@ ui <-dashboardPage(
                   height = 450, width = 8, 
                   plotOutput("hv"),
                   textOutput("hv.data")
-                  ))
+                  )
       ),       
       
       tabItem(tabName = "checkliststep6",
@@ -518,41 +539,51 @@ ui <-dashboardPage(
                             # selectInput("level", "Identify the level of functional diversity metric measurement", choices=c())),
                           
     tabItem(tabName = "richness",
-            fluidRow(   
-            actionButton("build.hv1", "Compute functional richness"),
-            
+            fluidRow(
             box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
                 plotOutput("alpha.hv.FD")
                 ),
                    
             # Inputs: similarity metric
-            box(title = "Similarity metric", status = "primary", solidHeader = TRUE,
-                selectInput("sim.beta.rich", label = "",
+            box(title = "Functional richness inputs", status = "primary", solidHeader = TRUE,
+                selectInput("sim.beta.rich", label = "Similarity metric to compute richness",
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
-                             selected = "jaccard")
+                             selected = "jaccard"),
+                actionButton("build.hv1", "Compute functional richness"),
+                selectInput("dist.metric4",
+                            label = "Dissimilarity or correlation metric of the dendrograms",
+                            choices = c("Euclidean" = "euclidean", 
+                                        "Manhattan" = "manhattan",
+                                        "Correlation" = "correlation"),
+                            selected = "euclidean")
                 )),
             
-            fluidRow(
             box(title = "Beta functional diversity", status = "warning", solidHeader = TRUE,
-                height = 300, width = 4,
                 plotOutput("total.beta")
                 ),
             
             box(title = "Turnover component", status = "warning", solidHeader = TRUE,
-                height = 300, width = 4,
                 plotOutput("turnover.beta")
             ),
             
             box(title = "Species richness component", status = "warning", solidHeader = TRUE,
-                height = 300, width = 4,
                 plotOutput("richness.beta")
-                )),
+                ),
     ),
     
     tabItem(tabName = "regularity",
             
-            actionButton("build.hv2", "Compute functional regularity"),
+            fluidRow(width = 6,
+            box(title = "Functional regularity inputs", status = "primary", solidHeader = TRUE, 
+                selectInput("dist.metric5",
+                            label = "Dissimilarity or correlation metric of the dendrogram",
+                            choices = c("Euclidean" = "euclidean", 
+                                        "Manhattan" = "manhattan",
+                                        "Correlation" = "correlation"),
+                            selected = "euclidean"),
+                actionButton("build.hv2", "Compute functional regularity")
+            )),
             
             box(title = "Alpha functional regularity", status = "warning", solidHeader = TRUE,
                 plotOutput("alpha.regularity")
@@ -565,15 +596,16 @@ ui <-dashboardPage(
             ),
     
     tabItem(tabName = "divergence",
-            
-            actionButton("build.hv3", "Compute functional divergence"),
-            
-            box(title = "Function for computing divergence", status = "primary", solidHeader = TRUE,
-                selectInput("function.disp", label = "",
+      
+            box(title = "Functional divergence inputs", status = "primary", solidHeader = TRUE,
+                selectInput("function.disp", label = "Function to compute divergence",
                              choices = c("Divergence" = "divergence", 
                                          "Dissimilarity" = "dissimilarity",
                                          "Regression" = "regression"),
-                             selected = "divergence")
+                             selected = "divergence"),
+                sliderInput("fraction1", "Proportion of random points to be used", 
+                            min = 0, max = 1, value = 0.1),
+                actionButton("build.hv3", "Compute functional divergence"),
                 ),
             
             box(title = "Functional divergence", status = "warning", solidHeader = TRUE,
@@ -581,59 +613,43 @@ ui <-dashboardPage(
                 )
             ),
     
-    tabItem(tabName = "similarity",
-            
-            actionButton("build.hv4", "Compute functional similarity"),
-            
-            # Input: Distance or similarity metric
-            box(title = "Distance/similarity metric", status = "primary", solidHeader = TRUE,
-                selectInput("dist.sim.metric", label = "",
-                             choices = c("Distance between centroids" = "Distance_centroids", 
-                                         "Minimum distance" = "Minimum_distance",
-                                         "Jaccard overlap" = "Jaccard",
-                                         "Sorensen-Dice overlap" = "Sorensen",
-                                         "Intersection among hypervolumes" = "Intersection"),
-                             selected = "Distance_centroids")
-                ),
-            
-            box(title = "Functional similarity", status = "warning", solidHeader = TRUE,
-                plotOutput("f.similarity")
-                )
-            
-            ),
-    
     tabItem(tabName = "spcontrib",
             
-            actionButton("build.hv5", "Compute species contributions"),
-            
-            box(title = "Contribution to functional richness method", status = "primary",
+            fluidRow(
+            box(title = "Contribution to functional richness inputs", status = "primary",
                 solidHeader = TRUE,
                 radioButtons("rich.contrib.method", label = "Method",
                              choices = c("Nearest neighbor" = "neighbor",
                                          "Leave-one-out approach" = "one out"),
                              select = "neighbor"),
-                
                 checkboxInput("compute.reg", "Compute contribution to functional
-                              regularity? It may take a while", value = FALSE)
+                              regularity? It may take a while", value = FALSE),
                 ),
+            
+            box(title = "Functional originality inputs", status = "primary",
+                solidHeader = TRUE,
+                sliderInput("fraction2", "Proportion of random points to be used", 
+                            min = 0, max = 1, value = 0.1),
+                checkboxInput("rel.original", "Should originality be relative to the 
+                               most original species in the community?", value = FALSE),
+                selectInput("dist.metric6",
+                            label = "Dissimilarity or correlation metric of the dendrograms",
+                            choices = c("Euclidean" = "euclidean", 
+                                        "Manhattan" = "manhattan",
+                                        "Correlation" = "correlation"),
+                            selected = "euclidean"),
+                actionButton("build.hv4", "Compute species contributions") 
+           )),
             
             box(title = "Contribution to functional richness", status = "warning", 
                 solidHeader = TRUE,
                 plotOutput("kernel.rich.contrib")
                 ),
-            
-            box(title = "Contribution to functional regularity", status = "warning", 
-                solidHeader = TRUE,
-                plotOutput("kernel.eve.contrib")
-                ),
-            
-            box(title = "Functional originality inputs", status = "primary",
-                solidHeader = TRUE,
-                sliderInput("fraction", "Proportion of random points to be used", 
-                            min = 0, max = 1, value = 0.1),
-                checkboxInput("rel.original", "Should originality be relative to the 
-                               most original species in the community?", value = FALSE)
-                ),
+           
+           box(title = "Contribution to functional regularity", status = "warning", 
+               solidHeader = TRUE,
+               plotOutput("kernel.eve.contrib")
+               ),
             
             box(title = "Functional originality", status = "warning", 
                 solidHeader = TRUE,
@@ -838,6 +854,7 @@ server <- function(input, output, session) {
   
   output$nrow_covariates <- renderText({
     paste0("Number of sampling units = ", nrow(covariates_dataset()))
+
   })
   
   output$ncol_covariates <- renderText({
@@ -848,18 +865,26 @@ server <- function(input, output, session) {
   # Tab "Community data": Heatmap, rarefaction curves and histograms
   output$heatmap_community <- renderPlot({
     if(input$LogX1 == TRUE){
-    pheatmap(log(community_dataset() + 1))
+    pheatmap(log(community_dataset() + 1),
+             clustering_distance_rows = input$dist.metric1,
+             clustering_distance_columns = input$dist.metric1)
       if(input$savePlot)
       {
         name <- paste0('../output/',input$filename, "_log10.pdf")
-        ggsave(name,pheatmap(log(community_dataset() + 1)), device="pdf")
+        ggsave(name,pheatmap(log(community_dataset() + 1,
+                                 clustering_distance_rows = input$dist.metric1,
+                                 clustering_distance_columns = input$dist.metric1)), device="pdf")
       }
     } else {
-      pheatmap(community_dataset())
+      pheatmap(community_dataset(), 
+               clustering_distance_rows = input$dist.metric1,
+               clustering_distance_columns = input$dist.metric1)
       if(input$savePlot)
       {
         name <- paste0('../output/',input$filename, ".pdf")
-        ggsave(name,pheatmap(community_dataset()), device="pdf")
+        ggsave(name,pheatmap(community_dataset(),
+                             clustering_distance_rows = input$dist.metric1,
+                             clustering_distance_columns = input$dist.metric1), device="pdf")
     }
     }
   })
@@ -1078,27 +1103,36 @@ server <- function(input, output, session) {
     req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
     
-    if(input$standardize2 == TRUE){
+    if(input$standardize1 == TRUE){
       traits1 <- scale(selected.traits)
     } else {
       traits1 <- selected.traits
     }
     
-    if(input$remove.na2 == TRUE){
-      traits <- na.omit(traits1)
+    if(input$remove.na1 == TRUE){
+      traits2 <- na.omit(traits1)
+      rowsNA <- unique(which(is.na(selected.traits), arr.ind = TRUE)[, 1])
+      rownames(traits2) <- make.names(trait_dataset()[-rowsNA, 1], unique = TRUE)
+      if(sum(is.na(traits1)) == 0)
+        validate("You have no missing data")
     } else {
-      traits <- traits1
+      traits2 <- traits1
+      rownames(traits2) <- make.names(trait_dataset()[, 1], unique = TRUE)
     }
     
-    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
-    
-    dist.matrix <- vegdist(traits, method = input$dist.metric)
+    dist.matrix <- vegdist(traits2, method = input$dist.metric2, na.rm = TRUE)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
               k = input$k.groups, color_labels_by_k = TRUE, 
               rect = input$rectangle, rect_fill = input$rectangle,
               xlab = "Species", ylab = "Dissimilarity",
               ggtheme = theme_minimal())
+  })
+  
+  output$select.more.traits23 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy3]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
   })
   
   # Update variable selection
@@ -1117,26 +1151,19 @@ server <- function(input, output, session) {
     req(input$traits_xy3)
     selected.traits <- trait_dataset()[, input$traits_xy3]
     
-    if(input$standardize3 == TRUE){
-      traits1 <- scale(selected.traits)
+    if(input$standardize2 == TRUE){
+      traits1 <- na.omit(scale(selected.traits))
     } else {
-      traits1 <- selected.traits
+      traits1 <- na.omit(selected.traits)
     }
+
+    dist.matrix <- vegdist(traits1, method = input$dist.metric3, na.rm = TRUE)
     
-    if(input$remove.na3 == TRUE){
-      traits <- na.omit(traits1)
-    } else {
-      traits <- traits1
-    }
-    
-    rownames(traits) <- make.names(trait_dataset()[, 1], unique = TRUE)
-    
-    dist.matrix <- vegdist(traits, method = input$dist.metric)
     pco <- wcmdscale(dist.matrix, eig = TRUE, add = input$eig.correction)
     pcoa.axes <- as.data.frame(pco$points)
-    efit <- envfit(ord = pco, env = traits[, input$traits_xy3])
+    efit <- envfit(ord = pco, env = traits1[, input$traits_xy3])
     vec.sp.df <- as.data.frame(efit$vectors$arrows*sqrt(efit$vectors$r))
-    trait.names <- colnames(traits[, input$traits_xy3])
+    trait.names <- colnames(traits1[, input$traits_xy3])
     list(pcoa.eig = pco$eig, pcoa.axes = pcoa.axes, pcoa.vectors = vec.sp.df,
          trait.names = trait.names)
   })
@@ -1168,8 +1195,8 @@ server <- function(input, output, session) {
                             bins = input$bins3) +
       geom_text(data = pcoa.vectors, aes(x = Dim1, y = Dim2, label = trait.names),
                 size = 4, check_overlap = TRUE) + theme_minimal() +
-      xlim(min(pcoa.vectors$Dim1) - 0.1, max(pcoa.vectors$Dim1 + 0.1)) +
-      ylim(min(pcoa.vectors$Dim2) - 0.1, max(pcoa.vectors$Dim2 + 0.1))
+      xlim(min(pcoa.vectors$Dim1) - 0.2, max(pcoa.vectors$Dim1 + 0.2)) +
+      ylim(min(pcoa.vectors$Dim2) - 0.2, max(pcoa.vectors$Dim2 + 0.2))
   })
   
   # % variance explained
@@ -1180,7 +1207,7 @@ server <- function(input, output, session) {
     cum_var <- 100*cumsum(pcoa.eig)/sum(pcoa.eig)
     df <- data.frame(axis = 1:input$show.pcoa.axes, 
                      cum_var = cum_var[1:input$show.pcoa.axes])
-    colnames(df) <- c("PCoA component", "Cumulative variance (%)")
+    colnames(df) <- c("Principal component", "Cumulative variance (%)")
     df
   })
   
@@ -1211,7 +1238,6 @@ server <- function(input, output, session) {
   
   # Tab: "Hypervolume building"
   # Update variable selection
-  # Update variable selection
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy4",
                              choices = allColumns())
@@ -1227,10 +1253,25 @@ server <- function(input, output, session) {
     trait <- as.matrix(trait_dataset()[, input$traits_xy4])
     rownames(trait) <- colnames(community_dataset())
     comm <- community_dataset()[1:input$hv.sites, ]
+    if(input$remove.na3 == TRUE){
+      trait <- na.omit(trait)
+    } else { trait }
     
-    kernel.build(comm = comm, trait = trait, axes = input$hv.axes,
-                 method = input$hv.method, abund = input$hv.abund,
-                 samples.per.point = input$npoints)
+    khv <- list()
+    
+    withProgress(message = "Building hypervolumes", {
+      
+      for (i in 1:input$hv.sites) {
+        khv <- hypervolume_join(khv,
+          kernel.build(comm = comm[i, ], trait = trait, axes = input$hv.axes,
+                     method = input$hv.method, abund = input$hv.abund,
+                     samples.per.point = input$npoints))
+        incProgress(1/input$hv.sites, detail = paste("Hypervolume", i))
+      }
+      
+       khv
+       
+      })
   })
   
   output$hv <- renderPlot({
@@ -1257,10 +1298,21 @@ server <- function(input, output, session) {
   
   ### Tab "Richness": Alpha
   alpha.FD <- eventReactive(input$build.hv1, {
-    kernelFD <- data.frame(site = 1:input$hv.sites, 
-                           FD = kernel.alpha(hypervolumes()))
-    kernelFD
+
+    kernelFD <- data.frame(site = numeric(0), FD = numeric(0))
+    
+    withProgress(message = "Computing alpha functional richness", {
+      
+      for (i in 1:input$hv.sites) {
+        kernelFD <- rbind(kernelFD, 
+                          data.frame(site = i, FD = kernel.alpha(hypervolumes()[[i]])))
+        incProgress(1/input$hv.sites)
+      }
+      
     })
+        kernelFD
+  })
+    
   
   output$alpha.hv.FD <- renderPlot({
     df <- alpha.FD()
@@ -1277,26 +1329,47 @@ server <- function(input, output, session) {
   
   # Tab "Richness": Beta
   beta.FD <- eventReactive(input$build.hv1, {
+    waiter <- Waiter$new()
+    waiter$show()
+    on.exit(waiter$hide())
+    
     kernel.beta.hv <- kernel.beta(hypervolumes(), func = input$sim.beta.rich)
     kernel.beta.hv
   })
   
   output$total.beta <- renderPlot({
-    pheatmap(as.matrix(beta.FD()$Btotal))
+    pheatmap(as.matrix(beta.FD()$Btotal),
+                       clustering_distance_rows = input$dist.metric4,
+                       clustering_distance_columns = input$dist.metric4)
   })
     
   output$turnover.beta <- renderPlot({
-    pheatmap(as.matrix(beta.FD()$Brepl))
+    pheatmap(as.matrix(beta.FD()$Brepl),
+                       clustering_distance_rows = input$dist.metric4,
+                       clustering_distance_columns = input$dist.metric4)
   })
     
   output$richness.beta <- renderPlot({
-    pheatmap(as.matrix(beta.FD()$Brich))
+    pheatmap(as.matrix(beta.FD()$Brich),
+                       clustering_distance_rows = input$dist.metric4,
+                       clustering_distance_columns = input$dist.metric4)
   })
   
   # Tab: "Regularity"
   alpha.reg.hv <- eventReactive(input$build.hv2, {
-    kernel.reg.alpha <- data.frame(site = 1:input$hv.sites,
-                                   FD = kernel.evenness(hypervolumes()))
+    
+    kernel.reg.alpha <- data.frame(site = numeric(0), FD = numeric(0))
+    
+    withProgress(message = "Computing alpha functional regularity", {
+      
+      for (i in 1:input$hv.sites) {
+        kernel.reg.alpha <- rbind(kernel.reg.alpha, 
+                          data.frame(site = i, FD = kernel.evenness(hypervolumes()[[i]])))
+        incProgress(1/input$hv.sites)
+      }
+      
+    })
+    kernel.reg.alpha
   })
   
   output$alpha.regularity <- renderPlot({
@@ -1318,14 +1391,28 @@ server <- function(input, output, session) {
   })
   
   output$beta.regularity <- renderPlot({
-    pheatmap(as.matrix(beta.reg.hv()))
+    pheatmap(as.matrix(beta.reg.hv()),
+             clustering_distance_rows = input$dist.metric5,
+             clustering_distance_columns = input$dist.metric5)
   })
   
   # Tab: "Divergence"
   div.hv <- eventReactive(input$build.hv3, {
-    kernel.div <- data.frame(site = 1:input$hv.sites,
-                             FD = kernel.dispersion(hypervolumes(), 
-                                                    func = input$function.disp))
+    
+    kernel.div <- data.frame(site = numeric(0), FD = numeric(0))
+    
+    withProgress(message = "Computing alpha functional divergence", {
+      
+      for (i in 1:input$hv.sites) {
+        kernel.div <- rbind(kernel.div, 
+                            data.frame(site = i, FD = kernel.dispersion(hypervolumes()[[i]],
+                                                                        func = input$function.disp,
+                                                                        frac = input$fraction1)))
+        incProgress(1/input$hv.sites)
+      }
+      
+    })
+    kernel.div
   })
   
   output$f.divergence <- renderPlot({
@@ -1341,33 +1428,26 @@ server <- function(input, output, session) {
     }
   })
   
-  # Tab: "Similarity"
-  sim.FD <- eventReactive(input$build.hv4, {
-    kernel.sim <- kernel.similarity(hypervolumes())
-    kernel.sim
-  })
-  
-  output$f.similarity <- renderPlot({
-    similarity.matrix <- as.matrix(sim.FD()[[input$dist.sim.metric]])
-    pheatmap(similarity.matrix)
-  })
-  
-  # Tab: "Functional rarity and originality"
-  spp.contrib <- eventReactive(input$build.hv5, {
+  # Tab: "Species contribution and originality"
+  spp.contrib <- eventReactive(input$build.hv4, {
+    waiter <- Waiter$new()
+    waiter$show()
+    on.exit(waiter$hide())
+    
     if(input$compute.reg == TRUE){
     rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
     rich.contrib[is.na(rich.contrib)] <- 0
+    
     eve.contrib <- kernel.evenness.contribution(hypervolumes())
-    original <- kernel.originality(hypervolumes(), frac = input$fraction, 
+    original <- kernel.originality(hypervolumes(), frac = input$fraction2, 
                                    relative = input$rel.original)
     original[is.na(original)] <- 0
     list(rich.contrib = rich.contrib, eve.contrib = eve.contrib, original = original)
     
     } else {
-      
       rich.contrib <- kernel.contribution(hypervolumes(), func = input$rich.contrib.method)
       rich.contrib[is.na(rich.contrib)] <- 0
-      original <- kernel.originality(hypervolumes(), frac = input$fraction, 
+      original <- kernel.originality(hypervolumes(), frac = input$fraction2, 
                                      relative = input$rel.original)
       original[is.na(original)] <- 0
       list(rich.contrib = rich.contrib, original = original)
@@ -1376,25 +1456,30 @@ server <- function(input, output, session) {
   
   output$kernel.rich.contrib <- renderPlot({
     spp.contrib_list <- spp.contrib()
-    pheatmap(spp.contrib_list$rich.contrib)
+    pheatmap(spp.contrib_list$rich.contrib,
+             clustering_distance_rows = input$dist.metric6,
+             clustering_distance_columns = input$dist.metric6)
   })
   
   output$kernel.eve.contrib <- renderPlot({
   spp.contrib_list <- spp.contrib()
-    pheatmap(spp.contrib_list$eve.contrib)
+    pheatmap(spp.contrib_list$eve.contrib,
+             clustering_distance_rows = input$dist.metric6,
+             clustering_distance_columns = input$dist.metric6)
   })
   
   output$kernel.originality <- renderPlot({
     spp.contrib_list <- spp.contrib()
-    pheatmap(spp.contrib_list$original)
+    pheatmap(spp.contrib_list$original,
+             clustering_distance_rows = input$dist.metric6,
+             clustering_distance_columns = input$dist.metric6)
   })
   
   # Tab: correlations among FD metrics
   output$alpha.comm.corr <- renderPlot({
-    rich <- alpha.FD()$kernelFD$FD
-    reg <- alpha.reg.hv()$kernel.reg.alpha$FD
-    div <- div.hv()$kernel.div$FD
-    df <- data.frame(Richness = rich, Regularity = reg, Divergence = div)
+     df <- data.frame(Richness = alpha.FD()$FD, 
+                      Regularity = alpha.reg.hv()$FD, 
+                      Divergence = div.hv()$FD)
     
    my_fn <- function(data, mapping, ...){
       p <- ggplot(data = df, mapping = mapping) + 
@@ -1410,8 +1495,7 @@ server <- function(input, output, session) {
      df <- data.frame(Functional_richness_total = as.numeric(beta.FD()$Btotal),
                       Functional_richness_turnover = as.numeric(beta.FD()$Brepl),
                       Functional_richness_richness = as.numeric(beta.FD()$Brich),
-                      Functional_regularity = as.numeric(beta.reg.hv()),
-                      Functional_similarity = as.numeric(sim.FD()[[input$dist.sim.metric]]))
+                      Functional_regularity = as.numeric(beta.reg.hv()))
      
      my_fn <- function(data, mapping, ...){
        p <- ggplot(data = df, mapping = mapping) + 
