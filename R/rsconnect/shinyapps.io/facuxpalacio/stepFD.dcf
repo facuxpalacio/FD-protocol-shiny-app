@@ -5,9 +5,9 @@ account: facuxpalacio
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4954949
-bundleId: 5175796
+bundleId: 5219164
 url: https://facuxpalacio.shinyapps.io/stepFD/
-when: 1635187664.54191
-lastSyncTime: 1635187664.54191
+when: 1636144726.84305
+lastSyncTime: 1636144726.84305
 asMultiple: FALSE
 asStatic: FALSE
