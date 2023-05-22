@@ -8,25 +8,23 @@ library(GGally) # 2.0.0
 library(factoextra) # 1.0.7
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
+library(FD) #1.0-12.1
 library(alphahull) #2.2
 library(hypervolume) #2.0.12
 library(BAT) #2.6.0
 library(VIM) #6.0.0
 
 ui <-dashboardPage(
-  dashboardHeader(title = "A protocol for functional diversity analyses",
-                  titleWidth = 450),
+  dashboardHeader(title = "Toolkit for exploratory functional diversity analyses",
+                  titleWidth = 500),
   ## Sidebar content
   dashboardSidebar(
     width = 250,
     sidebarMenu(
       menuItem("About", tabName = "dashboard", icon = icon("home")),
-      menuItem("Step 1. Research question", tabName = "step1"),
-      menuItem("Step 2. Study design", tabName = "step2"),
-      menuItem("Step 3. Community data", tabName = "step3"),
-      menuItem("Step 4. Trait data", tabName = "step4"),
-      menuItem("Step 5. Explore your data!", tabName = "step5",
-               menuItem("Checklist", tabName = "checkliststep5"),
+      menuItem("Load your community data", tabName = "step1", icon = icon("tree")),
+      menuItem("Load your trait data", tabName = "step2", icon = icon("leaf")),
+      menuItem("Explore your data!", tabName = "step3", icon = icon("area-chart"),
                menuItem("Data summary", tabName = "datasummary"),
                menuItem("Community data", tabName = "communitydata"),
                menuItem("Univariate trait plots", tabName = "traitplots"),
@@ -36,15 +34,18 @@ ui <-dashboardPage(
                         menuSubItem("Functional dendrogram", tabName = "fundend"),
                         menuSubItem("Functional ordination", tabName = "funord"),
                         menuSubItem("Hypervolumes", tabName = "funhv"))),
-      menuItem("Step 6. Functional diversity", tabName = "step6",
-               menuItem("Checklist", tabName = "checkliststep6"),
-               menuItem("Richness", tabName = "richness"),
-               menuItem("Regularity", tabName = "regularity"),
-               menuItem("Divergence", tabName = "divergence"),
+      menuItem("Functional diversity metrics", tabName = "step4", icon = icon("calculator"),
+               menuItem("Richness", tabName = "richness",
+                        menuSubItem("Classical metrics", tabName = "classical_rich"),
+                        menuSubItem("Hypervolumes", tabName = "hv_rich")),
+               menuItem("Regularity", tabName = "regularity",
+                        menuSubItem("Classical metrics", tabName = "classical_reg"),
+                        menuSubItem("Hypervolumes", tabName = "hv_reg")),
+               menuItem("Divergence", tabName = "divergence",
+                        menuSubItem("Classical metrics", tabName = "classical_diverg"),
+                        menuSubItem("Hypervolumes", tabName = "hv_diverg")),
                menuItem("Species contribution and originality", tabName = "spcontrib"),
-               menuItem("Correlations among metrics", tabName = "corrFD")),
-      menuItem("Step 7. Modelling", tabName = "step7"),
-      menuItem("Step 8. Reproducibility", tabName = "step8")
+               menuItem("Correlations among metrics", tabName = "corrFD"))
     )
   ),
   
@@ -57,13 +58,13 @@ ui <-dashboardPage(
       # Tab contents
       tabItem(tabName = "dashboard",
               fluidRow(
-              box(Title = "", width = 8,
-                  "This application is intended to provide students and researchers with a checklist to maximize methods' reproducibility, 
-                  comparability, and transparency across trait-based studies. For further details, see:",
-                  tags$a("Palacio", em("et al."), " (2021). A protocol for reproducible functional diversity 
-                           analyses. EcoEvoRxiv. doi: 10.32942/osf.io/yt9sb", 
-                           href = "https://doi.org/10.32942/osf.io/yt9sb"), "and the ",
-                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/stepFD"),
+              box(Title = "", width = 8, style = 'font-size:20px;color:black;',
+                  "This application is intended to provide students and researchers with a set of tools to  
+                  explore their data and compute functional diversity metrics. For further details, see also:",
+                  tags$a("Palacio", em("et al."), " (2022). A protocol for reproducible functional diversity 
+                           analyses. Ecography 2022: e06287", 
+                           href = "https://onlinelibrary.wiley.com/doi/full/10.1111/ecog.06287"), "and the ",
+                  tags$a("user's guide.", href = "https://github.com/facuxpalacio/divan"),
                   br(),
                   br(),
                   em("This app is maintained by ",
@@ -73,65 +74,28 @@ ui <-dashboardPage(
                   "Please feel free to contact us with any suggestions!")
                   ),
               
-              img(src = "sticker_app.png", height = 150))
-      ),
-      
-      tabItem(tabName = "step1",
-              helpText("Start with the conceptualization of an ecological question 
-                  ingrained in a theoretical framing with a set of hypotheses and 
-                  predictions.", style = "background-color:lightblue; border-radius:5px"),
-      
-              radioButtons("step1", "Identify whether your work is open-ended or answers a specific research question",
-                   choices = c("My work focuses on a particular question, e.g. Does seed size diversity decrease at higher latitudes?",
-                               "My work is open-ended, e.g. How do abiotic variables shape leaf morphology?")),     
-                      fluidRow(
-                        column(6, conditionalPanel('input.step1== ["My work focuses on a particular question, e.g. Does seed size decrease at higher latitudes?"]',textInput("hyp", "Hypotheses and predictions", value = "", placeholder = "My ecological question ...")))),
-                      fluidRow(column(6, conditionalPanel('input.step1 == ["My work is open-ended, e.g. How do abiotic variables shape leaf morphology?"]',
-                                                          textInput("nohyp", "Main patterns/variables examined", value = "", placeholder = "Variables under study..."))))
-      ),
-             
-      tabItem(tabName = "step2",
-              helpText("Choose an appropriate sampling or experimental design, along with the 
-                  scale of analysis and the study organisms and units (populations, 
-                  species, communities) selected to answer the research question.",
-                  style = "background-color:lightblue; border-radius:5px"),
-                  
-                  div(id="step2", "Identify an appropriate experimental or sampling design"),
-                  textInput("scale","What is(are) your scale(s) of analysis?"),
-                  textInput("unit","What is your target ecological unit?"),
-                  radioButtons("pow1", "Did you perform a power analysis?", choices=c("Yes", "No")),
-                  textInput("pow2", "Results of power analysis or rationale for lack of need", value = "", 
-                            placeholder = "I can detect an effect size of..."),
-                  radioButtons("prer1", "Did you preregister?", choices=c("Yes", "No")),
-                  textInput("prer2", "Link to preregistration or rationale for lack of need", value = "", 
-                  placeholder = "My preregistration is hosted at osf.io/...")
+              img(src = "sticker_app.png", height = 150),
+              
+              box(Title = "Getting started", status = "primary", width = 8, style = 'font-size:20px;color:black;',
+                  em("divan"), "requires two files to fully operate:",
+                  br(),
+                  icon("circle"), "A site by species dataframe - This is called the 'community matrix', and it is the
+                  usual type of dataset used in classical community ecology.",
+                  br(),
+                  icon("circle"), "A species by trait dataframe - This is called the 'trait matrix' and contains 
+                  the information about species traits.",
+                  br(),
+                  br(),
+                  "Although both files are not strictly needed to be loaded, they are when the ultimate
+                  goal is to compute functional diversity."
+                  ))
       ),
             
-      tabItem(tabName = "step3",
-                      withMathJax(),
-                       sidebarLayout(
-                        sidebarPanel(
-                          helpText("Collect occurrence data and build a matrix of", em("S"),
-                              "sampling units \\(\\times\\)", em("N"), "taxa.",
-                              style = "background-color:lightblue; border-radius:5px"),
-                              br(),
-                              div(id="step3", strong("Assemble a community data matrix")), # Could we omit this?
-                              br(),
-                              textInput("foc","Indicate the focal taxon/taxa"),
-                              textInput("reso", "What is your taxonomic resolution?"),
-                              textInput("ntax", "Indicate the number of taxa"),
-                              textInput("s_eff", "Report sampling effort"),
-                              textInput("s_units", "Indicate the number of sampling units"),
-                              selectInput("dtyp","Indicate the occurrence data type", 
-                                          choices = c("Presence-absence", "Presence-only", 
-                                                      "Occupancy probability", "Abundance", 
-                                                      "Biomass", "Percent cover"))
-                          ),
-                         
-                         mainPanel(
+      tabItem(tabName = "step1",
+  
                           # Input: Load your community data
-                           fluidRow(
-                          box(title = "Load your community data", width = 8, height = 300,
+                          fluidRow(
+                          box(title = "Community data", width = 8, height = 300,
                               status = "primary", solidHeader = TRUE,
                           fileInput("community_dataset", 
                                     "",
@@ -162,32 +126,15 @@ ui <-dashboardPage(
                           dataTableOutput("community_table"))
                           )
                           
-                          ))
+                          
                       
              ),
              
-      tabItem(tabName = "step4",
-                      sidebarLayout( 
-                        sidebarPanel(
-                          helpText("Collect functional trait data and build a table of", em("N"), 
-                              "taxa \\(\\times\\)", em("p"), "traits.",
-                              style = "background-color:lightblue; border-radius:5px"),
-                              br(),
-                          checkboxGroupInput("step4", "Assemble a trait data matrix",
-                                             choices = c("Indicate the number of traits",
-                                             "Indicate the trait data type",
-                                             "Report the sample sizes per species and trait",
-                                             "Are traits response or effect traits?",
-                                             "Are traits soft or hard traits?",
-                                             "Which is the ecological meaning of your traits?",
-                                             "Did you account for intraspecific trait variation?",
-                                             "Indicate the data sources"))
-                          ),
-                        
-                        mainPanel(
+      tabItem(tabName = "step2",
+ 
                           # Input: Load your trait data
                           fluidRow(
-                            box(title = "Load your trait data", width = 8, height = 300,
+                            box(title = "Trait data", width = 8, height = 300,
                                 status = "primary", solidHeader = TRUE,
                           fileInput("trait_dataset", "",
                                     accept = c("text/csv", 
@@ -215,28 +162,15 @@ ui <-dashboardPage(
                           
                           box(title = "Trait data", width = 12, height = 500, 
                               status = "warning", solidHeader = TRUE,
-                          dataTableOutput("trait_table")))
-                        )
+                          dataTableOutput("trait_table"))
                       ),
-             
-      tabItem(tabName = "checkliststep5",
-             helpText("Visually inspect the community and trait matrices to familiarize with your
-                      data and deal with any issue therein.", 
-                      style = "background-color:lightblue; border-radius:5px"),
-                  checkboxGroupInput("step5", "Explore and preprocess the data",
-                                     choices = c("Plot your data!",
-                                                 "Is there collinearity among traits?",
-                                                 "Did you transform trait data?",
-                                                 "Do you have missing data? How did you handle these?",
-                                                 "Did you account for imperfect detection?"))
-              ),
       
       tabItem(tabName = "datasummary",
               
               # Ouputs: Data summaries
               fluidRow(
                 box(title = "Community data", status = "warning", solidHeader = TRUE, width = 12,
-                  verbatimTextOutput("summary_community")
+                  dataTableOutput("summary_community")
                   )),
               
               fluidRow(
@@ -263,29 +197,32 @@ ui <-dashboardPage(
                   ),
               
               box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = NULL,
-              # Output: heatmap
+              
+                  # Output: heatmap
               plotOutput("heatmap_community"),
               textInput('filename', "Filename"),
               checkboxInput('savePlot', "Check to save")
               )),
                
               column(width = 6,                      
-              # Output: rarefaction curves
+                 
+                 # Output: rarefaction curves
                 box(title = "Rarefaction curves", status = "warning", 
                     solidHeader = TRUE, width = NULL,
                     plotOutput("rarefaction_curves")
                     ),
               
-                 box(title = "Inputs", status = "primary", solidHeader = TRUE, width = NULL,
-                  sliderInput("bins1", "Number of bins", min = 5, max = 20, value = 10)
+                 box(title = "Histogram inputs", status = "primary", solidHeader = TRUE, width = NULL,
+                  sliderInput("bins1", "Number of histogram bins", min = 5, max = 20, value = 10),
+                  checkboxInput("density", "Add density plot", value = FALSE)
                      ))),
               
               fluidRow(
                 # Output: histograms
-                box(title = "Histograms", status = "warning", solidHeader = TRUE, width = 12, height = NULL,
-                      column(6,
+                box(title = "Histograms", status = "warning", solidHeader = TRUE, width = 6, height = NULL,
+                      column(3,
                              plotOutput("richness"), height = 150),
-                      column(6,
+                      column(3,
                              plotOutput("prevalence"), height = 150))
                     )
               ),
@@ -310,18 +247,18 @@ ui <-dashboardPage(
               
               # Input: histogram inputs
               box(title = "Inputs", status = "primary", solidHeader = TRUE,
-                  height = 300, width = 6,
-                  selectInput("trans1", "Transformation", 
+                  height = 300, width = 4,
+                  selectInput("trans1", "Data transformation", 
                               choices = c("None", "Log", "Square-root"),
                               selected = "None"),
-                  sliderInput("bins2", "Number of bins", min = 5, max = 20, value = 10),
+                  sliderInput("bins2", "Number of histogram bins", min = 5, max = 20, value = 10),
                   textOutput("invalid.trans1")
               )),
                                      
               # Output: Trait plot
               fluidRow(
                box(title = textOutput("caption1"), status = "warning", 
-                   solidHeader = TRUE, width = 10,
+                   solidHeader = TRUE, width = 6,
                    plotOutput("trait_plot"))
               )),
                             
@@ -333,7 +270,7 @@ ui <-dashboardPage(
                   ),
               
               box(title = "Plot inputs", status = "primary", solidHeader = TRUE,
-                  selectInput("trans2", "Transformation", choices = c("None", "Log", "Square-root"),
+                  selectInput("trans2", "Data transformation", choices = c("None", "Log", "Square-root"),
                               selected = "None"),
                   checkboxGroupInput("model.scatt", label = "Model fit",
                                      choices = c("Linear regression" = "lm",
@@ -450,7 +387,7 @@ ui <-dashboardPage(
                   sliderInput("alpha2", "Kernel density transparency",
                               min = 0, max = 1, value = 0),
                   
-                  sliderInput("bins3", "Number of bins", min = 5, max = 20, value = 10)
+                  sliderInput("bins3", "Kernel bandwidth", min = 5, max = 20, value = 10)
               ),
               
               fluidRow(
@@ -524,20 +461,9 @@ ui <-dashboardPage(
                   )
       ),       
       
-      tabItem(tabName = "checkliststep6",
-             helpText("Now you can compute functional diversity metrics!",
-                      style = "background-color:lightblue; border-radius:5px"),
-                  
-                  checkboxGroupInput("step6", "Estimate functional diversity measure(s) of interest",
-                                     choices = c("Identify the level of analysis (alpha, beta, gamma)",
-                                                 "Did you subset your trait data into
-                                                 groups of traits reflecting a similar function?",
-                                                 "Select the appropriate method based on the research question",
-                                                 "Select the appropriate functional diversity metric",
-                                                 "Identify the level of functional diversity metric measurement"))
-                      ),
                           
-    tabItem(tabName = "richness",
+    tabItem(tabName = "hv_rich",
+            
             fluidRow(
             box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
                 plotOutput("alpha.hv.FD")
@@ -571,7 +497,7 @@ ui <-dashboardPage(
                 ),
     ),
     
-    tabItem(tabName = "regularity",
+    tabItem(tabName = "hv_reg",
             
             fluidRow(width = 6,
             box(title = "Functional regularity inputs", status = "primary", solidHeader = TRUE, 
@@ -594,7 +520,7 @@ ui <-dashboardPage(
             
             ),
     
-    tabItem(tabName = "divergence",
+    tabItem(tabName = "hv_diverg",
       
             box(title = "Functional divergence inputs", status = "primary", solidHeader = TRUE,
                 selectInput("function.disp", label = "Function to compute divergence",
@@ -673,38 +599,7 @@ ui <-dashboardPage(
                 plotOutput("spp.corr")
                 )
             
-            ),
-    
-    tabItem(tabName = "step7",
-            helpText("Fit, interpret, report and validate your statistical model.",
-                     style = "background-color:lightblue; border-radius:5px"),
-                
-                checkboxGroupInput("step7", "Interpret and validate the results",
-                                  choices = c("Select an appropriate statistical model or test to answer your research question",
-                                              "Report effect sizes, model support and uncertainty",
-                                              "Provide a graphical output if needed",
-                                              "Did you validate your model and how?"))
-                ),          
-      
-    tabItem(tabName = "step8",
-            helpText("Provide enough data and code detail to allow full reproducibility
-                of your results.", style = "background-color:lightblue; border-radius:5px"),
-                checkboxGroupInput("step8", "Ensure reproducibility",
-                                   choices = c("Report the software, version and packages you used",
-                                               "Deposit data in a public repository",
-                                               "Provide your code (tidy and clean)")),
-                      div(
-                        id = "form",
-                        actionButton("submit", "Save filled checklist", class = "btn-primary"),
-                        
-                        shinyjs::hidden(
-                          div(
-                            id = "thankyou_msg",
-                            h3("Thanks for creating your protocol! See the output folder for your filled form")
-                          )
-                        )
-                )
-              )
+            )
       )
     ))
 
@@ -755,8 +650,17 @@ server <- function(input, output, session) {
                                         options = list(pageLength = 10)) 
   
   # Tab "Summary": Create a summary of the data 
-  output$summary_community <- renderPrint(summary(community_dataset()))
-  output$summary_trait <- renderPrint(summary(trait_dataset()))
+  output$summary_community <- renderDataTable(data.frame(Species = colnames(community_dataset()),
+                                                         Mean = apply(community_dataset(), 2, function(x) round(mean(x, na.rm = T), 2)),
+                                                         Standard_deviation = apply(community_dataset(), 2, function(x) round(sd(x, na.rm = T), 2)),
+                                                         Coefficient_of_variation = apply(community_dataset(), 2, function(x) round(sd(x, na.rm = T)/mean(x, na.rm = T), 2))
+                                                         ))
+  
+  output$summary_trait <- renderDataTable(data.frame(Trait = colnames(trait_dataset()),
+                                                     Mean = apply(trait_dataset(), 2, function(x) round(mean(x, na.rm = T), 2)),
+                                                     Standard_deviation = apply(trait_dataset(), 2, function(x) round(sd(x, na.rm = T), 2)),
+                                                     Coefficient_of_variation = apply(trait_dataset(), 2, function(x) round(sd(x, na.rm = T)/mean(x, na.rm = T), 2))
+  ))
   
   output$nrow_community <- renderText({
     paste0("Number of sampling units = ", nrow(community_dataset()))
@@ -825,9 +729,16 @@ server <- function(input, output, session) {
   
   output$richness <- renderPlot({
     nspp <- data.frame(richness = rowSums(community_dataset()))
+    if(input$density == TRUE){
     ggplot(data = nspp, aes(x = richness)) + 
-      geom_histogram(color = "black", fill = "white", bins = input$bins1) +
+      geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
+        geom_density(fill = "blue", alpha = 0.5, col = "blue") +
       xlab("Species richness") + ylab("Frequency")
+    } else {
+      ggplot(data = nspp, aes(x = richness)) + 
+        geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
+        xlab("Species richness") + ylab("Frequency")
+    }
   })
   
   output$prevalence <- renderPlot({
@@ -835,9 +746,16 @@ server <- function(input, output, session) {
     nsites <- nrow(PA.comm)
     abundance <- colSums(PA.comm)
     prev <- data.frame(prevalence = abundance/nsites)
+    if(input$density == TRUE){
     ggplot(data = prev, aes(x = prevalence)) + 
-      geom_histogram(color = "black", fill = "white", bins = input$bins1) + 
-      xlab("Prevalence") + ylab("Frequency")
+      geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) + 
+        geom_density(fill = "blue", alpha = 0.5, col = "blue") +
+        xlab("Prevalence") + ylab("Frequency")
+    } else {
+      ggplot(data = prev, aes(x = prevalence)) + 
+        geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) + 
+        xlab("Prevalence") + ylab("Frequency")
+    }
   })
   
   # Tab "Trait plot": Plot univariate graphs
@@ -883,7 +801,7 @@ server <- function(input, output, session) {
     
     if(input$group.var == "None"){ 
       plot.type <- switch(input$plot.type,
-                          "histogram" = geom_histogram(color = "black", bins = input$bins2,
+                          "histogram" = geom_histogram(aes(y=..density..), color = "black", bins = input$bins2,
                                                        fill = "white", alpha = 0.5),
                           "density" = geom_density(fill = "blue", alpha = 0.5, 
                                                    col = "blue"),
