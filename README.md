@@ -1,11 +1,11 @@
-# ***stepFD*** user's guide
+# ***divan*** user's guide
 **Software license**
 
-The web-based application is entirely based on Shiny, an open source R package (R 4.0.2, R Core Team 2021). The full list and version of each R package used can be found in the code available at https://github.com/facuxpalacio/stepFD/tree/main/R. 
+The web-based application is entirely based on Shiny, an open source R package (R 4.2.3, R Core Team 2023). The full list and version of each R package used can be found in the code available at https://github.com/facuxpalacio/divan/tree/main/R. 
 
-***stepFD*** **workflow**
+***divan*** **workflow**
 
-*stepFD* is intended to aid researchers and students in performing functional diversity (FD) analyses from the inception of the main ecological question to the proper reporting of data, metadata and code. The layout is based on the eight steps proposed in Palacio et al. (2021), and works mainly as a checklist of what to report in an FD study and as an exploration data tool. Steps 1 and 2 relate to the question of interest and the sampling design, respectively, and Step 8 has information on what to report to fully reproduce a study. Steps 3–7 represent the major interactive sections of the application. Although Step 8 comes at last, we emphasize that this should not be the last thing that is done, and should be part of the research paradigm from the conception of the study.
+*divan* is intended to aid researchers and students in performing exploratory functional diversity (FD) analyses. The layout is based on the steps 3-7 proposed in Palacio et al. (2022), and works mainly as an exploration and interactive data tool. To perform a rigorous functional diversity data analysis, we suggest the user referring to several packages already available.
  
 **Example datasets**
 
@@ -51,10 +51,6 @@ The **‘Divergence’** tab gives a barplot (or a histogram if the number of sa
 The **‘Species contribution and originality’** tab computes metrics that characterize the contribution of species to FD and the functional role of species. Functional originality (or rarity) quantifies the average dissimilarity between a species (or an individual) and a sample of random points (Mammola & Cardoso 2020). The contribution of each species to functional richness can be quantified through a nearest neighbor method or a leave-one-out approach (Cardoso et al. 2021). In the nearest neighbor method, each random point is attributed to the closest species, and the contribution is proportional to the number of its points. The leave-one-out approach builds two hypervolumes (one with all the species and another without the species of interest) and computes their difference (Mammola & Cardoso 2020). So, the contribution of a species to the volume can be either positive (when excluding the species reduces the volume) or negative (when excluding the species increases the volume). The contribution of species to functional evenness is only performed with the leave-one-out approach (Cardoso et al. 2021). Functional originality quantifies the average distance between a species and a sample of random points of the hypervolume. Heatmaps of species contributions to functional richness and functional regularity of each sampling unit, as well as species functional originalities in each sampling unit are shown. The user can specify the proportion of points to be used when estimating functional originality, and whether originality should be relativized to the most original species in the community (which takes the value of 1; Cardoso et al. 2021).
 
 Finally, the **‘Correlation among metrics’** tab gives three scatterplot matrices, along with Pearson’s correlations and linear regressions, between the FD metrics computed in the previous tabs. These graphs are plotted both at the community (alpha and beta FD metrics) and species level (contributions to FD and originality).
- 
-**Step 7. Modelling**
-
-**Step 8. Reproducibility**
  
 **FAQ**
 
