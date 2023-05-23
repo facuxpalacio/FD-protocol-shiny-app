@@ -5,6 +5,7 @@ library(shinyFeedback) #0.3.0
 library(waiter) #0.2.4
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
+library(ggpubr) # 0.6.0
 library(factoextra) # 1.0.7
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
@@ -15,7 +16,7 @@ library(BAT) #2.6.0
 library(VIM) #6.0.0
 
 ui <-dashboardPage(
-  dashboardHeader(title = "Toolkit for exploratory functional diversity analyses",
+  dashboardHeader(title = "A toolkit for exploratory functional diversity analyses",
                   titleWidth = 500),
   ## Sidebar content
   dashboardSidebar(
@@ -59,8 +60,8 @@ ui <-dashboardPage(
       tabItem(tabName = "dashboard",
               fluidRow(
               box(Title = "", width = 8, style = 'font-size:20px;color:black;',
-                  "This application is intended to provide students and researchers with a set of tools to  
-                  explore their data and compute functional diversity metrics. For further details, see also:",
+                  "This application is intended to provide students, professors and researchers with a set of tools to  
+                  explore their data and compute functional diversity metrics, as well as for teaching purposes. For further details, see also:",
                   tags$a("Palacio", em("et al."), " (2022). A protocol for reproducible functional diversity 
                            analyses. Ecography 2022: e06287", 
                            href = "https://onlinelibrary.wiley.com/doi/full/10.1111/ecog.06287"), "and the ",
@@ -196,13 +197,16 @@ ui <-dashboardPage(
                   checkboxInput("LogX1", "Log-transform occurrences", value = FALSE)
                   ),
               
+              # Output: heatmap
               box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = NULL,
-              
-                  # Output: heatmap
               plotOutput("heatmap_community"),
               textInput('filename', "Filename"),
               checkboxInput('savePlot', "Check to save")
-              )),
+              ),
+              
+              # Output: rank-abundance curve
+              box(title = "Rank-abundance curves", status = "warning", solidHeader = TRUE, height = NULL, width = NULL,
+                  plotOutput("rank_curve"))),
                
               column(width = 6,                      
                  
@@ -212,20 +216,20 @@ ui <-dashboardPage(
                     plotOutput("rarefaction_curves")
                     ),
               
-                 box(title = "Histogram inputs", status = "primary", solidHeader = TRUE, width = NULL,
+                 box(title = "Histogram and rank-abundance curve inputs", status = "primary", solidHeader = TRUE, width = NULL,
                   sliderInput("bins1", "Number of histogram bins", min = 5, max = 20, value = 10),
-                  checkboxInput("density", "Add density plot", value = FALSE)
-                     ))),
+                  checkboxInput("density", "Add density plot", value = FALSE),
+                  selectInput("select_sites", "Select number of sites to be plotted", choices = c("All combined", "Individual sites"))
+                     ),
               
-              fluidRow(
-                # Output: histograms
-                box(title = "Histograms", status = "warning", solidHeader = TRUE, width = 6, height = NULL,
-                      column(3,
-                             plotOutput("richness"), height = 150),
-                      column(3,
-                             plotOutput("prevalence"), height = 150))
-                    )
-              ),
+              # Output: histograms
+              box(title = "Histograms", status = "warning", solidHeader = TRUE, height = NULL, width = NULL,
+                  column(6,
+                         plotOutput("richness")),
+                  column(6,
+                         plotOutput("prevalence")))
+                    
+              ))),
       
       tabItem(tabName = "traitplots",
               fluidRow(
@@ -377,7 +381,7 @@ ui <-dashboardPage(
                               selected = "gower"),
                   
                   selectInput("eig.correction",
-                              label = "Correction method for negative eigenvalues",
+                              "Correction method for negative eigenvalues",
                               choices = c("Lingoes" = "lingoes",
                                           "Cailliez" = "cailliez")),
                   
@@ -461,6 +465,58 @@ ui <-dashboardPage(
                   )
       ),       
       
+    tabItem(tabName = "classical_rich",
+            # Input: functional richness parameters
+            fluidRow(
+              column(width = 6,
+              # Input: Select traits to plot
+              box(title = "Select two or more functional traits",
+                  status = "primary", solidHeader = TRUE, width = 4,
+                  checkboxGroupInput("traits_xy5", label = "", choices = NULL),
+                  textOutput("select.more.traits25")
+              ),
+              
+              box(title = "Functional richness inputs", status = "warning", solidHeader = TRUE,
+                  checkboxInput("w.abun", "Weight by species relative abundances?", value = TRUE),
+                  checkboxInput("stand.x", "Standardize continuous traits?", value = TRUE),
+                  checkboxInput("stand.FRic", "Standardize functional richness?", value = TRUE),
+                  selectInput("ord", "Method for ordinal traits", 
+                              choices = c("Podani" = "podani", 
+                                          "Metric" = "metric")),
+                  selectInput("corr", "Correction method for negative eigenvalues",
+                              choices = c("None" = "none",
+                                          "Lingoes" = "lingoes",
+                                          "Cailliez" = "cailliez",
+                                          "Square-root" = "sqrt")),
+                  selectInput("dist.metric4a",
+                              "Dissimilarity metric of the dendrograms",
+                              choices = c("Euclidean" = "euclidean",
+                                          "Gower" = "gower",
+                                          "Bray-Curtis" = "bray"),
+                              selected = "gower"),
+                  selectInput("cluster.method2",
+                              "Clustering dendrogram method",
+                              choices = c("Single" = "single",
+                                          "Complete" = "complete",
+                                          "Average" = "average",
+                                          "Ward" = "ward.D2"),
+                              selected = "average"),
+                  numericInput("class_rich.sites", "Number of sites to plot", value = 5)
+              )),
+            
+              column(width = 6,
+            # Output: functional richness
+            box(title = "Functional richness (Villeger et al. 2008)", status = "primary", solidHeader = TRUE,
+                plotOutput("class_FRic")),
+            
+            box(title = "Sum of dendrogram branch lengths", status = "primary", solidHeader = TRUE,
+            plotOutput("dendro_FRic")),
+            
+            box(title = "Beta functional richness (Cardoso et al. 2014)",
+                status = "primary", solidHeader = TRUE, 
+                plotOutput("beta_FRic"))
+            
+            ))),
                           
     tabItem(tabName = "hv_rich",
             
@@ -678,7 +734,7 @@ server <- function(input, output, session) {
     paste0("Number of traits = ", ncol(trait_dataset())-1)
   })
   
-  # Tab "Community data": Heatmap, rarefaction curves and histograms
+  # Tab "Community data": Heatmap, rarefaction curves, rank-abundance curves and histograms
   output$heatmap_community <- renderPlot({
     if(input$LogX1 == TRUE){
     pheatmap(log(community_dataset() + 1),
@@ -723,8 +779,38 @@ server <- function(input, output, session) {
     ggplot(xy, aes(x = subsample, y = value, color = site)) +
       theme_bw() +
       scale_color_discrete() +
-      geom_line(size = 0.8) +
+      geom_line(linewidth = 0.8) +
       xlab("Sample size") + ylab("Species richness")
+  })
+  
+  output$rank_curve <- renderPlot({
+    if(input$select_sites == "All combined"){
+      abu <- sort(colSums(community_dataset()), decreasing = TRUE)
+      rank_abundance <- data.frame(species = as.factor(names(abu)), abundance = abu)
+      rank_abundance$species <- reorder(rank_abundance$species, rank_abundance$abu, FUN = mean, decreasing = TRUE)
+    
+      ggplot(rank_abundance, aes(x = species, y = abundance, group = 1)) + geom_line() + 
+        geom_point(size = 4) + xlab("Species") + ylab("Abundance") +
+        theme(axis.text.x = element_text(angle = 90))
+  
+        } else {
+      
+      rank_abundance_list <- list()
+      ggplot_list <- list()
+      
+      for(i in 1:nrow(community_dataset())){
+        rank_site <- sort(community_dataset()[i, ], decreasing = TRUE)
+        rank_abundance_list[[i]] <- data.frame(species = colnames(rank_site), abundance = as.numeric(rank_site))
+        rank_abundance_list[[i]]$species <- reorder(rank_abundance_list[[i]]$species, rank_abundance_list[[i]]$abundance, FUN = mean, decreasing = TRUE)
+        
+        ggplot_list[[i]] <- ggplot(rank_abundance_list[[i]], aes(x = species, y = abundance, group = 1)) + geom_line() + 
+          geom_point(size = 4) + xlab("Species") + ylab("Abundance") + theme_bw() +
+          theme(axis.text.x = element_text(angle = 90))
+        
+      }
+      
+      ggarrange(plotlist = ggplot_list, labels = 1:nrow(community_dataset()))
+    }
   })
   
   output$richness <- renderPlot({
@@ -1126,7 +1212,83 @@ server <- function(input, output, session) {
       }
   })
   
-  ### Tab "Richness": Alpha
+  ### Tab "Classical richness": Alpha
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_xy5",
+                             choices = allColumns())
+  })
+  
+  output$select.more.traits25 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy5]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
+  })
+  
+  FRic.function <- reactive({
+    req(input$traits_xy5)
+    traits <- trait_dataset()[, input$traits_xy5]
+    rownames(traits) <- colnames(community_dataset())
+    
+    fd <- dbFD(x = traits, a = community_dataset(), w.abun = input$w.abun, 
+               stand.x = input$stand.x, ord = input$ord, 
+               corr = input$corr, stand.FRic = input$stand.FRic, calc.FGR = FALSE,
+               calc.CWM = FALSE, calc.FDiv = FALSE, messages = FALSE)
+    data.frame(site = 1:nrow(community_dataset()), FRic = fd$FRic)
+  })
+  
+  FDdendro.function <- reactive({
+    req(input$traits_xy5)
+    traits <- trait_dataset()[, input$traits_xy5]
+    rownames(traits) <- colnames(community_dataset())
+    
+    dist.matrix <- vegdist(traits, method = input$dist.metric4a, na.rm = TRUE)
+    cluster <- hclust(dist.matrix)
+    fd <- treedive(comm = community_dataset(), tree = cluster)
+    data.frame(site = 1:nrow(community_dataset()), FRic = fd)
+  })
+  
+  output$class_FRic <- renderPlot({
+    df <- FRic.function()
+    if(input$class_rich.sites > 15){
+      ggplot(data = df[1:input$class_rich.sites, ], aes(x = FRic)) + geom_histogram(bins = 5) +
+        xlab("Functional richness") + ylab("Frequency")
+    } else {
+      ggplot(data = df[1:input$class_rich.sites, ], aes(x = site, y = FRic)) + 
+        geom_bar(stat = "identity", fill = "steelblue") +
+        xlab("Site") + ylab("Functional richness") + theme_bw()
+    }
+  })
+  
+  output$dendro_FRic <- renderPlot({
+    df <- FDdendro.function()
+    if(input$class_rich.sites > 15){
+      ggplot(data = df, aes(x = FRic)) + geom_histogram(bins = 5) +
+        xlab("Sum of branch lengths") + ylab("Frequency")
+    } else {
+      ggplot(data = df[1:input$class_rich.sites, ], aes(x = site, y = FRic)) + 
+        geom_bar(stat = "identity", fill = "steelblue") +
+        xlab("Site") + ylab("Sum of branch lengths") + theme_bw()
+    }
+  })
+  
+  FRic_beta.function <- reactive({
+    req(input$traits_xy5)
+    traits <- trait_dataset()[, input$traits_xy5]
+    rownames(traits) <- colnames(community_dataset())
+    
+    dist.matrix <- vegdist(traits, method = input$dist.metric4a, na.rm = TRUE)
+    cluster <- hclust(dist.matrix)
+    
+    beta(comm = community_dataset(), tree = cluster, func = "Jaccard") 
+  })
+  
+  output$beta_FRic <- renderPlot({
+    pheatmap(as.matrix(beta()$Btotal.mean),
+             clustering_distance_rows = input$dist.metric4a,
+             clustering_distance_columns = input$dist.metric4a)
+  })
+  
+  ### Tab "Hypervolume richness": Alpha
   alpha.FD <- eventReactive(input$build.hv1, {
 
     kernelFD <- data.frame(site = numeric(0), FD = numeric(0))
