@@ -9,6 +9,7 @@ library(ggpubr) # 0.6.0
 library(factoextra) # 1.0.7
 library(pheatmap) #1.0.12
 library(vegan) #2.5-6
+library(NbClust) #3.0.1
 library(FD) #1.0-12.1
 library(alphahull) #2.2
 library(hypervolume) #2.0.12
@@ -31,7 +32,7 @@ ui <-dashboardPage(
                menuItem("Univariate trait plots", tabName = "traitplots"),
                menuItem("Collinearity", tabName = "collinearity"),
                menuItem("Missing data", tabName = "missingdata"),
-               menuItem("Multivariate trait spaces", tabName = "traitspace",
+               menuItem("Functional trait spaces", tabName = "traitspace",
                         menuSubItem("Functional dendrogram", tabName = "fundend"),
                         menuSubItem("Functional ordination", tabName = "funord"),
                         menuSubItem("Hypervolumes", tabName = "funhv"))),
@@ -315,7 +316,7 @@ ui <-dashboardPage(
       tabItem(tabName = "fundend",
               # Input: Select traits to plot
               box(title = "Select two or more functional traits",
-                  status = "primary", solidHeader = TRUE, width = 6,
+                  status = "primary", solidHeader = TRUE, width = 4,
                   checkboxGroupInput("traits_xy2", label = "", choices = NULL),
                   checkboxInput("remove.na1", label = "Remove rows with missing data?",
                                 value = FALSE),
@@ -325,7 +326,7 @@ ui <-dashboardPage(
               
               # Inputs: dendrogram inputs
               box(title = "Dendrogram inputs",
-                  status = "primary", solidHeader = TRUE, width = 6,
+                  status = "primary", solidHeader = TRUE, width = 4,
                   
                   selectInput("dist.metric2",
                                label = "Dissimilarity metric",
@@ -344,10 +345,22 @@ ui <-dashboardPage(
                                selected = "average")
               ),
               
-              box(title = "Functional groups",
+              box(title = "Functional group inputs",
                   status = "primary", solidHeader = TRUE,
                   numericInput("k.groups", "Number of functional groups",
                                min = 2, value = 3),
+                  
+                  checkboxInput("k.groups.optim", "Optimal number of functional groups",
+                                value = FALSE),
+                  conditionalPanel(
+                    condition = "input.k.groups.optim == 1",   
+                    selectInput("optim.group.method", "Method to find the optimal number of functional groups",
+                                choices = c("KL", "CH", "Hartigan", "CCC", "Scott", "Marriot", 
+                                            "TrCovW", "TraceW", "Friedman", "Rubin", "Cindex",
+                                            "DB", "Silhouette", "Duda", "PseudoT2", "Beale", 
+                                            "Ratkowsky", "Ball", "PtBiserial", "Frey", "McClain",
+                                            "Dunn", "Hubert", "SDindex", "Dindex", "SDbw"))), 
+                  
                   sliderInput("label.size", "Label size", 
                               min = 0.1, max = 1.5, value = 0.5),
                   checkboxInput("rectangle", "Draw rectangles",
@@ -476,11 +489,11 @@ ui <-dashboardPage(
                   textOutput("select.more.traits25")
               ),
               
-              box(title = "Functional richness inputs", status = "warning", solidHeader = TRUE,
+              box(title = "Alpha functional richness inputs", status = "primary", solidHeader = TRUE,
                   checkboxInput("w.abun", "Weight by species relative abundances?", value = TRUE),
                   checkboxInput("stand.x", "Standardize continuous traits?", value = TRUE),
                   checkboxInput("stand.FRic", "Standardize functional richness?", value = TRUE),
-                  selectInput("ord", "Method for ordinal traits", 
+                  selectInput("ord", "Method for handling ordinal traits", 
                               choices = c("Podani" = "podani", 
                                           "Metric" = "metric")),
                   selectInput("corr", "Correction method for negative eigenvalues",
@@ -501,20 +514,42 @@ ui <-dashboardPage(
                                           "Average" = "average",
                                           "Ward" = "ward.D2"),
                               selected = "average"),
-                  numericInput("class_rich.sites", "Number of sites to plot", value = 5)
-              )),
+                  numericInput("class_rich.sites", "Number of sites to plot", value = 5)),
+              
+              box(title = "Beta functional richness inputs", status = "primary", solidHeader = TRUE,
+                selectInput("sim.beta.rich1", label = "Similarity metric to compute richness",
+                               choices = c("Jaccard" = "jaccard", 
+                                           "Sorensen" = "sorensen"),
+                               selected = "jaccard"),
+                
+                selectInput("dist.metric4b",
+                            label = "Dissimilarity or correlation metric",
+                            choices = c("Euclidean" = "euclidean", 
+                                        "Manhattan" = "manhattan", 
+                                        "Correlation" = "correlation"),
+                            selected = "euclidean"))
+              
+              ),
             
               column(width = 6,
             # Output: functional richness
-            box(title = "Functional richness (Villeger et al. 2008)", status = "primary", solidHeader = TRUE,
+            box(title = "Functional richness (Villéger et al. 2008)", status = "warning", solidHeader = TRUE,
                 plotOutput("class_FRic")),
             
-            box(title = "Sum of dendrogram branch lengths", status = "primary", solidHeader = TRUE,
+            box(title = "Sum of dendrogram branch lengths", status = "warning", solidHeader = TRUE,
             plotOutput("dendro_FRic")),
             
-            box(title = "Beta functional richness (Cardoso et al. 2014)",
-                status = "primary", solidHeader = TRUE, 
-                plotOutput("beta_FRic"))
+            box(title = "Beta functional diversity (Cardoso et al. 2014)",
+                status = "warning", solidHeader = TRUE, 
+                plotOutput("betaTot_FRic")),
+            
+            box(title = "Turnover component (Cardoso et al. 2014)",
+                status = "warning", solidHeader = TRUE, 
+                plotOutput("betaRep_FRic")),
+            
+            box(title = "Species richness component (Cardoso et al. 2014)",
+                status = "warning", solidHeader = TRUE, 
+                plotOutput("betaRich_FRic"))
             
             ))),
                           
@@ -526,7 +561,7 @@ ui <-dashboardPage(
                 ),
                    
             # Inputs: similarity metric
-            box(title = "Functional richness inputs", status = "primary", solidHeader = TRUE,
+            box(title = "Beta functional richness inputs", status = "primary", solidHeader = TRUE,
                 selectInput("sim.beta.rich", label = "Similarity metric to compute richness",
                              choices = c("Jaccard" = "jaccard", 
                                          "Sorensen" = "sorensen"),
@@ -540,6 +575,7 @@ ui <-dashboardPage(
                             selected = "euclidean")
                 )),
             
+            # Outpus: hypervolume beta
             box(title = "Beta functional diversity", status = "warning", solidHeader = TRUE,
                 plotOutput("total.beta")
                 ),
@@ -553,8 +589,77 @@ ui <-dashboardPage(
                 ),
     ),
     
+    tabItem(tabName = "classical_reg",
+            # Input: functional evenness parameters
+            fluidRow(
+              column(width = 6,
+                     # Input: Select traits to plot
+                     box(title = "Select two or more functional traits",
+                         status = "primary", solidHeader = TRUE, width = 4,
+                         checkboxGroupInput("traits_xy6", label = "", choices = NULL),
+                         textOutput("select.more.traits26")
+                     ),
+                     
+                     box(title = "Alpha functional regularity inputs", status = "primary", solidHeader = TRUE,
+                         checkboxInput("w.abun1", "Weight by species relative abundances?", value = TRUE),
+                         
+                         checkboxInput("stand.x1", "Standardize continuous traits?", value = TRUE),
+                         
+                         selectInput("ord1", "Method for handling ordinal traits", 
+                                     choices = c("Podani" = "podani", 
+                                                 "Metric" = "metric")),
+                         
+                         selectInput("corr1", "Correction method for negative eigenvalues",
+                                     choices = c("None" = "none",
+                                                 "Lingoes" = "lingoes",
+                                                 "Cailliez" = "cailliez",
+                                                 "Square-root" = "sqrt")),
+                         
+                         numericInput("class_eve.sites", "Number of sites to plot", value = 5)),
+                     
+                     box(title = "Beta functional evenness inputs", status = "primary", solidHeader = TRUE,
+                         checkboxInput("w.abun2", "Weight by species relative abundances?", value = TRUE),
+                         
+                         selectInput("dist.metric4c",
+                                     "Dissimilarity metric of the dendrograms",
+                                     choices = c("Euclidean" = "euclidean",
+                                                 "Gower" = "gower",
+                                                 "Bray-Curtis" = "bray"),
+                                     selected = "gower"),
+                         
+                         selectInput("methodEve", label = "Method to compute evenness",
+                                     choices = c("Expected values" = "expected", 
+                                                 "Contribution of species to the tree" = "contribution"),
+                                     selected = "expected"),
+                         
+                         selectInput("indexEve",
+                                     label = "Index to compute evenness",
+                                     choices = c("Camargo" = "camargo", 
+                                                 "Bulla" = "bulla"),
+                                     selected = "camargo"),
+                     
+                         selectInput("dist.metric4d",
+                                     label = "Dissimilarity or correlation metric of the dendrograms",
+                                     choices = c("Euclidean" = "euclidean", 
+                                                 "Manhattan" = "manhattan",
+                                                 "Correlation" = "correlation"),
+                                     selected = "euclidean")
+                     
+              )),
+              
+              column(width = 6,
+                     # Output: functional evenness
+                     box(title = "Functional evenness (Villéger et al. 2008)", status = "warning", solidHeader = TRUE,
+                         plotOutput("class_FEve")),
+                     
+                     box(title = "Beta functional evenness (Cardoso et al. 2014)",
+                         status = "warning", solidHeader = TRUE, 
+                         plotOutput("betaEve"))
+                     
+              ))
+    ),
+    
     tabItem(tabName = "hv_reg",
-            
             fluidRow(width = 6,
             box(title = "Functional regularity inputs", status = "primary", solidHeader = TRUE, 
                 selectInput("dist.metric5",
@@ -575,6 +680,44 @@ ui <-dashboardPage(
                 )
             
             ),
+    
+    tabItem(tabName = "classical_diverg",
+            # Input: functional evenness parameters
+            fluidRow(
+              column(width = 6,
+                     # Input: Select traits to plot
+                     box(title = "Select two or more functional traits",
+                         status = "primary", solidHeader = TRUE, width = 4,
+                         checkboxGroupInput("traits_xy7", label = "", choices = NULL),
+                         textOutput("select.more.traits27")
+                     ),
+                     
+                     box(title = "Functional divergence inputs", status = "primary", solidHeader = TRUE,
+                         checkboxInput("w.abun3", "Weight by species relative abundances?", value = TRUE),
+                         
+                         checkboxInput("stand.x3", "Standardize continuous traits?", value = TRUE),
+                         
+                         selectInput("ord3", "Method for handling ordinal traits", 
+                                     choices = c("Podani" = "podani", 
+                                                 "Metric" = "metric")),
+                         
+                         selectInput("corr3", "Correction method for negative eigenvalues",
+                                     choices = c("None" = "none",
+                                                 "Lingoes" = "lingoes",
+                                                 "Cailliez" = "cailliez",
+                                                 "Square-root" = "sqrt")),
+                         
+                         numericInput("class_diverg.sites", "Number of sites to plot", value = 5))
+                     
+                    ),
+              
+              column(width = 6,
+                     # Output: functional divergence
+                     box(title = "Functional divergence (Villéger et al. 2008)", status = "warning", solidHeader = TRUE,
+                         plotOutput("class_FDiv"))
+                     
+              ))
+    ),
     
     tabItem(tabName = "hv_diverg",
       
@@ -1015,6 +1158,7 @@ server <- function(input, output, session) {
       validate("Please select 2 or more traits")
   })
   
+    
   output$dendrogram <- renderPlot({
     req(input$traits_xy2)
     selected.traits <- trait_dataset()[, input$traits_xy2]
@@ -1036,6 +1180,21 @@ server <- function(input, output, session) {
       rownames(traits2) <- make.names(trait_dataset()[, 1], unique = TRUE)
     }
     
+    if(input$k.groups.optim == TRUE){
+    dist.matrix <- dist(traits2, method = "euclidean")
+    cluster <- hclust(dist.matrix, method = "average")
+    optim.clusters <- NbClust(traits2, distance = "euclidean", method = "average", index = "all")
+    n.clusters <- optim.clusters$Best.nc[1, input$optim.group.method]
+    
+    fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
+              k = n.clusters, color_labels_by_k = TRUE, 
+              rect = input$rectangle, rect_fill = input$rectangle,
+              xlab = "Species", ylab = "Euclidean distance (UPGMA)",
+              ggtheme = theme_minimal(),
+              sub = paste0("Optimal number of clusters = ", n.clusters))
+      
+  } else {
+      
     dist.matrix <- vegdist(traits2, method = input$dist.metric2, na.rm = TRUE)
     cluster <- hclust(dist.matrix, method = input$cluster.method)
     fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
@@ -1043,9 +1202,11 @@ server <- function(input, output, session) {
               rect = input$rectangle, rect_fill = input$rectangle,
               xlab = "Species", ylab = "Dissimilarity",
               ggtheme = theme_minimal())
+  }
+    
   })
   
-  output$select.more.traits23 <- renderText({
+    output$select.more.traits23 <- renderText({
     traits <- trait_dataset()[ , input$traits_xy3]
     if(is.numeric(traits) == TRUE)
       validate("Please select 2 or more traits")
@@ -1233,7 +1394,9 @@ server <- function(input, output, session) {
                stand.x = input$stand.x, ord = input$ord, 
                corr = input$corr, stand.FRic = input$stand.FRic, calc.FGR = FALSE,
                calc.CWM = FALSE, calc.FDiv = FALSE, messages = FALSE)
-    data.frame(site = 1:nrow(community_dataset()), FRic = fd$FRic)
+    fd_list <- list(df = data.frame(site = 1:nrow(community_dataset()), FRic = fd$FRic),
+                    qual.FRic = fd$qual.FRic)
+    fd_list
   })
   
   FDdendro.function <- reactive({
@@ -1248,14 +1411,17 @@ server <- function(input, output, session) {
   })
   
   output$class_FRic <- renderPlot({
-    df <- FRic.function()
+    fd_list <- FRic.function()
+    dat <- fd_list$df[1:input$class_rich.sites, ]
     if(input$class_rich.sites > 15){
-      ggplot(data = df[1:input$class_rich.sites, ], aes(x = FRic)) + geom_histogram(bins = 5) +
-        xlab("Functional richness") + ylab("Frequency")
+      ggplot(data = dat, aes(x = FRic)) + geom_histogram(bins = 5) +
+        xlab("Functional richness") + ylab("Frequency") +
+        ggtitle(paste0("Quality of the reduced trait space = ", round(fd_list$qual.FRic, 2)))
     } else {
-      ggplot(data = df[1:input$class_rich.sites, ], aes(x = site, y = FRic)) + 
+      ggplot(data = dat, aes(x = site, y = FRic)) + 
         geom_bar(stat = "identity", fill = "steelblue") +
-        xlab("Site") + ylab("Functional richness") + theme_bw()
+        xlab("Site") + ylab("Functional richness") + theme_bw() +
+        ggtitle(paste0("Quality of the reduced trait space = ", round(fd_list$qual.FRic, 2)))
     }
   })
   
@@ -1279,13 +1445,26 @@ server <- function(input, output, session) {
     dist.matrix <- vegdist(traits, method = input$dist.metric4a, na.rm = TRUE)
     cluster <- hclust(dist.matrix)
     
-    beta(comm = community_dataset(), tree = cluster, func = "Jaccard") 
+    comm <- community_dataset()[1:input$class_rich.sites, ]
+    beta(comm = comm, tree = cluster, func = input$sim.beta.rich1) 
   })
   
-  output$beta_FRic <- renderPlot({
-    pheatmap(as.matrix(beta()$Btotal.mean),
-             clustering_distance_rows = input$dist.metric4a,
-             clustering_distance_columns = input$dist.metric4a)
+  output$betaTot_FRic <- renderPlot({
+    pheatmap(as.matrix(FRic_beta.function()$Btotal),
+             clustering_distance_rows = input$dist.metric4b,
+             clustering_distance_columns = input$dist.metric4b)
+  })
+  
+  output$betaRep_FRic <- renderPlot({
+    pheatmap(as.matrix(FRic_beta.function()$Brepl),
+             clustering_distance_rows = input$dist.metric4b,
+             clustering_distance_columns = input$dist.metric4b)
+  })
+  
+  output$betaRich_FRic <- renderPlot({
+    pheatmap(as.matrix(FRic_beta.function()$Brich),
+             clustering_distance_rows = input$dist.metric4b,
+             clustering_distance_columns = input$dist.metric4b)
   })
   
   ### Tab "Hypervolume richness": Alpha
@@ -1305,7 +1484,6 @@ server <- function(input, output, session) {
         kernelFD
   })
     
-  
   output$alpha.hv.FD <- renderPlot({
     df <- alpha.FD()
     if(input$hv.sites > 15){
@@ -1319,7 +1497,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Tab "Richness": Beta
+  # Tab "Hypervolume richness": Beta
   beta.FD <- eventReactive(input$build.hv1, {
     waiter <- Waiter$new()
     waiter$show()
@@ -1347,7 +1525,63 @@ server <- function(input, output, session) {
                        clustering_distance_columns = input$dist.metric4)
   })
   
-  # Tab: "Regularity"
+  # Tab: "Regularity" classical metrics
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_xy6",
+                             choices = allColumns())
+  })
+  
+  output$select.more.traits26 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy6]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
+  })
+  
+  FReg.function <- reactive({
+    req(input$traits_xy6)
+    traits <- trait_dataset()[, input$traits_xy6]
+    rownames(traits) <- colnames(community_dataset())
+    
+    fd <- dbFD(x = traits, a = community_dataset(), w.abun = input$w.abun1, 
+               stand.x = input$stand.x1, ord = input$ord1, 
+               corr = input$corr1, calc.FRic = FALSE, calc.FGR = FALSE,
+               calc.CWM = FALSE, calc.FDiv = FALSE, messages = FALSE)
+    data.frame(site = 1:nrow(community_dataset()), FEve = fd$FEve)
+  })
+  
+  output$class_FEve <- renderPlot({
+    df <- FReg.function()[1:input$class_eve.sites, ]
+    if(input$class_eve.sites > 15){
+      ggplot(data = df, aes(x = FEve)) + geom_histogram(bins = 5) +
+        xlab("Functional evenness") + ylab("Frequency")
+    } else {
+      ggplot(data = df, aes(x = site, y = FEve)) + 
+        geom_bar(stat = "identity", fill = "steelblue") +
+        xlab("Site") + ylab("Functional eveness") + theme_bw()
+    }
+  })
+  
+  FEve_beta.function <- reactive({
+    req(input$traits_xy6)
+    traits <- trait_dataset()[, input$traits_xy6]
+    rownames(traits) <- colnames(community_dataset())
+    
+    dist.matrix <- vegdist(traits, method = input$dist.metric4c, na.rm = TRUE)
+    cluster <- hclust(dist.matrix)
+    
+    comm <- as.matrix(community_dataset()[1:input$class_eve.sites, ])
+    beta.evenness(comm = comm, tree = cluster, abund = input$w.abun2, 
+                  method = input$methodEve, func = input$indexEve) 
+  })
+  
+  output$betaEve <- renderPlot({
+    pheatmap(as.matrix(FEve_beta.function()),
+             clustering_distance_rows = input$dist.metric4d,
+             clustering_distance_columns = input$dist.metric4d)
+  })
+  
+  
+  # Tab: "Regularity" hypervolumes
   alpha.reg.hv <- eventReactive(input$build.hv2, {
     
     kernel.reg.alpha <- data.frame(site = numeric(0), FD = numeric(0))
@@ -1388,7 +1622,43 @@ server <- function(input, output, session) {
              clustering_distance_columns = input$dist.metric5)
   })
   
-  # Tab: "Divergence"
+  # Tab: "Divergence" classical metrics
+  observe({
+    updateCheckboxGroupInput(session, inputId = "traits_xy7",
+                             choices = allColumns())
+  })
+  
+  output$select.more.traits27 <- renderText({
+    traits <- trait_dataset()[ , input$traits_xy7]
+    if(is.numeric(traits) == TRUE)
+      validate("Please select 2 or more traits")
+  })
+  
+  FDiv.function <- reactive({
+    req(input$traits_xy7)
+    traits <- trait_dataset()[, input$traits_xy7]
+    rownames(traits) <- colnames(community_dataset())
+    
+    fd <- dbFD(x = traits, a = community_dataset(), w.abun = input$w.abun3, 
+               stand.x = input$stand.x3, ord = input$ord3, 
+               corr = input$corr3, calc.FRic = TRUE, calc.FGR = FALSE,
+               calc.CWM = FALSE, calc.FDiv = TRUE, messages = FALSE)
+    data.frame(site = 1:nrow(community_dataset()), FDiv = fd$FDiv)
+  })
+  
+  output$class_FDiv <- renderPlot({
+    df <- FDiv.function()[1:input$class_diverg.sites, ]
+    if(input$class_diverg.sites > 15){
+      ggplot(data = df, aes(x = FDiv)) + geom_histogram(bins = 5) +
+        xlab("Functional divergence") + ylab("Frequency")
+    } else {
+      ggplot(data = df, aes(x = site, y = FDiv)) + 
+        geom_bar(stat = "identity", fill = "steelblue") +
+        xlab("Site") + ylab("Functional divergence") + theme_bw()
+    }
+  })
+  
+  # Tab: "Divergence" hypervolumes
   div.hv <- eventReactive(input$build.hv3, {
     
     kernel.div <- data.frame(site = numeric(0), FD = numeric(0))
