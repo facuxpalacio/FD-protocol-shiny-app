@@ -15,7 +15,7 @@ The web-based application is entirely based on Shiny, an open source R package (
 
 **Community data**
 
-In this section, the user can upload a data frame of sampling units (sites) as rows and species data as columns (where the table contains data on species occurrence or abundance; in the ecological jargon termed ‘community matrix’), and see how the data looks. Once the data are loaded, a dynamic table with the first 10 (25, 50 or 100) rows will be displayed. The dimensions of this data frame (number of units and number of species) are also shown.
+In this section, the user can upload a data frame of sampling units (sites) as rows and species data as columns (where the table contains data on species occurrence or abundance; in the ecological jargon termed ‘community matrix’), and see how the data looks. Once the data are loaded, a dynamic table with the first 10 (25, 50 or 100) rows will be displayed. The dimensions of this data frame (number of units and number of species) are also shown. This matrix can include factor columns (e.g. site or time labels), but the summary will be performed only on continuous variables.
  
 **Trait data**
 
