@@ -1394,13 +1394,13 @@ server <- function(input, output, session) {
   FRic.function <- reactive({
     req(input$traits_xy5)
     traits <- trait_dataset()[, input$traits_xy5]
-    rownames(traits) <- colnames(community_dataset())
+    rownames(traits) <- colnames(numeric_vars())
     
-    fd <- dbFD(x = traits, a = community_dataset(), w.abun = input$w.abun, 
+    fd <- dbFD(x = traits, a = numeric_vars(), w.abun = input$w.abun, 
                stand.x = input$stand.x, ord = input$ord, 
                corr = input$corr, stand.FRic = input$stand.FRic, calc.FGR = FALSE,
                calc.CWM = FALSE, calc.FDiv = FALSE, messages = FALSE)
-    fd_list <- list(df = data.frame(site = 1:nrow(community_dataset()), FRic = fd$FRic),
+    fd_list <- list(df = data.frame(site = 1:nrow(numeric_vars()), FRic = fd$FRic),
                     qual.FRic = fd$qual.FRic)
     fd_list
   })
@@ -1408,12 +1408,12 @@ server <- function(input, output, session) {
   FDdendro.function <- reactive({
     req(input$traits_xy5)
     traits <- trait_dataset()[, input$traits_xy5]
-    rownames(traits) <- colnames(community_dataset())
+    rownames(traits) <- colnames(numeric_vars())
     
     dist.matrix <- vegdist(traits, method = input$dist.metric4a, na.rm = TRUE)
     cluster <- hclust(dist.matrix)
-    fd <- treedive(comm = community_dataset(), tree = cluster)
-    data.frame(site = 1:nrow(community_dataset()), FRic = fd)
+    fd <- treedive(comm = numeric_vars(), tree = cluster)
+    data.frame(site = 1:nrow(numeric_vars()), FRic = fd)
   })
   
   output$class_FRic <- renderPlot({
@@ -1446,12 +1446,12 @@ server <- function(input, output, session) {
   FRic_beta.function <- reactive({
     req(input$traits_xy5)
     traits <- trait_dataset()[, input$traits_xy5]
-    rownames(traits) <- colnames(community_dataset())
+    rownames(traits) <- colnames(numeric_vars())
     
     dist.matrix <- vegdist(traits, method = input$dist.metric4a, na.rm = TRUE)
     cluster <- hclust(dist.matrix)
     
-    comm <- community_dataset()[1:input$class_rich.sites, ]
+    comm <- numeric_vars()[1:input$class_rich.sites, ]
     beta(comm = comm, tree = cluster, func = input$sim.beta.rich1) 
   })
   
@@ -1546,13 +1546,13 @@ server <- function(input, output, session) {
   FReg.function <- reactive({
     req(input$traits_xy6)
     traits <- trait_dataset()[, input$traits_xy6]
-    rownames(traits) <- colnames(community_dataset())
+    rownames(traits) <- colnames(numeric_vars())
     
-    fd <- dbFD(x = traits, a = community_dataset(), w.abun = input$w.abun1, 
+    fd <- dbFD(x = traits, a = numeric_vars(), w.abun = input$w.abun1, 
                stand.x = input$stand.x1, ord = input$ord1, 
                corr = input$corr1, calc.FRic = FALSE, calc.FGR = FALSE,
                calc.CWM = FALSE, calc.FDiv = FALSE, messages = FALSE)
-    data.frame(site = 1:nrow(community_dataset()), FEve = fd$FEve)
+    data.frame(site = 1:nrow(numeric_vars()), FEve = fd$FEve)
   })
   
   output$class_FEve <- renderPlot({
@@ -1570,12 +1570,12 @@ server <- function(input, output, session) {
   FEve_beta.function <- reactive({
     req(input$traits_xy6)
     traits <- trait_dataset()[, input$traits_xy6]
-    rownames(traits) <- colnames(community_dataset())
+    rownames(traits) <- colnames(numeric_vars())
     
     dist.matrix <- vegdist(traits, method = input$dist.metric4c, na.rm = TRUE)
     cluster <- hclust(dist.matrix)
     
-    comm <- as.matrix(community_dataset()[1:input$class_eve.sites, ])
+    comm <- as.matrix(numeric_vars()[1:input$class_eve.sites, ])
     beta.evenness(comm = comm, tree = cluster, abund = input$w.abun2, 
                   method = input$methodEve, func = input$indexEve) 
   })
@@ -1643,13 +1643,13 @@ server <- function(input, output, session) {
   FDiv.function <- reactive({
     req(input$traits_xy7)
     traits <- trait_dataset()[, input$traits_xy7]
-    rownames(traits) <- colnames(community_dataset())
+    rownames(traits) <- colnames(numeric_vars())
     
-    fd <- dbFD(x = traits, a = community_dataset(), w.abun = input$w.abun3, 
+    fd <- dbFD(x = traits, a = numeric_vars(), w.abun = input$w.abun3, 
                stand.x = input$stand.x3, ord = input$ord3, 
                corr = input$corr3, calc.FRic = TRUE, calc.FGR = FALSE,
                calc.CWM = FALSE, calc.FDiv = TRUE, messages = FALSE)
-    data.frame(site = 1:nrow(community_dataset()), FDiv = fd$FDiv)
+    data.frame(site = 1:nrow(numeric_vars()), FDiv = fd$FDiv)
   })
   
   output$class_FDiv <- renderPlot({
