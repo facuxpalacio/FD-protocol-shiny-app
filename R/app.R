@@ -848,11 +848,17 @@ server <- function(input, output, session) {
   output$trait_table <- renderDataTable(trait_dataset(),
                                         options = list(pageLength = 10)) 
   
-  # Tab "Summary": Create a summary of the data 
-  output$summary_community <- renderDataTable(data.frame(Species = colnames(community_dataset()),
-                                                         Mean = apply(community_dataset(), 2, function(x) round(mean(x, na.rm = T), 2)),
-                                                         Standard_deviation = apply(community_dataset(), 2, function(x) round(sd(x, na.rm = T), 2)),
-                                                         Coefficient_of_variation = apply(community_dataset(), 2, function(x) round(sd(x, na.rm = T)/mean(x, na.rm = T), 2))
+  # Tab "Summary": Create a summary of the data (only numeric variables)
+  numeric_vars <- reactive({
+    df <- community_dataset()
+    vars <- colnames(df)[sapply(df, function(x) is.numeric(x))]
+    df[, vars]
+  })
+  
+  output$summary_community <- renderDataTable(data.frame(Species = colnames(numeric_vars()),
+                                                         Mean = apply(numeric_vars(), 2, function(x) round(mean(x, na.rm = T), 2)),
+                                                         Standard_deviation = apply(numeric_vars(), 2, function(x) round(sd(x, na.rm = T), 2)),
+                                                         Coefficient_of_variation = apply(numeric_vars(), 2, function(x) round(sd(x, na.rm = T)/mean(x, na.rm = T), 2))
                                                          ))
   
   output$summary_trait <- renderDataTable(data.frame(Trait = colnames(trait_dataset()),
@@ -866,7 +872,7 @@ server <- function(input, output, session) {
   })
   
   output$ncol_community <- renderText({
-    paste0("Number of species = ", ncol(community_dataset()))
+    paste0("Number of species = ", ncol(numeric_vars()))
   })
   
   output$nrow_traits <- renderText({
@@ -880,24 +886,24 @@ server <- function(input, output, session) {
   # Tab "Community data": Heatmap, rarefaction curves, rank-abundance curves and histograms
   output$heatmap_community <- renderPlot({
     if(input$LogX1 == TRUE){
-    pheatmap(log(community_dataset() + 1),
+    pheatmap(log(numeric_vars() + 1),
              clustering_distance_rows = input$dist.metric1,
              clustering_distance_columns = input$dist.metric1)
       if(input$savePlot)
       {
         name <- paste0('../output/',input$filename, "_log10.pdf")
-        ggsave(name,pheatmap(log(community_dataset() + 1,
+        ggsave(name,pheatmap(log(numeric_vars() + 1,
                                  clustering_distance_rows = input$dist.metric1,
                                  clustering_distance_columns = input$dist.metric1)), device="pdf")
       }
     } else {
-      pheatmap(community_dataset(), 
+      pheatmap(numeric_vars(), 
                clustering_distance_rows = input$dist.metric1,
                clustering_distance_columns = input$dist.metric1)
       if(input$savePlot)
       {
         name <- paste0('../output/',input$filename, ".pdf")
-        ggsave(name,pheatmap(community_dataset(),
+        ggsave(name,pheatmap(numeric_vars(),
                              clustering_distance_rows = input$dist.metric1,
                              clustering_distance_columns = input$dist.metric1), device="pdf")
     }
@@ -905,8 +911,8 @@ server <- function(input, output, session) {
   })
 
   output$rarefaction_curves <- renderPlot({
-    raref.curve <- rarecurve(community_dataset())
-    names(raref.curve) <- paste("site", 1:nrow(community_dataset()), 
+    raref.curve <- rarecurve(numeric_vars())
+    names(raref.curve) <- paste("site", 1:nrow(numeric_vars()), 
                                 sep = "")
     
     list.long <- mapply(FUN = function(x, y) {
@@ -928,7 +934,7 @@ server <- function(input, output, session) {
   
   output$rank_curve <- renderPlot({
     if(input$select_sites == "All combined"){
-      abu <- sort(colSums(community_dataset()), decreasing = TRUE)
+      abu <- sort(colSums(numeric_vars()), decreasing = TRUE)
       rank_abundance <- data.frame(species = as.factor(names(abu)), abundance = abu)
       rank_abundance$species <- reorder(rank_abundance$species, rank_abundance$abu, FUN = mean, decreasing = TRUE)
     
@@ -941,8 +947,8 @@ server <- function(input, output, session) {
       rank_abundance_list <- list()
       ggplot_list <- list()
       
-      for(i in 1:nrow(community_dataset())){
-        rank_site <- sort(community_dataset()[i, ], decreasing = TRUE)
+      for(i in 1:nrow(numeric_vars())){
+        rank_site <- sort(numeric_vars()[i, ], decreasing = TRUE)
         rank_abundance_list[[i]] <- data.frame(species = colnames(rank_site), abundance = as.numeric(rank_site))
         rank_abundance_list[[i]]$species <- reorder(rank_abundance_list[[i]]$species, rank_abundance_list[[i]]$abundance, FUN = mean, decreasing = TRUE)
         
@@ -952,12 +958,12 @@ server <- function(input, output, session) {
         
       }
       
-      ggarrange(plotlist = ggplot_list, labels = 1:nrow(community_dataset()))
+      ggarrange(plotlist = ggplot_list, labels = 1:nrow(numeric_vars()))
     }
   })
   
   output$richness <- renderPlot({
-    nspp <- data.frame(richness = rowSums(community_dataset()))
+    nspp <- data.frame(richness = rowSums(numeric_vars()))
     if(input$density == TRUE){
     ggplot(data = nspp, aes(x = richness)) + 
       geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
@@ -971,7 +977,7 @@ server <- function(input, output, session) {
   })
   
   output$prevalence <- renderPlot({
-    PA.comm <- 1*(community_dataset()>0)
+    PA.comm <- 1*(numeric_vars()>0)
     nsites <- nrow(PA.comm)
     abundance <- colSums(PA.comm)
     prev <- data.frame(prevalence = abundance/nsites)
