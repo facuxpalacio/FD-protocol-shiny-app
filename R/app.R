@@ -418,25 +418,23 @@ ui <-dashboardPage(
               box(title = "% variance explained", status = "warning", 
                   solidHeader = TRUE, width = NULL,
                   numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
-                  tableOutput("var.explained.pcoa"), 
+                  tableOutput("var.explained.pcoa") 
                   ),
               
               # Input: eigenvalues plot
               box(title = "Screeplot inputs", status = "primary", 
                   solidHeader = TRUE, width = NULL,
                   numericInput("axes.eigenvalues", "Number of axes to plot",
-                              min = 2, value = 5)
-                  ))),
+                              min = 2, value = 5),
+                  selectInput("which.screeplot", label = "Eigenvalues to plot",
+                              choices = c("Raw eigenvalues" = "raw_eig", 
+                                          "Relative eigenvalues" = "rel_eig"))),
+                  )),
               
               # Output: eigenvalues
-              fluidRow(
-                box(title = "Screeplots", 
-                    status = "warning", solidHeader = TRUE, height = NULL, width = 12,
-                    column(6,
-                           plotOutput("raw_eigenvalues"), height = 150),
-                    column(6,
-                           plotOutput("rel_eigenvalues"), height = 150)
-                ))
+                box(title = "Screeplot", 
+                    status = "warning", solidHeader = TRUE, height = NULL, width = 6,
+                           plotOutput("scree"))
               ),
               
       tabItem(tabName = "funhv",
@@ -593,12 +591,6 @@ ui <-dashboardPage(
             # Input: functional evenness parameters
             fluidRow(
               column(width = 6,
-                     # Input: Select traits to plot
-                     box(title = "Select two or more functional traits",
-                         status = "primary", solidHeader = TRUE, width = 4,
-                         checkboxGroupInput("traits_xy6", label = "", choices = NULL),
-                         textOutput("select.more.traits26")
-                     ),
                      
                      box(title = "Alpha functional regularity inputs", status = "primary", solidHeader = TRUE,
                          checkboxInput("w.abun1", "Weight by species relative abundances?", value = TRUE),
@@ -685,12 +677,6 @@ ui <-dashboardPage(
             # Input: functional evenness parameters
             fluidRow(
               column(width = 6,
-                     # Input: Select traits to plot
-                     box(title = "Select two or more functional traits",
-                         status = "primary", solidHeader = TRUE, width = 4,
-                         checkboxGroupInput("traits_xy7", label = "", choices = NULL),
-                         textOutput("select.more.traits27")
-                     ),
                      
                      box(title = "Functional divergence inputs", status = "primary", solidHeader = TRUE,
                          checkboxInput("w.abun3", "Weight by species relative abundances?", value = TRUE),
@@ -1295,7 +1281,9 @@ server <- function(input, output, session) {
   })
   
   # Screeplots
-  output$raw_eigenvalues <- renderPlot({
+  output$scree <- renderPlot({
+    
+    if(input$which.screeplot == "raw_eig"){
     pco <- pcoa.function()
     pcoa.eig <- pco$pcoa.eig
     
@@ -1303,11 +1291,12 @@ server <- function(input, output, session) {
     df <- data.frame(axis = 1:naxes, eig = pcoa.eig[1:naxes])
     ggplot(data = df, aes(x = axis, y = eig)) +
       geom_bar(stat = "identity", fill = "steelblue") +
+      geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
       xlab("Component") + ylab("Raw eigenvalue") +
       theme_minimal()
-  })
   
-  output$rel_eigenvalues <- renderPlot({
+  } else {
+  
     pco <- pcoa.function()
     pcoa.eig <- pco$pcoa.eig
     
@@ -1317,6 +1306,7 @@ server <- function(input, output, session) {
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Component") + ylab("Relative eigenvalue (%)") +
       theme_minimal()
+  }
   })
   
   # Tab: "Hypervolume building"
@@ -1379,7 +1369,7 @@ server <- function(input, output, session) {
       }
   })
   
-  ### Tab "Classical richness": Alpha
+  ### Tab "Classical richness": Alpha and beta
   observe({
     updateCheckboxGroupInput(session, inputId = "traits_xy5",
                              choices = allColumns())
@@ -1533,19 +1523,13 @@ server <- function(input, output, session) {
   
   # Tab: "Regularity" classical metrics
   observe({
-    updateCheckboxGroupInput(session, inputId = "traits_xy6",
+    updateCheckboxGroupInput(session, inputId = "traits_xy5",
                              choices = allColumns())
   })
-  
-  output$select.more.traits26 <- renderText({
-    traits <- trait_dataset()[ , input$traits_xy6]
-    if(is.numeric(traits) == TRUE)
-      validate("Please select 2 or more traits")
-  })
-  
+
   FReg.function <- reactive({
-    req(input$traits_xy6)
-    traits <- trait_dataset()[, input$traits_xy6]
+    req(input$traits_xy5)
+    traits <- trait_dataset()[, input$traits_xy5]
     rownames(traits) <- colnames(numeric_vars())
     
     fd <- dbFD(x = traits, a = numeric_vars(), w.abun = input$w.abun1, 
@@ -1568,8 +1552,8 @@ server <- function(input, output, session) {
   })
   
   FEve_beta.function <- reactive({
-    req(input$traits_xy6)
-    traits <- trait_dataset()[, input$traits_xy6]
+    req(input$traits_xy5)
+    traits <- trait_dataset()[, input$traits_xy5]
     rownames(traits) <- colnames(numeric_vars())
     
     dist.matrix <- vegdist(traits, method = input$dist.metric4c, na.rm = TRUE)
@@ -1630,19 +1614,13 @@ server <- function(input, output, session) {
   
   # Tab: "Divergence" classical metrics
   observe({
-    updateCheckboxGroupInput(session, inputId = "traits_xy7",
+    updateCheckboxGroupInput(session, inputId = "traits_xy5",
                              choices = allColumns())
   })
   
-  output$select.more.traits27 <- renderText({
-    traits <- trait_dataset()[ , input$traits_xy7]
-    if(is.numeric(traits) == TRUE)
-      validate("Please select 2 or more traits")
-  })
-  
   FDiv.function <- reactive({
-    req(input$traits_xy7)
-    traits <- trait_dataset()[, input$traits_xy7]
+    req(input$traits_xy5)
+    traits <- trait_dataset()[, input$traits_xy5]
     rownames(traits) <- colnames(numeric_vars())
     
     fd <- dbFD(x = traits, a = numeric_vars(), w.abun = input$w.abun3, 
@@ -1744,10 +1722,43 @@ server <- function(input, output, session) {
   })
   
   # Tab: correlations among FD metrics
+  
+  # Create reactive values to store FD results
+  #alpha_rv <- reactive({FRic = NULL, dendrogramFD = NULL, FEve = NULL, FDiv = NULL,
+  #                           HV_FRic = NULL, HV_FReg = NULL, HV_FDiv = NULL})
+ # beta_rv <- reactive({betaFRic = NULL, beta_turnover = NULL,
+  #                          beta_richness = NULL, beta_FEve = NULL,
+  #                          HV_beta_turnover = NULL, HV_beta_richness = NULL,
+  #                          HV_beta_FEve = NULL, HV_beta_FReg = NULL})
+  
+  #observeEvent(input$simulate, {
+ #   alpha_rv$FRic <- FRic.function()$fd_list$df$FRic
+ #   alpha_rv$dendrogramFD <- FDdendro.function()$FRic
+ #   alpha_rv$FEve <- FReg.function()$FEve
+ #     alpha_rv$FDiv <- FDiv.function()$FDiv
+ #     alpha_rv$HV_FRic <- alpha.FD()$FD
+ #     alpha_rv$HV_FReg <- alpha.reg.hv()$FD
+ #     alpha_rv$HV_FDiv <- div.hv()$FD
+ #     beta_rv$betaFRic <- as.numeric(FRic_beta.function()$Btotal)
+ #     beta_rv_$beta_turnover <- as.numeric(FRic_beta.function()$Brepl)
+ #     beta_rv_$beta_richness <- as.numeric(FRic_beta.function()$Brich)
+ #     beta_rv_$beta_FEve <- as.numeric(FEve_beta.function())
+ #     beta_rv_$HV_beta_turnover <- 
+ #     beta_rv_$HV_beta_richness <-
+ #     beta_rv_$HV_beta_FEve <- 
+ #     beta_rv_$HV_beta_FReg <- 
+ # })
+  
+  
+  
   output$alpha.comm.corr <- renderPlot({
-     df <- data.frame(Richness = alpha.FD()$FD, 
-                      Regularity = alpha.reg.hv()$FD, 
-                      Divergence = div.hv()$FD)
+    df <- data.frame(#FRic = FRic.function()$df$FRic,
+                     #FDendrogram = FDdendro.function()$FRic,
+                     #FEve = FReg.function()$FEve,
+                     #FDiv = FDiv.function()$FDiv,
+                     HV_FRic = alpha.FD()$FD, 
+                     HV_FReg = alpha.reg.hv()$FD, 
+                     HV_FDiv = div.hv()$FD)
     
    my_fn <- function(data, mapping, ...){
       p <- ggplot(data = df, mapping = mapping) + 
@@ -1760,10 +1771,14 @@ server <- function(input, output, session) {
   })
    
    output$beta.comm.corr <- renderPlot({
-     df <- data.frame(Functional_richness_total = as.numeric(beta.FD()$Btotal),
-                      Functional_richness_turnover = as.numeric(beta.FD()$Brepl),
-                      Functional_richness_richness = as.numeric(beta.FD()$Brich),
-                      Functional_regularity = as.numeric(beta.reg.hv()))
+     df <- data.frame(FRic_beta_total = as.numeric(FRic_beta.function()$Brich),
+                      FRic_beta_turnover = as.numeric(FRic_beta.function()$Brepl),
+                      FRic_beta_richness = as.numeric(FRic_beta.function()$Brich),
+                      HV_FRic_total = as.numeric(beta.FD()$Btotal),
+                      HV_FRic_turnover = as.numeric(beta.FD()$Brepl),
+                      HV_FRic_richness = as.numeric(beta.FD()$Brich),
+                      FEve_beta = as.numeric(FEve_beta.function()),
+                      HV_FReg = as.numeric(beta.reg.hv()))
      
      my_fn <- function(data, mapping, ...){
        p <- ggplot(data = df, mapping = mapping) + 
