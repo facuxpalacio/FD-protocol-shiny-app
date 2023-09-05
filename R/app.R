@@ -1752,9 +1752,9 @@ server <- function(input, output, session) {
   
   
   output$alpha.comm.corr <- renderPlot({
-    df <- data.frame(#FRic = FRic.function()$df$FRic,
-                     #FDendrogram = FDdendro.function()$FRic,
-                     #FEve = FReg.function()$FEve,
+    df <- data.frame(FRic = FRic.function()$df$FRic[1:input$hv.sites],
+                     FDendrogram = FDdendro.function()$FRic[1:input$hv.sites],
+                     FEve = FReg.function()$FEve[1:input$hv.sites],
                      #FDiv = FDiv.function()$FDiv,
                      HV_FRic = alpha.FD()$FD, 
                      HV_FReg = alpha.reg.hv()$FD, 
