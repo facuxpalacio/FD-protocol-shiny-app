@@ -202,8 +202,8 @@ ui <-dashboardPage(
               # Output: heatmap
               box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = NULL,
               plotOutput("heatmap_community"),
-              textInput('filename', "Filename"),
-              checkboxInput('savePlot', "Check to save")
+              # textInput('filename', "Filename"),
+              # checkboxInput('savePlot', "Check to save")
               ),
               
               # Output: rank-abundance curve
@@ -791,12 +791,6 @@ ui <-dashboardPage(
 
           helpText("Download all completed plots as a single PDF", style = "background-color:lightblue; border-radius:5px"),
           div(downloadButton("download_plots", "Download Plots", class = "btn-primary")),
-          shinyjs::hidden(
-                            div(
-                            id = "DL_msg",
-                            h3("Thanks for using this tool! Your plots are downloading.")
-                          )
-                          )
              )
       )
     ))
@@ -889,24 +883,24 @@ server <- function(input, output, session) {
     pheatmap(log(numeric_vars() + 1),
              clustering_distance_rows = input$dist.metric1,
              clustering_distance_columns = input$dist.metric1)
-      if(input$savePlot)
-      {
-        name <- paste0('../output/',input$filename, "_log10.pdf")
+      # if(input$savePlot)
+      # {
+        name <- paste0('../output/heatmapcommunity_log10.pdf')
         ggsave(name,pheatmap(log(numeric_vars() + 1,
                                  clustering_distance_rows = input$dist.metric1,
                                  clustering_distance_columns = input$dist.metric1)), device="pdf")
-      }
+      # }
     } else {
       pheatmap(numeric_vars(), 
                clustering_distance_rows = input$dist.metric1,
                clustering_distance_columns = input$dist.metric1)
-      if(input$savePlot)
-      {
-        name <- paste0('../output/',input$filename, ".pdf")
+      # if(input$savePlot)
+      # {
+        name <- paste0('../output/heatmapcommunity.pdf')
         ggsave(name,pheatmap(numeric_vars(),
                              clustering_distance_rows = input$dist.metric1,
                              clustering_distance_columns = input$dist.metric1), device="pdf")
-    }
+    # }
     }
   })
 
@@ -930,7 +924,7 @@ server <- function(input, output, session) {
       scale_color_discrete() +
       geom_line(linewidth = 0.8) +
       xlab("Sample size") + ylab("Species richness")
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/rarefactioncurves.pdf')
       ggsave(name, device = "pdf")
   })
   
@@ -962,7 +956,7 @@ server <- function(input, output, session) {
       
       ggarrange(plotlist = ggplot_list, labels = 1:nrow(numeric_vars()))
     }
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/rankcurve.pdf')
     ggsave(name, device = "pdf")
   })
   
@@ -978,7 +972,7 @@ server <- function(input, output, session) {
         geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
         xlab("Species richness") + ylab("Frequency")
     }
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/richness.pdf')
       ggsave(name, device = "pdf")
   })
   
@@ -997,7 +991,7 @@ server <- function(input, output, session) {
         geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) + 
         xlab("Prevalence") + ylab("Frequency")
     }
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/prevalence.pdf')
       ggsave(name, device = "pdf")
   })
   
@@ -1071,7 +1065,7 @@ server <- function(input, output, session) {
           xlab(input$trait) + ylab("Frequency")
       }
     }
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/traitplot.pdf')
       ggsave(name, device = "pdf")
   })
   
@@ -1135,20 +1129,20 @@ server <- function(input, output, session) {
            "Square-root" = ggpairs(sqrt(traits),
                                    lower = list(continuous = my_fn),
                                    upper = list(continuous = "cor")))
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/scatterplots.pdf')
       ggsave(name, device = "pdf")
   })
   
   # Plot missing data
   output$caption2 <- renderText({
     ntraits.missing <- length(NAcolumns())
-    paste0("You have ", ntraits.missing, " trait/s with missing values")
+    paste0("You have ", ntraits.missing, " traits with missing values")
   })
   
   output$missing.data1 <- renderPlot({
     req(input$traits_na)
     aggr(trait_dataset())
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/missingdata1.pdf')
       ggsave(name, device = "pdf")
     })
   
@@ -1156,7 +1150,7 @@ server <- function(input, output, session) {
     req(input$traits_na)
     traits <- trait_dataset()[, input$traits_na]
     marginplot(traits, alpha = 0.6, col = c("skyblue", "orange"), pch = 19)
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/dataimputation.pdf')
     ggsave(name, device = "pdf")
   })
   
@@ -1224,7 +1218,7 @@ server <- function(input, output, session) {
               xlab = "Species", ylab = "Dissimilarity",
               ggtheme = theme_minimal())
   }
-  name <- paste0('../output/',input$filename, ".pdf")
+  name <- paste0('../output/dendrogram.pdf')
   ggsave(name, device = "pdf")  
   })
   
@@ -1296,7 +1290,7 @@ server <- function(input, output, session) {
                 size = 4, check_overlap = TRUE) + theme_minimal() +
       xlim(min(pcoa.vectors$Dim1) - 0.2, max(pcoa.vectors$Dim1 + 0.2)) +
       ylim(min(pcoa.vectors$Dim2) - 0.2, max(pcoa.vectors$Dim2 + 0.2))
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/pcoa.pdf')
       ggsave(name, device = "pdf")
   })
   
@@ -1339,7 +1333,7 @@ server <- function(input, output, session) {
       xlab("Component") + ylab("Relative eigenvalue (%)") +
       theme_minimal()
   }
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/scree.pdf')
     ggsave(name, device = "pdf")
   })
   
@@ -1385,7 +1379,7 @@ server <- function(input, output, session) {
     req(input$community_dataset)
     req(input$traits_xy4)
     plot(hypervolumes())
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/hv.pdf')
     ggsave(name, device = "pdf") 
     })
   
@@ -1455,7 +1449,7 @@ server <- function(input, output, session) {
         xlab("Site") + ylab("Functional richness") + theme_bw() +
         ggtitle(paste0("Quality of the reduced trait space = ", round(fd_list$qual.FRic, 2)))
     }
-  name <- paste0('../output/',input$filename, ".pdf")
+  name <- paste0('../output/classFRic.pdf')
   ggsave(name, device = "pdf") 
   })
   
@@ -1469,7 +1463,7 @@ server <- function(input, output, session) {
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Sum of branch lengths") + theme_bw()
     }
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/dendroFRic.pdf')
     ggsave(name, device = "pdf") 
   })
   
@@ -1489,7 +1483,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(FRic_beta.function()$Btotal),
              clustering_distance_rows = input$dist.metric4b,
              clustering_distance_columns = input$dist.metric4b)
-               name <- paste0('../output/',input$filename, ".pdf")
+               name <- paste0('../output/betaTotFRic.pdf')
               ggsave(name, device = "pdf") 
   })
   
@@ -1497,7 +1491,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(FRic_beta.function()$Brepl),
              clustering_distance_rows = input$dist.metric4b,
              clustering_distance_columns = input$dist.metric4b)
-               name <- paste0('../output/',input$filename, ".pdf")
+               name <- paste0('../output/betaRepFRic.pdf')
               ggsave(name, device = "pdf") 
   })
   
@@ -1505,7 +1499,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(FRic_beta.function()$Brich),
              clustering_distance_rows = input$dist.metric4b,
              clustering_distance_columns = input$dist.metric4b)
-              name <- paste0('../output/',input$filename, ".pdf")
+              name <- paste0('../output/betaRichFRic.pdf')
               ggsave(name, device = "pdf") 
   })
   
@@ -1537,7 +1531,7 @@ server <- function(input, output, session) {
       geom_bar(stat = "identity", fill = "steelblue") +
       xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
     }
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/alphahvFD.pdf')
      ggsave(name, device = "pdf") 
   })
   
@@ -1555,7 +1549,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(beta.FD()$Btotal),
                        clustering_distance_rows = input$dist.metric4,
                        clustering_distance_columns = input$dist.metric4)
-                        name <- paste0('../output/',input$filename, ".pdf")
+                        name <- paste0('../output/totalbeta.pdf')
                         ggsave(name, device = "pdf") 
   })
     
@@ -1563,7 +1557,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(beta.FD()$Brepl),
                        clustering_distance_rows = input$dist.metric4,
                        clustering_distance_columns = input$dist.metric4)
-                        name <- paste0('../output/',input$filename, ".pdf")
+                        name <- paste0('../output/turnoverbeta.pdf')
                        ggsave(name, device = "pdf") 
   })
     
@@ -1571,7 +1565,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(beta.FD()$Brich),
                        clustering_distance_rows = input$dist.metric4,
                        clustering_distance_columns = input$dist.metric4)
-                        name <- paste0('../output/',input$filename, ".pdf")
+                        name <- paste0('../output/richnessbeta.pdf')
                         ggsave(name, device = "pdf")
   })
   
@@ -1603,7 +1597,7 @@ server <- function(input, output, session) {
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Functional eveness") + theme_bw()
     }
-     name <- paste0('../output/',input$filename, ".pdf")
+     name <- paste0('../output/classFEve.pdf')
      ggsave(name, device = "pdf") 
   })
   
@@ -1624,7 +1618,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(FEve_beta.function()),
              clustering_distance_rows = input$dist.metric4d,
              clustering_distance_columns = input$dist.metric4d)
-              name <- paste0('../output/',input$filename, ".pdf")
+              name <- paste0('../output/betaeve.pdf')
               ggsave(name, device = "pdf") 
   })
   
@@ -1657,7 +1651,7 @@ server <- function(input, output, session) {
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Alpha functional regularity") + theme_bw()
     }
-      name <- paste0('../output/',input$filename, ".pdf")
+      name <- paste0('../output/alpharegularity.pdf')
       ggsave(name, device = "pdf") 
   })
   
@@ -1670,7 +1664,7 @@ server <- function(input, output, session) {
     pheatmap(as.matrix(beta.reg.hv()),
              clustering_distance_rows = input$dist.metric5,
              clustering_distance_columns = input$dist.metric5)
-              name <- paste0('../output/',input$filename, ".pdf")
+              name <- paste0('../output/betaregularity.pdf')
               ggsave(name, device = "pdf")
   })
   
@@ -1702,7 +1696,7 @@ server <- function(input, output, session) {
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Functional divergence") + theme_bw()
     }
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/classFDiv.pdf')
     ggsave(name, device = "pdf")
   })
   
@@ -1737,7 +1731,7 @@ server <- function(input, output, session) {
         xlab("Site") + ylab("Functional divergence") + theme_bw()
     }
 
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/fdivergence.pdf')
     ggsave(name, device = "pdf")
   })
   
@@ -1772,7 +1766,7 @@ server <- function(input, output, session) {
     pheatmap(spp.contrib_list$rich.contrib,
              clustering_distance_rows = input$dist.metric6,
              clustering_distance_columns = input$dist.metric6)
-              name <- paste0('../output/',input$filename, ".pdf")
+              name <- paste0('../output/kernelrichcontrib.pdf')
               ggsave(name, device = "pdf") 
   })
   
@@ -1781,7 +1775,7 @@ server <- function(input, output, session) {
     pheatmap(spp.contrib_list$eve.contrib,
              clustering_distance_rows = input$dist.metric6,
              clustering_distance_columns = input$dist.metric6)
-              name <- paste0('../output/',input$filename, ".pdf")
+              name <- paste0('../output/kernel.eve.contrib.pdf')
               ggsave(name, device = "pdf")
   })
   
@@ -1790,7 +1784,7 @@ server <- function(input, output, session) {
     pheatmap(spp.contrib_list$original,
              clustering_distance_rows = input$dist.metric6,
              clustering_distance_columns = input$dist.metric6)
-              name <- paste0('../output/',input$filename, ".pdf")
+              name <- paste0('../output/kerneloriginality.pdf')
               ggsave(name, device = "pdf")
   })
   
@@ -1841,7 +1835,7 @@ server <- function(input, output, session) {
    }
    
    ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
-   name <- paste0('../output/',input$filename, ".pdf")
+   name <- paste0('../output/alphacommcor.pdf')
    ggsave(name, device = "pdf") 
   })
    
@@ -1863,7 +1857,7 @@ server <- function(input, output, session) {
      }
    
     ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/beta.comm.corr.pdf')
     ggsave(name, device = "pdf")
   })
   
@@ -1888,7 +1882,7 @@ server <- function(input, output, session) {
     }
     
     ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
-    name <- paste0('../output/',input$filename, ".pdf")
+    name <- paste0('../output/sppcorr.pdf')
     ggsave(name, device = "pdf")
   })
 
@@ -1915,10 +1909,7 @@ server <- function(input, output, session) {
 #              row.names = FALSE)
 #  }
 
-  # action to take when plot download button is pressed
- observeEvent(input$download_plots, {
-   shinyjs::show("DL_msg")
- })
+
 }
 # ## EJH: I notice that these fields no longer correspond with the steps of this app (they're a hold over from the other one)
 # fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff", "step4", "step5", "step6", "step7", "step8")
