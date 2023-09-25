@@ -1,0 +1,225 @@
+---
+title: "`grateful` citation report"
+bibliography: grateful-refs.bib
+#csl: null.csl
+---
+
+## R packages used
+
+|Package         |Version    |Citation                                                      |
+|:---------------|:----------|:-------------------------------------------------------------|
+|abind           |1.4.5      |@abind                                                        |
+|ade4            |1.7.22     |@ade42004c; @ade42007a; @ade42007d; @ade42018b; @ade42018e    |
+|alphahull       |2.5        |@alphahull                                                    |
+|ape             |5.7.1      |@ape                                                          |
+|askpass         |1.2.0      |@askpass                                                      |
+|backports       |1.4.1      |@backports                                                    |
+|base            |4.3.1      |@base                                                         |
+|base64enc       |0.1.3      |@base64enc                                                    |
+|BAT             |2.9.3      |@BAT                                                          |
+|brio            |1.1.3      |@brio                                                         |
+|bslib           |0.5.1      |@bslib                                                        |
+|cachem          |1.0.8      |@cachem                                                       |
+|callr           |3.7.3      |@callr                                                        |
+|car             |3.1.2      |@car                                                          |
+|carData         |3.0.5      |@carData                                                      |
+|caret           |6.0.94     |@caret                                                        |
+|clock           |0.7.0      |@clock                                                        |
+|colorspace      |2.1.0      |@colorspace2009b; @colorspace2009c; @colorspace2020a          |
+|commonmark      |1.9.0      |@commonmark                                                   |
+|corrplot        |0.92       |@corrplot2021                                                 |
+|cowplot         |1.1.1      |@cowplot                                                      |
+|cpp11           |0.4.6      |@cpp11                                                        |
+|crayon          |1.5.2      |@crayon                                                       |
+|crosstalk       |1.2.0      |@crosstalk                                                    |
+|curl            |5.0.2      |@curl                                                         |
+|data.table      |1.14.8     |@datatable                                                    |
+|deldir          |1.0.9      |@deldir                                                       |
+|dendextend      |1.17.1     |@dendextend                                                   |
+|DEoptimR        |1.1.2      |@DEoptimR                                                     |
+|desc            |1.4.2      |@desc                                                         |
+|diagram         |1.6.5      |@diagram                                                      |
+|diffobj         |0.3.5      |@diffobj                                                      |
+|digest          |0.6.33     |@digest                                                       |
+|doParallel      |1.0.17     |@doParallel                                                   |
+|DT              |0.29       |@DT                                                           |
+|e1071           |1.7.13     |@e1071                                                        |
+|ellipse         |0.5.0      |@ellipse                                                      |
+|ellipsis        |0.3.2      |@ellipsis                                                     |
+|emmeans         |1.8.8      |@emmeans                                                      |
+|estimability    |1.4.1      |@estimability                                                 |
+|evaluate        |0.21       |@evaluate                                                     |
+|factoextra      |1.0.7      |@factoextra                                                   |
+|FactoMineR      |2.8        |@FactoMineR                                                   |
+|fansi           |1.0.4      |@fansi                                                        |
+|farver          |2.1.1      |@farver                                                       |
+|fastcluster     |1.2.3      |@fastcluster                                                  |
+|fastmap         |1.1.1      |@fastmap                                                      |
+|FD              |1.0.12.1   |@FD2010; @FD2014                                              |
+|flashClust      |1.1.2      |@flashClust                                                   |
+|FNN             |1.1.3.2    |@FNN                                                          |
+|fontawesome     |0.5.2      |@fontawesome                                                  |
+|foreach         |1.5.2      |@foreach                                                      |
+|fs              |1.6.3      |@fs                                                           |
+|future          |1.33.0     |@                                                             |
+|future.apply    |1.11.0     |@                                                             |
+|generics        |0.1.3      |@generics                                                     |
+|geometry        |0.4.7      |@geometry                                                     |
+|GGally          |2.1.2      |@GGally                                                       |
+|ggpubr          |0.6.0      |@ggpubr                                                       |
+|ggrepel         |0.9.3      |@ggrepel                                                      |
+|ggsci           |3.0.0      |@ggsci                                                        |
+|ggsignif        |0.6.4      |@ggsignif                                                     |
+|globals         |0.16.2     |@globals                                                      |
+|glue            |1.6.2      |@glue                                                         |
+|gower           |1.0.1      |@gower                                                        |
+|gridExtra       |2.3        |@gridExtra                                                    |
+|gtable          |0.3.4      |@gtable                                                       |
+|hardhat         |1.3.0      |@hardhat                                                      |
+|highr           |0.10       |@highr                                                        |
+|hitandrun       |0.5.6      |@hitandrun                                                    |
+|htmltools       |0.5.6      |@htmltools                                                    |
+|htmlwidgets     |1.6.2      |@htmlwidgets                                                  |
+|httpuv          |1.6.11     |@httpuv                                                       |
+|hypervolume     |3.1.1      |@hypervolume                                                  |
+|interp          |1.1.4      |@interp                                                       |
+|ipred           |0.9.14     |@ipred                                                        |
+|isoband         |0.2.7      |@isoband                                                      |
+|iterators       |1.0.14     |@iterators                                                    |
+|jquerylib       |0.1.4      |@jquerylib                                                    |
+|kernlab         |0.9.32     |@kernlab2004; @kernlab2023                                    |
+|knitr           |1.43       |@knitr2014; @knitr2015; @knitr2023                            |
+|ks              |1.14.1     |@ks                                                           |
+|labeling        |0.4.3      |@labeling                                                     |
+|laeken          |0.5.2      |@laeken                                                       |
+|later           |1.3.1      |@later                                                        |
+|lava            |1.7.2.1    |@lava2013; @lava2020                                          |
+|lazyeval        |0.2.2      |@lazyeval                                                     |
+|leaps           |3.1        |@leaps                                                        |
+|lifecycle       |1.0.3      |@lifecycle                                                    |
+|linprog         |0.9.4      |@linprog                                                      |
+|listenv         |0.9.0      |@listenv                                                      |
+|lme4            |1.1.34     |@lme4                                                         |
+|lmtest          |0.9.40     |@lmtest                                                       |
+|lpSolve         |5.6.18     |@lpSolve                                                      |
+|magic           |1.6.1      |@magic                                                        |
+|maps            |3.4.1      |@maps                                                         |
+|MatrixModels    |0.5.2      |@MatrixModels                                                 |
+|mclust          |6.0.0      |@mclust                                                       |
+|memoise         |2.0.1      |@memoise                                                      |
+|mime            |0.12       |@mime                                                         |
+|minqa           |1.2.5      |@minqa                                                        |
+|misc3d          |0.9.1      |@misc3d                                                       |
+|ModelMetrics    |1.2.2.2    |@ModelMetrics                                                 |
+|multcompView    |0.1.9      |@multcompView                                                 |
+|multicool       |0.1.12     |@multicool                                                    |
+|munsell         |0.5.0      |@munsell                                                      |
+|mvtnorm         |1.2.3      |@mvtnorm                                                      |
+|NbClust         |3.0.1      |@NbClust                                                      |
+|nloptr          |2.0.3      |@nloptr                                                       |
+|nls2            |0.3.3      |@nls2                                                         |
+|numDeriv        |2016.8.1.1 |@numDeriv                                                     |
+|openssl         |2.1.0      |@openssl                                                      |
+|packrat         |0.9.2      |@packrat                                                      |
+|palmerpenguins  |0.1.1      |@palmerpenguins                                               |
+|parallelly      |1.36.0     |@parallelly                                                   |
+|pbapply         |1.7.2      |@pbapply                                                      |
+|pbkrtest        |0.5.2      |@pbkrtest                                                     |
+|pdftools        |3.3.3      |@pdftools                                                     |
+|pdist           |1.2.1      |@pdist                                                        |
+|permute         |0.9.7      |@permute                                                      |
+|pheatmap        |1.0.12     |@pheatmap                                                     |
+|pixmap          |0.4.12     |@pixmap                                                       |
+|pkgconfig       |2.0.3      |@pkgconfig                                                    |
+|pkgload         |1.3.2.1    |@pkgload                                                      |
+|plot3D          |1.4        |@plot3D                                                       |
+|plyr            |1.8.8      |@plyr                                                         |
+|polyclip        |1.10.4     |@polyclip                                                     |
+|polynom         |1.4.1      |@polynom                                                      |
+|pracma          |2.4.2      |@pracma                                                       |
+|praise          |1.0.0      |@praise                                                       |
+|prettyunits     |1.1.1      |@prettyunits                                                  |
+|pROC            |1.18.4     |@pROC                                                         |
+|processx        |3.8.2      |@processx                                                     |
+|prodlim         |2023.8.28  |@prodlim                                                      |
+|progress        |1.2.2      |@progress                                                     |
+|progressr       |0.14.0     |@progressr                                                    |
+|promises        |1.2.1      |@promises                                                     |
+|proto           |1.0.0      |@proto                                                        |
+|proxy           |0.4.27     |@proxy                                                        |
+|ps              |1.7.5      |@ps                                                           |
+|qpdf            |1.3.2      |@qpdf                                                         |
+|quantreg        |5.97       |@quantreg                                                     |
+|R.methodsS3     |1.8.2      |@RmethodsS3                                                   |
+|R.oo            |1.25.0     |@Roo                                                          |
+|R.utils         |2.12.2     |@Rutils                                                       |
+|R6              |2.5.1      |@R6                                                           |
+|ranger          |0.15.1     |@ranger                                                       |
+|rappdirs        |0.3.3      |@rappdirs                                                     |
+|raster          |3.6.23     |@raster                                                       |
+|rcdd            |1.5.2      |@rcdd                                                         |
+|RColorBrewer    |1.1.3      |@RColorBrewer                                                 |
+|Rcpp            |1.0.11     |@Rcpp2011; @Rcpp2013; @Rcpp2018; @Rcpp2023                    |
+|RcppArmadillo   |0.12.6.3.0 |@RcppArmadillo2014; @RcppArmadillo2023                        |
+|RcppEigen       |0.3.3.9.3  |@RcppEigen                                                    |
+|RcppProgress    |0.4.2      |@RcppProgress                                                 |
+|recipes         |1.0.8      |@recipes                                                      |
+|rematch2        |2.1.2      |@rematch2                                                     |
+|remotes         |2.4.2.1    |@remotes                                                      |
+|renv            |1.0.3      |@renv                                                         |
+|reshape         |0.8.9      |@reshape                                                      |
+|reshape2        |1.4.4      |@reshape2                                                     |
+|rmarkdown       |2.24       |@rmarkdown2018; @rmarkdown2020; @rmarkdown2023                |
+|robustbase      |0.99.0     |@robustbase2009; @robustbase2023                              |
+|rprojroot       |2.0.3      |@rprojroot                                                    |
+|rsconnect       |1.1.0      |@rsconnect                                                    |
+|rstatix         |0.7.2      |@rstatix                                                      |
+|sass            |0.4.7      |@sass                                                         |
+|scales          |1.2.1      |@scales                                                       |
+|scatterplot3d   |0.3.44     |@scatterplot3d                                                |
+|sgeostat        |1.0.27     |@sgeostat                                                     |
+|shape           |1.4.6      |@shape                                                        |
+|shiny           |1.7.5      |@shiny                                                        |
+|shinydashboard  |0.7.2      |@shinydashboard                                               |
+|shinyFeedback   |0.4.0      |@shinyFeedback                                                |
+|shinyjs         |2.1.0      |@shinyjs                                                      |
+|sourcetools     |0.1.7.1    |@sourcetools                                                  |
+|sp              |2.0.0      |@sp2005; @sp2013                                              |
+|SparseM         |1.81       |@SparseM                                                      |
+|spatstat.data   |3.0.1      |@spatstatdata2005; @spatstatdata2013; @spatstatdata2015       |
+|spatstat.geom   |3.2.4      |@spatstatgeom2005; @spatstatgeom2013; @spatstatgeom2015       |
+|spatstat.random |3.1.5      |@spatstatrandom2005; @spatstatrandom2013; @spatstatrandom2015 |
+|spatstat.utils  |3.0.3      |@spatstatutils                                                |
+|splancs         |2.1.44     |@splancs                                                      |
+|SQUAREM         |2021.1     |@SQUAREM                                                      |
+|stringi         |1.7.12     |@stringi                                                      |
+|sys             |3.4.2      |@sys                                                          |
+|terra           |1.7.39     |@terra                                                        |
+|testthat        |3.1.10     |@testthat                                                     |
+|tidyselect      |1.2.0      |@tidyselect                                                   |
+|tidyverse       |2.0.0      |@tidyverse                                                    |
+|timechange      |0.2.0      |@timechange                                                   |
+|timeDate        |4022.108   |@timeDate                                                     |
+|tinytex         |0.46       |@tinytex2019; @tinytex2023                                    |
+|tzdb            |0.4.0      |@tzdb                                                         |
+|utf8            |1.2.3      |@utf8                                                         |
+|vcd             |1.4.11     |@vcd2006; @vcd2007; @vcd2023                                  |
+|vctrs           |0.6.3      |@vctrs                                                        |
+|vegan           |2.6.4      |@vegan                                                        |
+|VIM             |6.2.2      |@VIM                                                          |
+|viridis         |0.6.4      |@viridis                                                      |
+|viridisLite     |0.4.2      |@viridisLite                                                  |
+|waiter          |0.2.5      |@waiter                                                       |
+|waldo           |0.5.1      |@waldo                                                        |
+|withr           |2.5.0      |@withr                                                        |
+|xfun            |0.40       |@xfun                                                         |
+|xtable          |1.8.4      |@xtable                                                       |
+|yaml            |2.3.7      |@yaml                                                         |
+|zoo             |1.8.12     |@zoo                                                          |
+
+**You can paste this paragraph directly in your report:**
+
+We used R version 4.3.1 [@base] and the following R packages: abind v. 1.4.5 [@abind], ade4 v. 1.7.22 [@ade42004c; @ade42007a; @ade42007d; @ade42018b; @ade42018e], alphahull v. 2.5 [@alphahull], ape v. 5.7.1 [@ape], askpass v. 1.2.0 [@askpass], backports v. 1.4.1 [@backports], base64enc v. 0.1.3 [@base64enc], BAT v. 2.9.3 [@BAT], brio v. 1.1.3 [@brio], bslib v. 0.5.1 [@bslib], cachem v. 1.0.8 [@cachem], callr v. 3.7.3 [@callr], car v. 3.1.2 [@car], carData v. 3.0.5 [@carData], caret v. 6.0.94 [@caret], clock v. 0.7.0 [@clock], colorspace v. 2.1.0 [@colorspace2009b; @colorspace2009c; @colorspace2020a], commonmark v. 1.9.0 [@commonmark], corrplot v. 0.92 [@corrplot2021], cowplot v. 1.1.1 [@cowplot], cpp11 v. 0.4.6 [@cpp11], crayon v. 1.5.2 [@crayon], crosstalk v. 1.2.0 [@crosstalk], curl v. 5.0.2 [@curl], data.table v. 1.14.8 [@datatable], deldir v. 1.0.9 [@deldir], dendextend v. 1.17.1 [@dendextend], DEoptimR v. 1.1.2 [@DEoptimR], desc v. 1.4.2 [@desc], diagram v. 1.6.5 [@diagram], diffobj v. 0.3.5 [@diffobj], digest v. 0.6.33 [@digest], doParallel v. 1.0.17 [@doParallel], DT v. 0.29 [@DT], e1071 v. 1.7.13 [@e1071], ellipse v. 0.5.0 [@ellipse], ellipsis v. 0.3.2 [@ellipsis], emmeans v. 1.8.8 [@emmeans], estimability v. 1.4.1 [@estimability], evaluate v. 0.21 [@evaluate], factoextra v. 1.0.7 [@factoextra], FactoMineR v. 2.8 [@FactoMineR], fansi v. 1.0.4 [@fansi], farver v. 2.1.1 [@farver], fastcluster v. 1.2.3 [@fastcluster], fastmap v. 1.1.1 [@fastmap], FD v. 1.0.12.1 [@FD2010; @FD2014], flashClust v. 1.1.2 [@flashClust], FNN v. 1.1.3.2 [@FNN], fontawesome v. 0.5.2 [@fontawesome], foreach v. 1.5.2 [@foreach], fs v. 1.6.3 [@fs], future v. 1.33.0 [@], future.apply v. 1.11.0 [@], generics v. 0.1.3 [@generics], geometry v. 0.4.7 [@geometry], GGally v. 2.1.2 [@GGally], ggpubr v. 0.6.0 [@ggpubr], ggrepel v. 0.9.3 [@ggrepel], ggsci v. 3.0.0 [@ggsci], ggsignif v. 0.6.4 [@ggsignif], globals v. 0.16.2 [@globals], glue v. 1.6.2 [@glue], gower v. 1.0.1 [@gower], gridExtra v. 2.3 [@gridExtra], gtable v. 0.3.4 [@gtable], hardhat v. 1.3.0 [@hardhat], highr v. 0.10 [@highr], hitandrun v. 0.5.6 [@hitandrun], htmltools v. 0.5.6 [@htmltools], htmlwidgets v. 1.6.2 [@htmlwidgets], httpuv v. 1.6.11 [@httpuv], hypervolume v. 3.1.1 [@hypervolume], interp v. 1.1.4 [@interp], ipred v. 0.9.14 [@ipred], isoband v. 0.2.7 [@isoband], iterators v. 1.0.14 [@iterators], jquerylib v. 0.1.4 [@jquerylib], kernlab v. 0.9.32 [@kernlab2004; @kernlab2023], knitr v. 1.43 [@knitr2014; @knitr2015; @knitr2023], ks v. 1.14.1 [@ks], labeling v. 0.4.3 [@labeling], laeken v. 0.5.2 [@laeken], later v. 1.3.1 [@later], lava v. 1.7.2.1 [@lava2013; @lava2020], lazyeval v. 0.2.2 [@lazyeval], leaps v. 3.1 [@leaps], lifecycle v. 1.0.3 [@lifecycle], linprog v. 0.9.4 [@linprog], listenv v. 0.9.0 [@listenv], lme4 v. 1.1.34 [@lme4], lmtest v. 0.9.40 [@lmtest], lpSolve v. 5.6.18 [@lpSolve], magic v. 1.6.1 [@magic], maps v. 3.4.1 [@maps], MatrixModels v. 0.5.2 [@MatrixModels], mclust v. 6.0.0 [@mclust], memoise v. 2.0.1 [@memoise], mime v. 0.12 [@mime], minqa v. 1.2.5 [@minqa], misc3d v. 0.9.1 [@misc3d], ModelMetrics v. 1.2.2.2 [@ModelMetrics], multcompView v. 0.1.9 [@multcompView], multicool v. 0.1.12 [@multicool], munsell v. 0.5.0 [@munsell], mvtnorm v. 1.2.3 [@mvtnorm], NbClust v. 3.0.1 [@NbClust], nloptr v. 2.0.3 [@nloptr], nls2 v. 0.3.3 [@nls2], numDeriv v. 2016.8.1.1 [@numDeriv], openssl v. 2.1.0 [@openssl], packrat v. 0.9.2 [@packrat], palmerpenguins v. 0.1.1 [@palmerpenguins], parallelly v. 1.36.0 [@parallelly], pbapply v. 1.7.2 [@pbapply], pbkrtest v. 0.5.2 [@pbkrtest], pdftools v. 3.3.3 [@pdftools], pdist v. 1.2.1 [@pdist], permute v. 0.9.7 [@permute], pheatmap v. 1.0.12 [@pheatmap], pixmap v. 0.4.12 [@pixmap], pkgconfig v. 2.0.3 [@pkgconfig], pkgload v. 1.3.2.1 [@pkgload], plot3D v. 1.4 [@plot3D], plyr v. 1.8.8 [@plyr], polyclip v. 1.10.4 [@polyclip], polynom v. 1.4.1 [@polynom], pracma v. 2.4.2 [@pracma], praise v. 1.0.0 [@praise], prettyunits v. 1.1.1 [@prettyunits], pROC v. 1.18.4 [@pROC], processx v. 3.8.2 [@processx], prodlim v. 2023.8.28 [@prodlim], progress v. 1.2.2 [@progress], progressr v. 0.14.0 [@progressr], promises v. 1.2.1 [@promises], proto v. 1.0.0 [@proto], proxy v. 0.4.27 [@proxy], ps v. 1.7.5 [@ps], qpdf v. 1.3.2 [@qpdf], quantreg v. 5.97 [@quantreg], R.methodsS3 v. 1.8.2 [@RmethodsS3], R.oo v. 1.25.0 [@Roo], R.utils v. 2.12.2 [@Rutils], R6 v. 2.5.1 [@R6], ranger v. 0.15.1 [@ranger], rappdirs v. 0.3.3 [@rappdirs], raster v. 3.6.23 [@raster], rcdd v. 1.5.2 [@rcdd], RColorBrewer v. 1.1.3 [@RColorBrewer], Rcpp v. 1.0.11 [@Rcpp2011; @Rcpp2013; @Rcpp2018; @Rcpp2023], RcppArmadillo v. 0.12.6.3.0 [@RcppArmadillo2014; @RcppArmadillo2023], RcppEigen v. 0.3.3.9.3 [@RcppEigen], RcppProgress v. 0.4.2 [@RcppProgress], recipes v. 1.0.8 [@recipes], rematch2 v. 2.1.2 [@rematch2], remotes v. 2.4.2.1 [@remotes], renv v. 1.0.3 [@renv], reshape v. 0.8.9 [@reshape], reshape2 v. 1.4.4 [@reshape2], rmarkdown v. 2.24 [@rmarkdown2018; @rmarkdown2020; @rmarkdown2023], robustbase v. 0.99.0 [@robustbase2009; @robustbase2023], rprojroot v. 2.0.3 [@rprojroot], rsconnect v. 1.1.0 [@rsconnect], rstatix v. 0.7.2 [@rstatix], sass v. 0.4.7 [@sass], scales v. 1.2.1 [@scales], scatterplot3d v. 0.3.44 [@scatterplot3d], sgeostat v. 1.0.27 [@sgeostat], shape v. 1.4.6 [@shape], shiny v. 1.7.5 [@shiny], shinydashboard v. 0.7.2 [@shinydashboard], shinyFeedback v. 0.4.0 [@shinyFeedback], shinyjs v. 2.1.0 [@shinyjs], sourcetools v. 0.1.7.1 [@sourcetools], sp v. 2.0.0 [@sp2005; @sp2013], SparseM v. 1.81 [@SparseM], spatstat.data v. 3.0.1 [@spatstatdata2005; @spatstatdata2013; @spatstatdata2015], spatstat.geom v. 3.2.4 [@spatstatgeom2005; @spatstatgeom2013; @spatstatgeom2015], spatstat.random v. 3.1.5 [@spatstatrandom2005; @spatstatrandom2013; @spatstatrandom2015], spatstat.utils v. 3.0.3 [@spatstatutils], splancs v. 2.1.44 [@splancs], SQUAREM v. 2021.1 [@SQUAREM], stringi v. 1.7.12 [@stringi], sys v. 3.4.2 [@sys], terra v. 1.7.39 [@terra], testthat v. 3.1.10 [@testthat], tidyselect v. 1.2.0 [@tidyselect], tidyverse v. 2.0.0 [@tidyverse], timechange v. 0.2.0 [@timechange], timeDate v. 4022.108 [@timeDate], tinytex v. 0.46 [@tinytex2019; @tinytex2023], tzdb v. 0.4.0 [@tzdb], utf8 v. 1.2.3 [@utf8], vcd v. 1.4.11 [@vcd2006; @vcd2007; @vcd2023], vctrs v. 0.6.3 [@vctrs], vegan v. 2.6.4 [@vegan], VIM v. 6.2.2 [@VIM], viridis v. 0.6.4 [@viridis], viridisLite v. 0.4.2 [@viridisLite], waiter v. 0.2.5 [@waiter], waldo v. 0.5.1 [@waldo], withr v. 2.5.0 [@withr], xfun v. 0.40 [@xfun], xtable v. 1.8.4 [@xtable], yaml v. 2.3.7 [@yaml], zoo v. 1.8.12 [@zoo].
+
+## Package citations
+
