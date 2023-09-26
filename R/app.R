@@ -57,7 +57,7 @@ ui <-dashboardPage(
     shinyjs::useShinyjs(),
     use_waiter(),
     tabItems(
-
+      
       # Tab contents
       tabItem(tabName = "dashboard",
               fluidRow(
@@ -187,58 +187,6 @@ ui <-dashboardPage(
               
               fluidRow(
                 column(width = 6,
-
-              box(title = "Community heatmap inputs", status = "primary", 
-                  solidHeader = TRUE, width = NULL,
-                  selectInput("dist.metric1",
-                          label = "Dissimilarity or correlation metric",
-                          choices = c("Euclidean" = "euclidean", 
-                                      "Manhattan" = "manhattan",
-                                      "Binary" = "binary",
-                                      "Correlation" = "correlation"),
-                          selected = "euclidean"),
-                  checkboxInput("LogX1", "Log-transform occurrences", value = FALSE)
-                  ),
-              
-              # Output: heatmap
-              box(title = "Heatmap", status = "warning", solidHeader = TRUE, width = NULL,
-              plotOutput("heatmap_community"),
-              # textInput('filename', "Filename"),
-              checkboxInput('savePlot1', "Check to save")
-              ),
-              
-              # Output: rank-abundance curve
-              box(title = "Rank-abundance curves", status = "warning", solidHeader = TRUE, height = NULL, width = NULL,
-                  plotOutput("rank_curve"),
-                  checkboxInput('savePlot2', "Check to save")
-                  )),
-               
-              column(width = 6,                      
-                 
-                 # Output: rarefaction curves
-                box(title = "Rarefaction curves", status = "warning", 
-                    solidHeader = TRUE, width = NULL,
-                    plotOutput("rarefaction_curves"),
-                    checkboxInput('savePlot3', "Check to save")
-                    ),
-              
-                 box(title = "Histogram and rank-abundance curve inputs", status = "primary", solidHeader = TRUE, width = NULL,
-                  sliderInput("bins1", "Number of histogram bins", min = 5, max = 20, value = 10),
-                  checkboxInput("density", "Add density plot", value = FALSE),
-                  selectInput("select_sites", "Select number of sites to be plotted", choices = c("All combined", "Individual sites"))
-                     ),
-              
-              # Output: histograms
-              box(title = "Histograms", status = "warning", solidHeader = TRUE, height = NULL, width = NULL,
-                  column(6,
-                         plotOutput("richness"),
-                         checkboxInput('savePlot4', "Check to save")),
-                  column(6,
-                         plotOutput("prevalence"),
-                         checkboxInput('savePlot5', "Check to save")))
-                    
-              ))),
-
                        box(title = "Community heatmap inputs", status = "primary", 
                            solidHeader = TRUE, width = NULL,
                            selectInput("dist.metric1",
@@ -289,7 +237,6 @@ ui <-dashboardPage(
                                   checkboxInput('savePlot5', "Check to save")))
                        
                 ))),
-
       
       tabItem(tabName = "traitplots",
               fluidRow(
@@ -321,17 +268,10 @@ ui <-dashboardPage(
               
               # Output: Trait plot
               fluidRow(
-
-               box(title = textOutput("caption1"), status = "warning", 
-                   solidHeader = TRUE, width = 6,
-                   plotOutput("trait_plot")),
-                   checkboxInput('savePlot6', "Check to save")
-
                 box(title = textOutput("caption1"), status = "warning", 
                     solidHeader = TRUE, width = 6,
                     plotOutput("trait_plot")),
                 checkboxInput('savePlot6', "Check to save")
-
               )),
       
       
@@ -357,17 +297,10 @@ ui <-dashboardPage(
                     textOutput("select.more.traits1"),
                     plotOutput("scatterplots"),
                     checkboxInput('savePlot7', "Check to save"))
-
-                  )
-              ),
-                            
-                          
-
               )
       ),
       
       
-
       tabItem(tabName = "missingdata",
               
               # Input: Select traits with missing data
@@ -378,19 +311,11 @@ ui <-dashboardPage(
                 )),
               
               fluidRow(
-
-              box(title = "Where's your missing data?", label = "", 
-                  status = "warning", solidHeader = TRUE, height = 600, width = 6,
-                  plotOutput("missing.data1"),
-                    checkboxInput('savePlot8', "Check to save"))
-                  ),
-
                 box(title = "Where's your missing data?", label = "", 
                     status = "warning", solidHeader = TRUE, height = 600, width = 6,
                     plotOutput("missing.data1"),
                     checkboxInput('savePlot8', "Check to save"))
               ),
-
               
               box(title = "Distribution of missing data", label = "",
                   status = "warning", solidHeader = TRUE, height = 600, width = 6,
@@ -454,17 +379,10 @@ ui <-dashboardPage(
               
               # Output: dendrogram
               fluidRow(
-
-              box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
-                  plotOutput("dendrogram"),
-                  checkboxInput('savePlot10', "Check to save")
-                  )
-
                 box(title = "Functional dendrogram", status = "warning", solidHeader = TRUE,
                     plotOutput("dendrogram"),
                     checkboxInput('savePlot10', "Check to save")
                 )
-
               )),
       
       tabItem(tabName = "funord",
@@ -503,38 +421,6 @@ ui <-dashboardPage(
               
               fluidRow(
                 column(6,
-
-              box(title = "PCoA", status = "warning", solidHeader = TRUE, height = 450, width = NULL,
-                  plotOutput("pcoa"),
-                  checkboxInput('savePlot11', "Check to save"))
-                      ),
-              
-              # Output: variance explained
-                column(6,
-              box(title = "% variance explained", status = "warning", 
-                  solidHeader = TRUE, width = NULL,
-                  numericInput("show.pcoa.axes", "Number of axes to show", min = 1, value = 3),
-                  tableOutput("var.explained.pcoa") 
-                  ),
-              
-              # Input: eigenvalues plot
-              box(title = "Screeplot inputs", status = "primary", 
-                  solidHeader = TRUE, width = NULL,
-                  numericInput("axes.eigenvalues", "Number of axes to plot",
-                              min = 2, value = 5),
-                  selectInput("which.screeplot", label = "Eigenvalues to plot",
-                              choices = c("Raw eigenvalues" = "raw_eig", 
-                                          "Relative eigenvalues" = "rel_eig")),
-                  ),
-              
-              # Output: eigenvalues
-                box(title = "Screeplot", 
-                    status = "warning", solidHeader = TRUE, height = NULL, width = 6,
-                    plotOutput("scree"),
-                    checkboxInput('savePlot12', "Check to save"))
-              ))),
-              
-
                        box(title = "PCoA", status = "warning", solidHeader = TRUE, height = 450, width = NULL,
                            plotOutput("pcoa"),
                            checkboxInput('savePlot11', "Check to save"))
@@ -565,7 +451,6 @@ ui <-dashboardPage(
                            checkboxInput('savePlot12', "Check to save"))
                 ))),
       
-
       tabItem(tabName = "funhv",
               # Input: hypervolumes
               # Input: Select traits to plot
@@ -606,221 +491,6 @@ ui <-dashboardPage(
               )
       ),       
       
-
-    tabItem(tabName = "classical_rich",
-            # Input: functional richness parameters
-            fluidRow(
-              column(width = 6,
-              # Input: Select traits to plot
-              box(title = "Select two or more functional traits",
-                  status = "primary", solidHeader = TRUE, width = 4,
-                  checkboxGroupInput("traits_xy5", label = "", choices = NULL),
-                  textOutput("select.more.traits25")
-              ),
-              
-              box(title = "Alpha functional richness inputs", status = "primary", solidHeader = TRUE,
-                  checkboxInput("w.abun", "Weight by species relative abundances?", value = TRUE),
-                  checkboxInput("stand.x", "Standardize continuous traits?", value = TRUE),
-                  checkboxInput("stand.FRic", "Standardize functional richness?", value = TRUE),
-                  selectInput("ord", "Method for handling ordinal traits", 
-                              choices = c("Podani" = "podani", 
-                                          "Metric" = "metric")),
-                  selectInput("corr", "Correction method for negative eigenvalues",
-                              choices = c("None" = "none",
-                                          "Lingoes" = "lingoes",
-                                          "Cailliez" = "cailliez",
-                                          "Square-root" = "sqrt")),
-                  selectInput("dist.metric4a",
-                              "Dissimilarity metric of the dendrograms",
-                              choices = c("Euclidean" = "euclidean",
-                                          "Gower" = "gower",
-                                          "Bray-Curtis" = "bray"),
-                              selected = "gower"),
-                  selectInput("cluster.method2",
-                              "Clustering dendrogram method",
-                              choices = c("Single" = "single",
-                                          "Complete" = "complete",
-                                          "Average" = "average",
-                                          "Ward" = "ward.D2"),
-                              selected = "average"),
-                  numericInput("class_rich.sites", "Number of sites to plot", value = 5)),
-              
-              box(title = "Beta functional richness inputs", status = "primary", solidHeader = TRUE,
-                selectInput("sim.beta.rich1", label = "Similarity metric to compute richness",
-                               choices = c("Jaccard" = "jaccard", 
-                                           "Sorensen" = "sorensen"),
-                               selected = "jaccard"),
-                
-                selectInput("dist.metric4b",
-                            label = "Dissimilarity or correlation metric",
-                            choices = c("Euclidean" = "euclidean", 
-                                        "Manhattan" = "manhattan", 
-                                        "Correlation" = "correlation"),
-                            selected = "euclidean"))
-              
-              )),
-            
-              column(width = 6,
-            # Output: functional richness
-            box(title = "Functional richness (Villéger et al. 2008)", status = "warning", solidHeader = TRUE,
-                plotOutput("class_FRic"),
-                checkboxInput('savePlot14', "Check to save")),
-            
-            box(title = "Sum of dendrogram branch lengths", status = "warning", solidHeader = TRUE,
-            plotOutput("dendro_FRic"),
-            checkboxInput('savePlot15', "Check to save")),
-            
-            box(title = "Beta functional diversity (Cardoso et al. 2014)",
-                status = "warning", solidHeader = TRUE, 
-                plotOutput("betaTot_FRic"),
-                checkboxInput('savePlot16', "Check to save")),
-            
-            box(title = "Turnover component (Cardoso et al. 2014)",
-                status = "warning", solidHeader = TRUE, 
-                plotOutput("betaRep_FRic"),
-                checkboxInput('savePlot17', "Check to save")),
-            
-            box(title = "Species richness component (Cardoso et al. 2014)",
-                status = "warning", solidHeader = TRUE, 
-                plotOutput("betaRich_FRic"),
-                checkboxInput('savePlot18', "Check to save"))
-              )
-),
-                          
-    tabItem(tabName = "hv_rich",
-            
-            fluidRow(
-            box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
-                plotOutput("alpha.hv.FD"),
-                checkboxInput('savePlot19', "Check to save")
-                ),
-                   
-            # Inputs: similarity metric
-            box(title = "Beta functional richness inputs", status = "primary", solidHeader = TRUE,
-                selectInput("sim.beta.rich", label = "Similarity metric to compute richness",
-                             choices = c("Jaccard" = "jaccard", 
-                                         "Sorensen" = "sorensen"),
-                             selected = "jaccard"),
-                actionButton("build.hv1", "Compute functional richness"),
-                selectInput("dist.metric4",
-                            label = "Dissimilarity or correlation metric of the dendrograms",
-                            choices = c("Euclidean" = "euclidean", 
-                                        "Manhattan" = "manhattan",
-                                        "Correlation" = "correlation"),
-                            selected = "euclidean")
-                ),
-            
-            # Outpus: hypervolume beta
-            box(title = "Beta functional diversity", status = "warning", solidHeader = TRUE,
-                plotOutput("total.beta"),
-                checkboxInput('savePlot20', "Check to save")
-                ),
-            
-            box(title = "Turnover component", status = "warning", solidHeader = TRUE,
-                plotOutput("turnover.beta"),
-                 checkboxInput('savePlot21', "Check to save")
-            ),
-            
-            box(title = "Species richness component", status = "warning", solidHeader = TRUE,
-                plotOutput("richness.beta"),
-                checkboxInput('savePlot22', "Check to save")
-                ),
-    )),
-    
-    tabItem(tabName = "classical_reg",
-            # Input: functional evenness parameters
-            fluidRow(
-              column(width = 6,
-                     
-                     box(title = "Alpha functional regularity inputs", status = "primary", solidHeader = TRUE,
-                         checkboxInput("w.abun1", "Weight by species relative abundances?", value = TRUE),
-                         
-                         checkboxInput("stand.x1", "Standardize continuous traits?", value = TRUE),
-                         
-                         selectInput("ord1", "Method for handling ordinal traits", 
-                                     choices = c("Podani" = "podani", 
-                                                 "Metric" = "metric")),
-                         
-                         selectInput("corr1", "Correction method for negative eigenvalues",
-                                     choices = c("None" = "none",
-                                                 "Lingoes" = "lingoes",
-                                                 "Cailliez" = "cailliez",
-                                                 "Square-root" = "sqrt")),
-                         
-                         numericInput("class_eve.sites", "Number of sites to plot", value = 5)),
-                     
-                     box(title = "Beta functional evenness inputs", status = "primary", solidHeader = TRUE,
-                         checkboxInput("w.abun2", "Weight by species relative abundances?", value = TRUE),
-                         
-                         selectInput("dist.metric4c",
-                                     "Dissimilarity metric of the dendrograms",
-                                     choices = c("Euclidean" = "euclidean",
-                                                 "Gower" = "gower",
-                                                 "Bray-Curtis" = "bray"),
-                                     selected = "gower"),
-                         
-                         selectInput("methodEve", label = "Method to compute evenness",
-                                     choices = c("Expected values" = "expected", 
-                                                 "Contribution of species to the tree" = "contribution"),
-                                     selected = "expected"),
-                         
-                         selectInput("indexEve",
-                                     label = "Index to compute evenness",
-                                     choices = c("Camargo" = "camargo", 
-                                                 "Bulla" = "bulla"),
-                                     selected = "camargo"),
-                     
-                         selectInput("dist.metric4d",
-                                     label = "Dissimilarity or correlation metric of the dendrograms",
-                                     choices = c("Euclidean" = "euclidean", 
-                                                 "Manhattan" = "manhattan",
-                                                 "Correlation" = "correlation"),
-                                     selected = "euclidean")
-                     
-              )),
-              
-              column(width = 6,
-                     # Output: functional evenness
-                     box(title = "Functional evenness (Villéger et al. 2008)", status = "warning", solidHeader = TRUE,
-                         plotOutput("class_FEve"),
-                    checkboxInput('savePlot23', "Check to save")),
-                     
-                     box(title = "Beta functional evenness (Cardoso et al. 2014)",
-                         status = "warning", solidHeader = TRUE, 
-                         plotOutput("betaEve"),
-                    checkboxInput('savePlot24', "Check to save"))
-              ))
-    ),
-    
-    tabItem(tabName = "hv_reg",
-            fluidRow(width = 6,
-            box(title = "Functional regularity inputs", status = "primary", solidHeader = TRUE, 
-                selectInput("dist.metric5",
-                            label = "Dissimilarity or correlation metric of the dendrogram",
-                            choices = c("Euclidean" = "euclidean", 
-                                        "Manhattan" = "manhattan",
-                                        "Correlation" = "correlation"),
-                            selected = "euclidean"),
-                actionButton("build.hv2", "Compute functional regularity")
-            ),
-            
-            box(title = "Alpha functional regularity", status = "warning", solidHeader = TRUE,
-                plotOutput("alpha.regularity"),
-                    checkboxInput('savePlot25', "Check to save")
-                ),
-            
-            box(title = "Beta functional regularity", status = "warning", solidHeader = TRUE,
-                plotOutput("beta.regularity"),
-                    checkboxInput('savePlot26', "Check to save")
-                )
-            
-            )),
-    
-    tabItem(tabName = "classical_diverg",
-            # Input: functional evenness parameters
-            fluidRow(
-              column(width = 6,
-
       tabItem(tabName = "classical_rich",
               # Input: functional richness parameters
               fluidRow(
@@ -888,7 +558,6 @@ ui <-dashboardPage(
                          status = "warning", solidHeader = TRUE, 
                          plotOutput("betaTot_FRic"),
                          checkboxInput('savePlot16', "Check to save")),
-
                      
                      box(title = "Turnover component (Cardoso et al. 2014)",
                          status = "warning", solidHeader = TRUE, 
@@ -904,18 +573,6 @@ ui <-dashboardPage(
       
       tabItem(tabName = "hv_rich",
               
-
-              column(width = 6,
-                     # Output: functional divergence
-                     box(title = "Functional divergence (Villéger et al. 2008)", status = "warning", solidHeader = TRUE,
-                    plotOutput("class_FDiv"),
-                    checkboxInput('savePlot27', "Check to save")
-                     )
-              ))
-    ),
-    
-    tabItem(tabName = "hv_diverg",
-
               fluidRow(
                 box(title = "Alpha functional richness", status = "warning", solidHeader = TRUE,
                     plotOutput("alpha.hv.FD"),
@@ -953,7 +610,6 @@ ui <-dashboardPage(
                     checkboxInput('savePlot22', "Check to save")
                 ),
               )),
-
       
       tabItem(tabName = "classical_reg",
               # Input: functional evenness parameters
@@ -1067,25 +723,6 @@ ui <-dashboardPage(
                            numericInput("class_diverg.sites", "Number of sites to plot", value = 5))
                        
                 ),
-<<
-            
-            box(title = "Functional divergence", status = "warning", solidHeader = TRUE,
-                plotOutput("f.divergence"),
-                    checkboxInput('savePlot28', "Check to save")
-                )
-            ),
-    
-    tabItem(tabName = "spcontrib",
-            
-            fluidRow(
-            box(title = "Contribution to functional richness inputs", status = "primary",
-                solidHeader = TRUE,
-                radioButtons("rich.contrib.method", label = "Method",
-                             choices = c("Nearest neighbor" = "neighbor",
-                                         "Leave-one-out approach" = "one out"),
-                             select = "neighbor"),
-                checkboxInput("compute.reg", "Compute contribution to functional
-
                 
                 column(width = 6,
                        # Output: functional divergence
@@ -1125,7 +762,6 @@ ui <-dashboardPage(
                                              "Leave-one-out approach" = "one out"),
                                  select = "neighbor"),
                     checkboxInput("compute.reg", "Compute contribution to functional
-
                               regularity? It may take a while", value = FALSE),
                 ),
                 
@@ -1135,66 +771,6 @@ ui <-dashboardPage(
                                 min = 0, max = 1, value = 0.1),
                     checkboxInput("rel.original", "Should originality be relative to the 
                                most original species in the community?", value = FALSE),
-
-                selectInput("dist.metric6",
-                            label = "Dissimilarity or correlation metric of the dendrograms",
-                            choices = c("Euclidean" = "euclidean", 
-                                        "Manhattan" = "manhattan",
-                                        "Correlation" = "correlation"),
-                            selected = "euclidean"),
-                actionButton("build.hv4", "Compute species contributions") 
-           ),
-            
-            box(title = "Contribution to functional richness", status = "warning", 
-                solidHeader = TRUE,
-                plotOutput("kernel.rich.contrib"),
-                    checkboxInput('savePlot29', "Check to save")
-                ),
-           
-           box(title = "Contribution to functional regularity", status = "warning", 
-               solidHeader = TRUE,
-               plotOutput("kernel.eve.contrib"),
-                    checkboxInput('savePlot30', "Check to save")
-               ),
-            
-            box(title = "Functional originality", status = "warning", 
-                solidHeader = TRUE,
-                plotOutput("kernel.originality"),
-                    checkboxInput('savePlot31', "Check to save")
-                )
-            )),
-                                   
-    tabItem(tabName = "corrFD",
-            
-            box(title = "Community level (alpha diversity)", 
-                status = "warning", solidHeader = TRUE,
-                plotOutput("alpha.comm.corr"),
-                    checkboxInput('savePlot32', "Check to save")
-                ),
-            
-            box(title = "Community level (beta diversity)", 
-                status = "warning", solidHeader = TRUE,
-                plotOutput("beta.comm.corr"),
-                    checkboxInput('savePlot33', "Check to save")
-            ),
-            
-            box(title = "Species level",
-                status = "warning", solidHeader = TRUE,
-                plotOutput("spp.corr"),
-                    checkboxInput('savePlot34', "Check to save")
-                )
-            
-            ),
-
-    tabItem(tabName = "plotDL",
-
-          helpText("Download all saved plots as a single PDF (Note: you must first check the box under each plot to save it)", style = "background-color:lightblue; border-radius:5px"),
-          div(downloadButton("download_plots", "Download Plots", class = "btn-primary")),
-             )
-
-    ))
-    )
-
                     selectInput("dist.metric6",
                                 label = "Dissimilarity or correlation metric of the dendrograms",
                                 choices = c("Euclidean" = "euclidean", 
@@ -1254,7 +830,6 @@ ui <-dashboardPage(
     ))
 )
 
-
 ######################################################################################
 
 
@@ -1274,7 +849,8 @@ server <- function(input, output, session) {
   # output$step1 <- renderText({
   #   toDisplay()
   # })
-
+  
+  
   community_dataset <- reactive({
     req(input$community_dataset) # require data
     inFile <- input$community_dataset
@@ -1339,25 +915,6 @@ server <- function(input, output, session) {
   # Tab "Community data": Heatmap, rarefaction curves, rank-abundance curves and histograms
   output$heatmap_community <- renderPlot({
     if(input$LogX1 == TRUE){
-
-   p<- pheatmap(log(numeric_vars() + 1),
-             clustering_distance_rows = input$dist.metric1,
-             clustering_distance_columns = input$dist.metric1)
-    if (input$savePlot1){
-      name <- paste0('../output/heatmapcommunity_log10.pdf')
-      ggsave(name,p, device="pdf")
-    }
-    else print(p)
-    } else {
-     p<- pheatmap(numeric_vars(), 
-               clustering_distance_rows = input$dist.metric1,
-               clustering_distance_columns = input$dist.metric1)
-    if (input$savePlot1){
-      name <- paste0('../output/heatmapcommunity.pdf')
-      ggsave(name,p, device="pdf")
-    }
-    else print(p)
-
       p<- pheatmap(log(numeric_vars() + 1),
                    clustering_distance_rows = input$dist.metric1,
                    clustering_distance_columns = input$dist.metric1)
@@ -1375,7 +932,6 @@ server <- function(input, output, session) {
         ggsave(name,p, device="pdf")
       }
       else print(p)
-
     }
   })
   
@@ -1399,7 +955,7 @@ server <- function(input, output, session) {
       scale_color_discrete() +
       geom_line(linewidth = 0.8) +
       xlab("Sample size") + ylab("Species richness")
-
+    
     if(input$savePlot2) {
       name <- paste0('../output/rarefactioncurves.pdf')
       ggsave(name,p, device = "pdf")
@@ -1412,7 +968,7 @@ server <- function(input, output, session) {
       abu <- sort(colSums(numeric_vars()), decreasing = TRUE)
       rank_abundance <- data.frame(species = as.factor(names(abu)), abundance = abu)
       rank_abundance$species <- reorder(rank_abundance$species, rank_abundance$abu, FUN = mean, decreasing = TRUE)
-
+      
       p<-ggplot(rank_abundance, aes(x = species, y = abundance, group = 1)) + geom_line() + 
         geom_point(size = 4) + xlab("Species") + ylab("Abundance") +
         theme(axis.text.x = element_text(angle = 90))
@@ -1433,15 +989,6 @@ server <- function(input, output, session) {
         
       }
       
-
-     p<- ggarrange(plotlist = ggplot_list, labels = 1:nrow(numeric_vars()))
-    }
-    if(input$savePlot3)
-      {
-      name <- paste0('../output/rankcurve.pdf')
-      ggsave(name,p, device = "pdf")
-      }
-
       p<- ggarrange(plotlist = ggplot_list, labels = 1:nrow(numeric_vars()))
     }
     if(input$savePlot3)
@@ -1449,28 +996,18 @@ server <- function(input, output, session) {
       name <- paste0('../output/rankcurve.pdf')
       ggsave(name,p, device = "pdf")
     }
-
     else print(p)
   })
   
   output$richness <- renderPlot({
     nspp <- data.frame(richness = rowSums(numeric_vars()))
     if(input$density == TRUE){
-
-    p<-ggplot(data = nspp, aes(x = richness)) + 
-      geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
-
       p<-ggplot(data = nspp, aes(x = richness)) + 
         geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
-
         geom_density(fill = "blue", alpha = 0.5, col = "blue") +
         xlab("Species richness") + ylab("Frequency")
     } else {
-
-     p<- ggplot(data = nspp, aes(x = richness)) + 
-
       p<- ggplot(data = nspp, aes(x = richness)) + 
-
         geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) +
         xlab("Species richness") + ylab("Frequency")
     }
@@ -1488,38 +1025,21 @@ server <- function(input, output, session) {
     abundance <- colSums(PA.comm)
     prev <- data.frame(prevalence = abundance/nsites)
     if(input$density == TRUE){
-
-    p<-ggplot(data = prev, aes(x = prevalence)) + 
-      geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) + 
-        geom_density(fill = "blue", alpha = 0.5, col = "blue") +
-        xlab("Prevalence") + ylab("Frequency")
-    } else {
-     p<- ggplot(data = prev, aes(x = prevalence)) + 
-
       p<-ggplot(data = prev, aes(x = prevalence)) + 
         geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) + 
         geom_density(fill = "blue", alpha = 0.5, col = "blue") +
         xlab("Prevalence") + ylab("Frequency")
     } else {
       p<- ggplot(data = prev, aes(x = prevalence)) + 
-
         geom_histogram(aes(y=..density..), color = "black", fill = "white", bins = input$bins1) + 
         xlab("Prevalence") + ylab("Frequency")
     }
     if(input$savePlot5)
-
-       {
-      name <- paste0('../output/prevalence.pdf')
-      ggsave(name, P,device = "pdf")
-       }
-       else print(p)
-
     {
       name <- paste0('../output/prevalence.pdf')
       ggsave(name, P,device = "pdf")
     }
     else print(p)
-
   })
   
   # Tab "Trait plot": Plot univariate graphs
@@ -1570,11 +1090,7 @@ server <- function(input, output, session) {
                           "density" = geom_density(fill = "blue", alpha = 0.5, 
                                                    col = "blue"),
                           "boxplot" = geom_boxplot())
-
-     p<- ggplot(trait_dataset(), aes(x = tr)) + plot.type + 
-
       p<- ggplot(trait_dataset(), aes(x = tr)) + plot.type + 
-
         xlab(input$trait) + ylab("Frequency")
       
     } else {
@@ -1587,28 +1103,11 @@ server <- function(input, output, session) {
       
       if(input$plot.type == "boxplot"){
         
-
-      p<-  ggplot(trait_dataset(), aes(x = group, y = tr)) + plot.type +
-
         p<-  ggplot(trait_dataset(), aes(x = group, y = tr)) + plot.type +
-
           xlab(input$trait) + ylab("Frequency")
         
       } else {
         
-
-      p<-  ggplot(trait_dataset(), aes(x = tr, group = group, fill = group)) + plot.type +
-          xlab(input$trait) + ylab("Frequency")
-      }
-    }
-
-      if(input$savePlot6)
-       {
-      name <- paste0('../output/traitplot.pdf')
-      ggsave(name, p,device = "pdf")
-       }
-        else print(p)
-
         p<-  ggplot(trait_dataset(), aes(x = tr, group = group, fill = group)) + plot.type +
           xlab(input$trait) + ylab("Frequency")
       }
@@ -1620,7 +1119,6 @@ server <- function(input, output, session) {
       ggsave(name, p,device = "pdf")
     }
     else print(p)
-
   })
   
   # Tab "Collinearity": Plot scatterplots and generate correlation matrix
@@ -1674,18 +1172,6 @@ server <- function(input, output, session) {
     
     traits <- trait_dataset()[, input$traits_xy1]
     p<-switch(input$trans2,
-
-           "None" = ggpairs(traits,
-                            lower = list(continuous = my_fn),
-                            upper = list(continuous = "cor")),
-           "Log" = ggpairs(log(traits + 1),
-                           lower = list(continuous = my_fn),
-                           upper = list(continuous = "cor")),
-           "Square-root" = ggpairs(sqrt(traits),
-                                   lower = list(continuous = my_fn),
-                                   upper = list(continuous = "cor")))
-        if (input$savePlot7){
-
               "None" = ggpairs(traits,
                                lower = list(continuous = my_fn),
                                upper = list(continuous = "cor")),
@@ -1696,7 +1182,6 @@ server <- function(input, output, session) {
                                       lower = list(continuous = my_fn),
                                       upper = list(continuous = "cor")))
     if (input$savePlot7){
-
       name <- paste0('../output/scatterplots.pdf')
       ggsave(name,p, device="pdf")
     }
@@ -1712,15 +1197,6 @@ server <- function(input, output, session) {
   output$missing.data1 <- renderPlot({
     req(input$traits_na)
     p<-aggr(trait_dataset())
-
-        if(input$savePlot8)
-       {
-      name <- paste0('../output/missingdata1.pdf')
-      ggsave(name, device = "pdf")
-       }
-       else print(p)
-    })
-
     if(input$savePlot8)
     {
       name <- paste0('../output/missingdata1.pdf')
@@ -1728,27 +1204,17 @@ server <- function(input, output, session) {
     }
     else print(p)
   })
-
   
   output$data.imputation <- renderPlot({
     req(input$traits_na)
     traits <- trait_dataset()[, input$traits_na]
     p<-marginplot(traits, alpha = 0.6, col = c("skyblue", "orange"), pch = 19)
-
-      if(input$savePlot9)
-       {
-    name <- paste0('../output/dataimputation.pdf')
-    ggsave(name, device = "pdf")
-       }
-        else print(p)
-
     if(input$savePlot9)
     {
       name <- paste0('../output/dataimputation.pdf')
       ggsave(name, device = "pdf")
     }
     else print(p)
-
   })
   
   
@@ -1793,24 +1259,10 @@ server <- function(input, output, session) {
     }
     
     if(input$k.groups.optim == TRUE){
-
-    dist.matrix <- dist(traits2, method = "euclidean")
-    cluster <- hclust(dist.matrix, method = "average")
-    optim.clusters <- NbClust(traits2, distance = "euclidean", method = "average", index = "all")
-    n.clusters <- optim.clusters$Best.nc[1, input$optim.group.method]
-    
-    p<-fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
-              k = n.clusters, color_labels_by_k = TRUE, 
-              rect = input$rectangle, rect_fill = input$rectangle,
-              xlab = "Species", ylab = "Euclidean distance (UPGMA)",
-              ggtheme = theme_minimal(),
-              sub = paste0("Optimal number of clusters = ", n.clusters))
-
       dist.matrix <- dist(traits2, method = "euclidean")
       cluster <- hclust(dist.matrix, method = "average")
       optim.clusters <- NbClust(traits2, distance = "euclidean", method = "average", index = "all")
       n.clusters <- optim.clusters$Best.nc[1, input$optim.group.method]
-
       
       p<-fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
                    k = n.clusters, color_labels_by_k = TRUE, 
@@ -1819,22 +1271,6 @@ server <- function(input, output, session) {
                    ggtheme = theme_minimal(),
                    sub = paste0("Optimal number of clusters = ", n.clusters))
       
-
-    dist.matrix <- vegdist(traits2, method = input$dist.metric2, na.rm = TRUE)
-    cluster <- hclust(dist.matrix, method = input$cluster.method)
-    p<-fviz_dend(cluster, cex = input$label.size, horiz = TRUE, main = "",
-              k = input$k.groups, color_labels_by_k = TRUE, 
-              rect = input$rectangle, rect_fill = input$rectangle,
-              xlab = "Species", ylab = "Dissimilarity",
-              ggtheme = theme_minimal())
-  }
-      if(input$savePlot10)
-       {
-  name <- paste0('../output/dendrogram.pdf')
-  ggsave(name, device = "pdf")
-       } 
-  else print(p)
-
     } else {
       
       dist.matrix <- vegdist(traits2, method = input$dist.metric2, na.rm = TRUE)
@@ -1851,7 +1287,6 @@ server <- function(input, output, session) {
       ggsave(name, device = "pdf")
     } 
     else print(p)
-
   })
   
   output$select.more.traits23 <- renderText({
@@ -1922,21 +1357,12 @@ server <- function(input, output, session) {
                 size = 4, check_overlap = TRUE) + theme_minimal() +
       xlim(min(pcoa.vectors$Dim1) - 0.2, max(pcoa.vectors$Dim1 + 0.2)) +
       ylim(min(pcoa.vectors$Dim2) - 0.2, max(pcoa.vectors$Dim2 + 0.2))
-
-      if(input$savePlot11)
-       {
-      name <- paste0('../output/pcoa.pdf')
-      ggsave(name, device = "pdf")
-       }
-      else print(p)
-
     if(input$savePlot11)
     {
       name <- paste0('../output/pcoa.pdf')
       ggsave(name, device = "pdf")
     }
     else print(p)
-
   })
   
   # % variance explained
@@ -1955,36 +1381,6 @@ server <- function(input, output, session) {
   output$scree <- renderPlot({
     
     if(input$which.screeplot == "raw_eig"){
-
-    pco <- pcoa.function()
-    pcoa.eig <- pco$pcoa.eig
-    
-    naxes <- input$axes.eigenvalues
-    df <- data.frame(axis = 1:naxes, eig = pcoa.eig[1:naxes])
-   p<- ggplot(data = df, aes(x = axis, y = eig)) +
-      geom_bar(stat = "identity", fill = "steelblue") +
-      geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
-      xlab("Component") + ylab("Raw eigenvalue") +
-      theme_minimal()
-  
-  } else {
-  
-    pco <- pcoa.function()
-    pcoa.eig <- pco$pcoa.eig
-    
-    naxes <- input$axes.eigenvalues
-    df <- data.frame(axis = 1:naxes, eig = 100*pcoa.eig[1:naxes]/sum(pcoa.eig[1:naxes]))
-    p<-ggplot(data = df, aes(x = axis, y = eig)) +
-      geom_bar(stat = "identity", fill = "steelblue") +
-      xlab("Component") + ylab("Relative eigenvalue (%)") +
-      theme_minimal()
-  }
-        if(input$savePlot12)
-       {
-    name <- paste0('../output/scree.pdf')
-    ggsave(name, device = "pdf")
-       }
-
       pco <- pcoa.function()
       pcoa.eig <- pco$pcoa.eig
       
@@ -2013,7 +1409,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/scree.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2060,21 +1455,12 @@ server <- function(input, output, session) {
     req(input$traits_xy4)
     p<-plot(hypervolumes())
     if(input$savePlot13)
-
-       {
-    name <- paste0('../output/hv.pdf')
-    ggsave(name, device = "pdf")
-       } 
-    else print(p)
-    })
-
     {
       name <- paste0('../output/hv.pdf')
       ggsave(name, device = "pdf")
     } 
     else print(p)
   })
-
   
   output$hv.data <- renderText({
     if(is.null(input$community_dataset) && is.null(input$trait_dataset)){
@@ -2133,11 +1519,7 @@ server <- function(input, output, session) {
     fd_list <- FRic.function()
     dat <- fd_list$df[1:input$class_rich.sites, ]
     if(input$class_rich.sites > 15){
-
-     p<- ggplot(data = dat, aes(x = FRic)) + geom_histogram(bins = 5) +
-
       p<- ggplot(data = dat, aes(x = FRic)) + geom_histogram(bins = 5) +
-
         xlab("Functional richness") + ylab("Frequency") +
         ggtitle(paste0("Quality of the reduced trait space = ", round(fd_list$qual.FRic, 2)))
     } else {
@@ -2146,49 +1528,29 @@ server <- function(input, output, session) {
         xlab("Site") + ylab("Functional richness") + theme_bw() +
         ggtitle(paste0("Quality of the reduced trait space = ", round(fd_list$qual.FRic, 2)))
     }
-
-      if(input$savePlot14)
-       {
-  name <- paste0('../output/classFRic.pdf')
-  ggsave(name, device = "pdf") 
-       }
-
     if(input$savePlot14)
     {
       name <- paste0('../output/classFRic.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
   output$dendro_FRic <- renderPlot({
     df <- FDdendro.function()
     if(input$class_rich.sites > 15){
-
-     p<- ggplot(data = df, aes(x = FRic)) + geom_histogram(bins = 5) +
-
       p<- ggplot(data = df, aes(x = FRic)) + geom_histogram(bins = 5) +
-
         xlab("Sum of branch lengths") + ylab("Frequency")
     } else {
       p<-ggplot(data = df[1:input$class_rich.sites, ], aes(x = site, y = FRic)) + 
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Sum of branch lengths") + theme_bw()
     }
-
-        if(input$savePlot15)
-       {
-    name <- paste0('../output/dendroFRic.pdf')
-    ggsave(name, device = "pdf") 
-       }
-
     if(input$savePlot15)
     {
       name <- paste0('../output/dendroFRic.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
@@ -2205,16 +1567,6 @@ server <- function(input, output, session) {
   })
   
   output$betaTot_FRic <- renderPlot({
-
-   p<- pheatmap(as.matrix(FRic_beta.function()$Btotal),
-             clustering_distance_rows = input$dist.metric4b,
-             clustering_distance_columns = input$dist.metric4b)
-        if(input$savePlot16)
-       {
-               name <- paste0('../output/betaTotFRic.pdf')
-              ggsave(name, device = "pdf") 
-       }
-
     p<- pheatmap(as.matrix(FRic_beta.function()$Btotal),
                  clustering_distance_rows = input$dist.metric4b,
                  clustering_distance_columns = input$dist.metric4b)
@@ -2223,21 +1575,10 @@ server <- function(input, output, session) {
       name <- paste0('../output/betaTotFRic.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
   output$betaRep_FRic <- renderPlot({
-
-   p<- pheatmap(as.matrix(FRic_beta.function()$Brepl),
-             clustering_distance_rows = input$dist.metric4b,
-             clustering_distance_columns = input$dist.metric4b)
-       if(input$savePlot17)
-       {
-               name <- paste0('../output/betaRepFRic.pdf')
-              ggsave(name, device = "pdf") 
-       }
-
     p<- pheatmap(as.matrix(FRic_beta.function()$Brepl),
                  clustering_distance_rows = input$dist.metric4b,
                  clustering_distance_columns = input$dist.metric4b)
@@ -2246,20 +1587,11 @@ server <- function(input, output, session) {
       name <- paste0('../output/betaRepFRic.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
   output$betaRich_FRic <- renderPlot({
     p<-pheatmap(as.matrix(FRic_beta.function()$Brich),
-
-             clustering_distance_rows = input$dist.metric4b,
-             clustering_distance_columns = input$dist.metric4b)
-       if(input$savePlot18)
-       {
-              name <- paste0('../output/betaRichFRic.pdf')
-              ggsave(name, device = "pdf") 
-       }
                 clustering_distance_rows = input$dist.metric4b,
                 clustering_distance_columns = input$dist.metric4b)
     if(input$savePlot18)
@@ -2267,7 +1599,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/betaRichFRic.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
@@ -2291,25 +1622,11 @@ server <- function(input, output, session) {
   output$alpha.hv.FD <- renderPlot({
     df <- alpha.FD()
     if(input$hv.sites > 15){
-
-     p<- ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
-
       p<- ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
-
         xlab("Alpha functional diversity") + ylab("Frequency")
     }
     else {
       p<-ggplot(data = df, aes(x = site, y = FD)) + 
-
-      geom_bar(stat = "identity", fill = "steelblue") +
-      xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
-    }
-       if(input$savePlot19)
-       {
-    name <- paste0('../output/alphahvFD.pdf')
-     ggsave(name, device = "pdf") 
-       }
-
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Alpha functional diversity") + theme_bw()
     }
@@ -2318,7 +1635,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/alphahvFD.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
@@ -2333,16 +1649,6 @@ server <- function(input, output, session) {
   })
   
   output$total.beta <- renderPlot({
-
-   p<- pheatmap(as.matrix(beta.FD()$Btotal),
-                       clustering_distance_rows = input$dist.metric4,
-                       clustering_distance_columns = input$dist.metric4)
-       if(input$savePlot20)
-       {
-          name <- paste0('../output/totalbeta.pdf')
-          ggsave(name, device = "pdf") 
-       }
-
     p<- pheatmap(as.matrix(beta.FD()$Btotal),
                  clustering_distance_rows = input$dist.metric4,
                  clustering_distance_columns = input$dist.metric4)
@@ -2351,21 +1657,10 @@ server <- function(input, output, session) {
       name <- paste0('../output/totalbeta.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
   output$turnover.beta <- renderPlot({
-
-   p<- pheatmap(as.matrix(beta.FD()$Brepl),
-                       clustering_distance_rows = input$dist.metric4,
-                       clustering_distance_columns = input$dist.metric4)
-                        if(input$savePlot21)
-                        {
-                         name <- paste0('../output/turnoverbeta.pdf')
-                         ggsave(name, device = "pdf") 
-                        }
-
     p<- pheatmap(as.matrix(beta.FD()$Brepl),
                  clustering_distance_rows = input$dist.metric4,
                  clustering_distance_columns = input$dist.metric4)
@@ -2374,21 +1669,10 @@ server <- function(input, output, session) {
       name <- paste0('../output/turnoverbeta.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
   output$richness.beta <- renderPlot({
-
-   p<- pheatmap(as.matrix(beta.FD()$Brich),
-                       clustering_distance_rows = input$dist.metric4,
-                       clustering_distance_columns = input$dist.metric4)
-                       if(input$savePlot22)
-                        {
-                          name <- paste0('../output/richnessbeta.pdf')
-                          ggsave(name, device = "pdf")
-                        }
-
     p<- pheatmap(as.matrix(beta.FD()$Brich),
                  clustering_distance_rows = input$dist.metric4,
                  clustering_distance_columns = input$dist.metric4)
@@ -2397,7 +1681,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/richnessbeta.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2422,17 +1705,10 @@ server <- function(input, output, session) {
   output$class_FEve <- renderPlot({
     df <- FReg.function()[1:input$class_eve.sites, ]
     if(input$class_eve.sites > 15){
-
-     p<- ggplot(data = df, aes(x = FEve)) + geom_histogram(bins = 5) +
-        xlab("Functional evenness") + ylab("Frequency")
-    } else {
-     p<- ggplot(data = df, aes(x = site, y = FEve)) + 
-
       p<- ggplot(data = df, aes(x = FEve)) + geom_histogram(bins = 5) +
         xlab("Functional evenness") + ylab("Frequency")
     } else {
       p<- ggplot(data = df, aes(x = site, y = FEve)) + 
-
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Functional eveness") + theme_bw()
     }
@@ -2459,15 +1735,6 @@ server <- function(input, output, session) {
   
   output$betaEve <- renderPlot({
     p<-pheatmap(as.matrix(FEve_beta.function()),
-
-             clustering_distance_rows = input$dist.metric4d,
-             clustering_distance_columns = input$dist.metric4d)
-        if(input$savePlot24)
-       {
-              name <- paste0('../output/betaeve.pdf')
-              ggsave(name, device = "pdf") 
-       }
-
                 clustering_distance_rows = input$dist.metric4d,
                 clustering_distance_columns = input$dist.metric4d)
     if(input$savePlot24)
@@ -2475,7 +1742,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/betaeve.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
@@ -2508,19 +1774,11 @@ server <- function(input, output, session) {
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Alpha functional regularity") + theme_bw()
     }
-
-       if(input$savePlot25)
-       {
-      name <- paste0('../output/alpharegularity.pdf')
-      ggsave(name, device = "pdf") 
-       }
-
     if(input$savePlot25)
     {
       name <- paste0('../output/alpharegularity.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
@@ -2530,16 +1788,6 @@ server <- function(input, output, session) {
   })
   
   output$beta.regularity <- renderPlot({
-
-  p<-  pheatmap(as.matrix(beta.reg.hv()),
-             clustering_distance_rows = input$dist.metric5,
-             clustering_distance_columns = input$dist.metric5)
-        if(input$savePlot26)
-       {
-              name <- paste0('../output/betaregularity.pdf')
-              ggsave(name, device = "pdf")
-        }
-
     p<-  pheatmap(as.matrix(beta.reg.hv()),
                   clustering_distance_rows = input$dist.metric5,
                   clustering_distance_columns = input$dist.metric5)
@@ -2548,7 +1796,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/betaregularity.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2573,20 +1820,6 @@ server <- function(input, output, session) {
   output$class_FDiv <- renderPlot({
     df <- FDiv.function()[1:input$class_diverg.sites, ]
     if(input$class_diverg.sites > 15){
-
-    p<-  ggplot(data = df, aes(x = FDiv)) + geom_histogram(bins = 5) +
-        xlab("Functional divergence") + ylab("Frequency")
-    } else {
-    p<-  ggplot(data = df, aes(x = site, y = FDiv)) + 
-        geom_bar(stat = "identity", fill = "steelblue") +
-        xlab("Site") + ylab("Functional divergence") + theme_bw()
-    }
-        if(input$savePlot27)
-       {
-    name <- paste0('../output/classFDiv.pdf')
-    ggsave(name, device = "pdf")
-       }
-
       p<-  ggplot(data = df, aes(x = FDiv)) + geom_histogram(bins = 5) +
         xlab("Functional divergence") + ylab("Frequency")
     } else {
@@ -2599,7 +1832,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/classFDiv.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2625,11 +1857,7 @@ server <- function(input, output, session) {
   output$f.divergence <- renderPlot({
     df <- div.hv()
     if(input$hv.sites > 15){
-
-    p<-  ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
-
       p<-  ggplot(data = df, aes(x = FD)) + geom_histogram(bins = 5) +
-
         xlab("Functional divergence") + ylab("Frequency")
     }
     else {
@@ -2637,19 +1865,11 @@ server <- function(input, output, session) {
         geom_bar(stat = "identity", fill = "steelblue") +
         xlab("Site") + ylab("Functional divergence") + theme_bw()
     }
-
-       if(input$savePlot28)
-       {
-    name <- paste0('../output/fdivergence.pdf')
-    ggsave(name, device = "pdf")
-       }
-
     if(input$savePlot28)
     {
       name <- paste0('../output/fdivergence.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2681,16 +1901,6 @@ server <- function(input, output, session) {
   
   output$kernel.rich.contrib <- renderPlot({
     spp.contrib_list <- spp.contrib()
-
-   p<- pheatmap(spp.contrib_list$rich.contrib,
-             clustering_distance_rows = input$dist.metric6,
-             clustering_distance_columns = input$dist.metric6)
-       if(input$savePlot29)
-       {
-              name <- paste0('../output/kernelrichcontrib.pdf')
-              ggsave(name, device = "pdf") 
-       }
-
     p<- pheatmap(spp.contrib_list$rich.contrib,
                  clustering_distance_rows = input$dist.metric6,
                  clustering_distance_columns = input$dist.metric6)
@@ -2699,22 +1909,10 @@ server <- function(input, output, session) {
       name <- paste0('../output/kernelrichcontrib.pdf')
       ggsave(name, device = "pdf") 
     }
-
     else print(p)
   })
   
   output$kernel.eve.contrib <- renderPlot({
-
-  spp.contrib_list <- spp.contrib()
-   p<- pheatmap(spp.contrib_list$eve.contrib,
-             clustering_distance_rows = input$dist.metric6,
-             clustering_distance_columns = input$dist.metric6)
-        if(input$savePlot30)
-       {
-              name <- paste0('../output/kernel.eve.contrib.pdf')
-              ggsave(name, device = "pdf")
-       }
-
     spp.contrib_list <- spp.contrib()
     p<- pheatmap(spp.contrib_list$eve.contrib,
                  clustering_distance_rows = input$dist.metric6,
@@ -2724,22 +1922,11 @@ server <- function(input, output, session) {
       name <- paste0('../output/kernel.eve.contrib.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
   output$kernel.originality <- renderPlot({
     spp.contrib_list <- spp.contrib()
-
-   p<- pheatmap(spp.contrib_list$original,
-             clustering_distance_rows = input$dist.metric6,
-             clustering_distance_columns = input$dist.metric6)
-         if(input$savePlot31)
-       {
-              name <- paste0('../output/kerneloriginality.pdf')
-              ggsave(name, device = "pdf")
-       }
-
     p<- pheatmap(spp.contrib_list$original,
                  clustering_distance_rows = input$dist.metric6,
                  clustering_distance_columns = input$dist.metric6)
@@ -2748,7 +1935,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/kerneloriginality.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2796,42 +1982,6 @@ server <- function(input, output, session) {
         geom_point(alpha = 0.5, size = 2) + 
         geom_smooth(method = lm, fill = "blue", color = "blue", ...)
       p
-
-   }
-   
-  p<-ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
-       if(input$savePlot32)
-       {
-   name <- paste0('../output/alphacommcor.pdf')
-   ggsave(name, device = "pdf") 
-        }
-    else print(p)
-  })
-   
-   output$beta.comm.corr <- renderPlot({
-     df <- data.frame(FRic_beta_total = as.numeric(FRic_beta.function()$Brich),
-                      FRic_beta_turnover = as.numeric(FRic_beta.function()$Brepl),
-                      FRic_beta_richness = as.numeric(FRic_beta.function()$Brich),
-                      HV_FRic_total = as.numeric(beta.FD()$Btotal),
-                      HV_FRic_turnover = as.numeric(beta.FD()$Brepl),
-                      HV_FRic_richness = as.numeric(beta.FD()$Brich),
-                      FEve_beta = as.numeric(FEve_beta.function()),
-                      HV_FReg = as.numeric(beta.reg.hv()))
-     
-     my_fn <- function(data, mapping, ...){
-       p <- ggplot(data = df, mapping = mapping) + 
-         geom_point(alpha = 0.5, size = 2) + 
-         geom_smooth(method = lm, fill = "blue", color = "blue", ...)
-       p
-     }
-   
-   p<- ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
-       if(input$savePlot33)
-       {
-    name <- paste0('../output/beta.comm.corr.pdf')
-    ggsave(name, device = "pdf")
-        }
-
     }
     
     p<-ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
@@ -2866,7 +2016,6 @@ server <- function(input, output, session) {
       name <- paste0('../output/beta.comm.corr.pdf')
       ggsave(name, device = "pdf")
     }
-
     else print(p)
   })
   
@@ -2890,48 +2039,6 @@ server <- function(input, output, session) {
       p
     }
     
-
-   p<- ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
-        if(input$savePlot34)
-       {
-    name <- paste0('../output/sppcorr.pdf')
-    ggsave(name, device = "pdf")
-       }
-    else print(p)
-  })
-
-  ##group all plots together and output them
-  output$download_plots <- downloadHandler(
-  filename= function(){paste0("divanPlots_",humanTime(),".pdf")},
-  content = function(file){
-    pdftools::pdf_combine(list.files("../output", full.names = TRUE)[grepl(".pdf",list.files("../output", full.names = TRUE))], output = file)  
-        #delete so that generated plots don't accumulate
-        file.remove(list.files("../output", full.names = TRUE)[grepl(".pdf",list.files("../output", full.names = TRUE))])
-      }
-  )
-
-#  formData <- reactive({
-#    data <- sapply(fieldsAll, function(x) input[[x]])
-#    data <- c(data, date = humanTime())#add escape characters to commas to avoid breaking up into more than 1 cell
-#   data<-gsub(",", "\\,", data)
-#    data <- t(data)
-#   colnames(data)<-c(fieldsAll, "date")
-#    data
-#  })
-#  saveData <- function(data) {
-#   #  fileName <- sprintf("FDprotocol_%s.csv",
-#   #                      humanTime())
-#    write.csv(x = data, file = file.path(responsesDir, fileName),
-#              row.names = FALSE)
-#  }
-
-
-}
-# ## EJH: I notice that these fields no longer correspond with the steps of this app (they're a hold over from the other one)
-# fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff", "step4", "step5", "step6", "step7", "step8")
-# responsesDir <- file.path("../output")
-humanTime <- function() format(Sys.time(), "%Y%m%d")
-
     p<- ggpairs(df, lower = list(continuous = my_fn), upper = list(continuous = "cor"))
     if(input$savePlot34)
     {
@@ -2972,12 +2079,6 @@ humanTime <- function() format(Sys.time(), "%Y%m%d")
 # fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff", "step4", "step5", "step6", "step7", "step8")
 # responsesDir <- file.path("../output")
 humanTime <- function() format(Sys.time(), "%Y%m%d")
-
-
-## add grateful report of all packages used with versions to folder
-grateful::cite_packages(output="file",out.dir=paste0(getwd(),"/../output"), out.format=c('Rmd'),dependencies=TRUE)
-shinyApp(ui = ui, server = server) 
-
 
 
 ## add grateful report of all packages used with versions to folder
