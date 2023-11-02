@@ -1,7 +1,6 @@
 library(shiny) #1.6.0
 library(shinydashboard) #0.7.1
 library(shinyjs) #2.0.0
-library(shinyFeedback) #0.3.0
 library(waiter) #0.2.4
 library(ggplot2) #3.3.2
 library(GGally) # 2.0.0
@@ -15,6 +14,7 @@ library(alphahull) #2.2
 library(hypervolume) #2.0.12
 library(BAT) #2.6.0
 library(VIM) #6.0.0
+library(pkgbuild)
 
 ui <-dashboardPage(
   dashboardHeader(title = "A toolkit for exploratory functional diversity analyses",
@@ -2075,9 +2075,7 @@ server <- function(input, output, session) {
   
   
 }
-# ## EJH: I notice that these fields no longer correspond with the steps of this app (they're a hold over from the other one)
-# fieldsAll <- c("step1","hyp","nohyp", "scale", "unit","pow1", "pow2", "prer1", "prer2", "foc","reso", "ntax", "s_eff", "step4", "step5", "step6", "step7", "step8")
-# responsesDir <- file.path("../output")
+
 humanTime <- function() format(Sys.time(), "%Y%m%d")
 
 
