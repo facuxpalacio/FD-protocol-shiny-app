@@ -19,7 +19,7 @@ affiliation:
     index: 4
 date: "`r format(Sys.time(), '%d %B %Y')`"
 bibliography: bibliography.bib
-output: distill::distill_article
+output: md_document
 ---
 
 ```{r setup, include=FALSE}
