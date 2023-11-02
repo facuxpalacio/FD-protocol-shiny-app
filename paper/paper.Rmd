@@ -1,6 +1,6 @@
 ---
 title: 'divan: An R Shiny app for exploratory functional diversity analyses'
-author:
+authors:
 - name: Facundo X. Palacio
   affiliation: 1, 2
   corresponding: yes
@@ -9,7 +9,7 @@ author:
 - name: Emma J. Hudgins
   affiliation: 4
 date: "2 November 2023"
-affiliation:
+affiliations:
 - name: Sección Ornitología, Universidad Nacional de La Plata, Argentina
   index: 1
 - name: Consejo Nacional de Investigaciones Científicas y Técnicas, Argentina
