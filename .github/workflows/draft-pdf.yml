@@ -11,7 +11,7 @@ jobs:
         uses: openjournals/openjournals-draft-action@master
         with:
           journal: joss
-          paper-path: divan/manuscript-JOSS/paper.Rmd
+          paper-path: ./manuscript-JOSS/paper.Rmd
       - name: Upload
         uses: actions/upload-artifact@v1
         with:
