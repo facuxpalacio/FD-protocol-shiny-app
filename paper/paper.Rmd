@@ -24,6 +24,7 @@ affiliations:
    index: 2
  - name: Independent Researcher, Country
    index: 3
+   output: document_md
 ---
 
 # Summary
