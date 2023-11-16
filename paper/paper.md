@@ -8,7 +8,7 @@ tags:
 authors:
 - name: Facundo X. Palacio
   affiliation: "1, 2"
-  corresponding: yes
+  corresponding: true
 - name: Caio Graco-Roza
   affiliation: 3
 - name: Emma J. Hudgins
