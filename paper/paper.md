@@ -13,7 +13,6 @@ authors:
   affiliation: 3
 - name: Emma J. Hudgins
   affiliation: 4
-date: "2 November 2023"
 affiliations:
 - name: Sección Ornitología, Universidad Nacional de La Plata, Argentina
   index: 1
