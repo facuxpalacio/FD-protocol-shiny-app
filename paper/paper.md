@@ -27,7 +27,6 @@ affiliations:
 bibliography: paper.bib
 output: md_document
 ---
----
 
 
 # Summary
