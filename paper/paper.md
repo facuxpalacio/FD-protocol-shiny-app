@@ -9,11 +9,10 @@ authors:
 - name: Facundo X. Palacio
   affiliation: 1, 2
   corresponding: yes
-- name: "Caio Graco-Roza"
+- name: Caio Graco-Roza
   affiliation: 3
 - name: Emma J. Hudgins
   affiliation: 4
-date: "2 November 2023"
 affiliations:
 - name: Sección Ornitología, Universidad Nacional de La Plata, Argentina
   index: 1
@@ -26,6 +25,7 @@ affiliations:
   index: 4
 bibliography: paper.bib
 output: md_document
+date: 2 November 2023
 ---
 
 
