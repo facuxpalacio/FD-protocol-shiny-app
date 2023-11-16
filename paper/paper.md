@@ -10,23 +10,23 @@ authors:
     orcid: 0000-0000-0000-0000
     equal-contrib: true
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
-    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
-    affiliation: 2
   - name: Author with no affiliation
     corresponding: true # (This is how to denote the corresponding author)
     affiliation: 3
   - given-names: Ludwig
     dropping-particle: van
     surname: Beethoven
-    affiliation: 3
+    affiliation: 4
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University, USA
-   index: 1
- - name: Institution Name, Country
-   index: 2
- - name: Independent Researcher, Country
-   index: 3
+- name: Sección Ornitología, Universidad Nacional de La Plata, Argentina
+  index: 1
+- name: Consejo Nacional de Investigaciones Científicas y Técnicas, Argentina
+- index: 2
+- name: University of Helsinki, Helsinki, Finland
+  index: 3
+- name: School of Agriculture, Food, and Ecosystem Sciences, The University of Melbourne,
+    Australia
+  index: 4
 date: 16 November 2023
 bibliography: paper.bib
 
