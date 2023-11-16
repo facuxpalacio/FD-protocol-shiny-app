@@ -24,8 +24,10 @@ affiliations:
 - name: School of Agriculture, Food, and Ecosystem Sciences, The University of Melbourne,
     Australia
   index: 4
+date: 16 Nov 2023
 bibliography: paper.bib
 ---
+
 # Summary
 
 Functional diversity, a key aspect of biodiversity, describes the
