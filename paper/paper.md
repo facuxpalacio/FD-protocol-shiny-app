@@ -1,3 +1,34 @@
+---
+title: 'divan: An R Shiny app for exploratory functional diversity analyses'
+tags:
+- Shiny
+- functional ecology
+- biodiversity
+- functional traits
+authors:
+- name: Facundo X. Palacio
+  affiliation: 1, 2
+  corresponding: yes
+- name: Caio Graco-Roza
+  affiliation: 3
+- name: Emma J. Hudgins
+  affiliation: 4
+affiliations:
+- name: Sección Ornitología, Universidad Nacional de La Plata, Argentina
+  index: 1
+- name: Consejo Nacional de Investigaciones Científicas y Técnicas, Argentina
+  index: 2
+- name: University of Helsinki, Helsinki, Finland
+  index: 3
+- name: School of Agriculture, Food, and Ecosystem Sciences, The University of Melbourne,
+    Australia
+  index: 4
+bibliography: paper.bib
+output: md_document
+date: 2 November 2023
+---
+
+
 # Summary
 
 Functional diversity, a key aspect of biodiversity, describes the
