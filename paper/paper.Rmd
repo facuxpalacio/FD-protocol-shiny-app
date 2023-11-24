@@ -76,5 +76,3 @@ We used R version 4.3.1 [@base] and the following R packages: abind v. 1.4.5 [@a
 FXP acknowledges financial support by Consejo Nacional de Investigaciones Científicas y Técnicas (Project PIBAA 28720210100513CO). Federico Riva, Gianluigi Ottaviani, and Stefano Mammola provided thoughtful comments on this manuscript.
 
 # References
-
-
