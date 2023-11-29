@@ -155,14 +155,7 @@ non-linear model fits, and automatically identifying missing data.
 Finally, the user can save all the plots produced as a single PDF file
 for later visualization.
 
-<figure>
-<img src="../fig/fig_1.jpg"
-alt="Figure 1. The graphical user interface (GUI) of divan after loading a community matrix. (a) Sidebar menu, (b) heatmap plus dendrogram of the community matrix, (c) rarefaction curves of individual sites. " />
-<figcaption aria-hidden="true">Figure 1. The graphical user interface
-(GUI) of <strong>divan</strong> after loading a community matrix. (a)
-Sidebar menu, (b) heatmap plus dendrogram of the community matrix, (c)
-rarefaction curves of individual sites. </figcaption>
-</figure>
+![The graphical user interface (GUI) of **divan** after loading a community matrix. (a) Sidebar menu, (b) heatmap plus dendrogram of the community matrix, (c) rarefaction curves of individual sites. \label{fig:example}](../fig/fig_1.jpg)
 
 After exploring summaries of the community and trait data, the next step
 involves constructing a functional trait space (subspace occupied by a
@@ -189,15 +182,7 @@ multidimensional trait space, based on the distribution of the species
 depicting the species, the random points and the predicted boundaries of
 the hypervolumes for each sampling unit.
 
-<figure>
-<img src="../fig/fig_2.jpg"
-alt="Figure 2. The GUI of divan after loading a trait matrix. (a) Sidebar menu, (b) selection of functional traits for analysis and plotting, (c) Principal Coordinate Analysis (PCoA) inputs, (d) biplot of species and functional traits plus density kernel surface." />
-<figcaption aria-hidden="true">Figure 2. The GUI of divan after loading
-a trait matrix. (a) Sidebar menu, (b) selection of functional traits for
-analysis and plotting, (c) Principal Coordinate Analysis (PCoA) inputs,
-(d) biplot of species and functional traits plus density kernel
-surface.</figcaption>
-</figure>
+![The GUI of divan after loading a trait matrix. (a) Sidebar menu, (b) selection of functional traits for analysis and plotting, (c) Principal Coordinate Analysis (PCoA) inputs, (d) biplot of species and functional traits plus density kernel surface.\label{fig:example_2}](../fig/fig_2.jpg)
 
 The last step of the workflow involves computing functional diversity
 indices. Accordingly, the last tab of the application relates to
