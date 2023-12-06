@@ -181,9 +181,7 @@ multidimensional trait space, based on the distribution of the species
 2020). The resulting output is a plot of the first two dimensions
 depicting the species, the random points and the predicted boundaries of
 the hypervolumes for each sampling unit.
-
 ![The GUI of divan after loading a trait matrix. (a) Sidebar menu, (b) selection of functional traits for analysis and plotting, (c) Principal Coordinate Analysis (PCoA) inputs, (d) biplot of species and functional traits plus density kernel surface.\label{fig:example_2}](../fig/fig_2.jpg)
-
 The last step of the workflow involves computing functional diversity
 indices. Accordingly, the last tab of the application relates to
 functional diversity estimation and relies on the functional diversity
