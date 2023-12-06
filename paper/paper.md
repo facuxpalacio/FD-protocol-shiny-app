@@ -1,34 +1,3 @@
----
-title: 'divan: An R Shiny app for exploratory functional diversity analyses'
-tags:
-- Shiny
-- functional ecology
-- biodiversity
-- functional traits
-authors:
-- name: Facundo X. Palacio
-  affiliation: 1, 2
-  corresponding: yes
-- name: Caio Graco-Roza
-  affiliation: 3
-- name: Emma J. Hudgins
-  affiliation: 4
-affiliations:
-- name: Sección Ornitología, Universidad Nacional de La Plata, Argentina
-  index: 1
-- name: Consejo Nacional de Investigaciones Científicas y Técnicas, Argentina
-  index: 2
-- name: University of Helsinki, Helsinki, Finland
-  index: 3
-- name: School of Agriculture, Food, and Ecosystem Sciences, The University of Melbourne,
-    Australia
-  index: 4
-bibliography: paper.bib
-output: md_document
-date: 2 November 2023
----
-
-
 # Summary
 
 Functional diversity, a key aspect of biodiversity, describes the
@@ -182,7 +151,9 @@ multidimensional trait space, based on the distribution of the species
 depicting the species, the random points and the predicted boundaries of
 the hypervolumes for each sampling unit.
 
+
 ![The GUI of divan after loading a trait matrix. (a) Sidebar menu, (b) selection of functional traits for analysis and plotting, (c) Principal Coordinate Analysis (PCoA) inputs, (d) biplot of species and functional traits plus density kernel surface.\label{fig:example_2}](../fig/fig_2.jpg)
+
 
 The last step of the workflow involves computing functional diversity
 indices. Accordingly, the last tab of the application relates to
@@ -225,13 +196,15 @@ Marcantonio (2021) ) and the package documentation includes a user’s
 guide with detailed information of each function
 (<https://github.com/facuxpalacio/divan>).
 
-Requirements and limitations In principle, the package needs both data
-matrices (i.e., community and trait matrices) to fully operate (i.e,.
-computing functional diversity). However, both matrices are independent
-from each other, so that the user can explore the community matrix on
-the one hand (e.g., if the researcher is interested in describing
-species assemblages), and the trait data table on the other hand (e.g.,
-if the study aims to search for patterns in trait spaces).
+# Requirements and limitations
+
+In principle, the package needs both data matrices (i.e., community and
+trait matrices) to fully operate (i.e,. computing functional diversity).
+However, both matrices are independent from each other, so that the user
+can explore the community matrix on the one hand (e.g., if the
+researcher is interested in describing species assemblages), and the
+trait data table on the other hand (e.g., if the study aims to search
+for patterns in trait spaces).
 
 The package is not intended to perform a rigorous functional diversity
 analysis (e.g., relating functional diversity with environmental
@@ -288,6 +261,13 @@ v. 2.1.2 (Schloerke et al. 2021), ggpubr v. 0.6.0 (Kassambara 2023),
 ggrepel v. 0.9.3 (Slowikowski 2023), ggsci v. 3.0.0 (Xiao 2023),
 ggsignif v. 0.6.4 (Constantin and Patil 2021), globals v. 0.16.2
 (Bengtsson 2022), glue v. 1.6
+
+# Acknowledgements
+
+FXP acknowledges financial support by Consejo Nacional de
+Investigaciones Científicas y Técnicas (Project PIBAA 28720210100513CO).
+Federico Riva, Gianluigi Ottaviani, and Stefano Mammola provided
+thoughtful comments on this manuscript.
 
 # References
 
