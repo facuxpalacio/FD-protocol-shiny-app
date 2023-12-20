@@ -33,6 +33,7 @@ shiny::runApp()
 
 # Folder Structure
 app.R: Contains the main Shiny app code.
+
 data/: Stores any necessary datasets or files.
 
 # Contributing
