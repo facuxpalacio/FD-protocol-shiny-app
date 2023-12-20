@@ -31,6 +31,12 @@ library(shiny)
 shiny::runApp()
 ```
 
+# Testing
+Automated tests have been implemented to ensure the functionality of this app. To run the tests:
+
+Navigate to the tests/ directory.
+Execute the test suite using your preferred testing framework.
+
 # Folder Structure
 R/app.R: Contains the main Shiny app code.
 
@@ -67,7 +73,6 @@ When submitting a pull request:
 ## Communication
 
 For any questions or discussions, use the issue tracker or the specified communication channels.
-
 
 # License
 The web-based application is entirely based on Shiny, an open source R package (R 4.2.3, R Core Team 2023). The full list and version of each R package used can be found in the code available at https://github.com/facuxpalacio/divan/tree/main/R - see the LICENSE file for details.
